@@ -6,6 +6,8 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
+#include "netstat.c"
+
 void send_stats_to_server() {
   short int sock;
   struct sockaddr_in server;
@@ -58,6 +60,7 @@ void send_stats_to_server() {
 }
 
 int main(int argc, char *argv[]) {
+  collect_networks_infomation();
   while (1) {
     send_stats_to_server();
     sleep(1);
