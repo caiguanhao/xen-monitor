@@ -122,37 +122,11 @@ static const char PROCNETDEV_HEADER[] =
     " face |bytes    packets errs drop fifo frame compressed multicast|"
     "bytes    packets errs drop fifo colls carrier compressed\n";
 
-char *getBridge(char *excludeName)
-{
-  struct dirent *de;
-  DIR *d;
-
-  char tmp[256] = { 0 }, *bridge;
-
-  bridge = (char *)malloc(16 * sizeof(char));
-
-  d = opendir("/sys/class/net");
-  while ((de = readdir(d)) != NULL) {
-    if ((strlen(de->d_name) > 0) && (de->d_name[0] != '.')
-      && (strstr(de->d_name, excludeName) == NULL)) {
-        sprintf(tmp, "/sys/class/net/%s/bridge", de->d_name);
-
-        if (access(tmp, F_OK) == 0)
-          bridge = de->d_name;
-    }
-  }
-
-  closedir(d);
-
-  return bridge;
-}
-
-int collect_networks_infomation()
+int collect_networks_infomation(stat_networks *networks)
 {
   /* Helper variables for parseNetDevLine() function defined above */
   int i;
-  char line[512] = { 0 }, iface[16] = { 0 }, devBridge[16] = { 0 },
-    devNoBridge[16] = { 0 };
+  char line[512] = { 0 }, iface[16] = { 0 };
   unsigned long long rxBytes, rxPackets, rxErrs, rxDrops, txBytes, txPackets,
     txErrs, txDrops;
 
@@ -180,27 +154,37 @@ int collect_networks_infomation()
 
   fseek(procnetdev, sizeof(PROCNETDEV_HEADER) - 1, SEEK_SET);
 
-  snprintf(devBridge, 16, "%s", getBridge("vir"));
-  snprintf(devNoBridge, 16, "p%s", devBridge);
-
   while (fgets(line, 512, procnetdev)) {
+    stat_network net;
     unsigned int domid, netid;
     parseNetDevLine(line, iface, &rxBytes, &rxPackets, &rxErrs, &rxDrops,
       NULL, NULL, NULL, NULL, &txBytes, &txPackets, &txErrs, &txDrops,
       NULL, NULL, NULL, NULL);
     if (strstr(iface, "vif") != NULL) {
       sscanf(iface, "vif%u.%u", &domid, &netid);
-      printf("%u, %u, %llu, %llu, %llu, %llu, %llu, %llu, %llu, %llu\n",
-        domid,
-        netid,
-        txBytes,
-        txPackets,
-        txErrs,
-        txDrops,
-        rxBytes,
-        rxPackets,
-        rxErrs,
-        rxDrops);
+      net.domid = domid;
+      net.netid = netid;
+      net.tbytes = txBytes;
+      net.tpackets = txPackets;
+      net.terrs = txErrs;
+      net.tdrop = txDrops;
+      net.rbytes = rxBytes;
+      net.rpackets = rxPackets;
+      net.rerrs = rxErrs;
+      net.rdrop = rxDrops;
+
+      if (networks->networks == NULL) {
+        networks->length = 1;
+        networks->networks = malloc(sizeof(stat_network));
+      } else {
+        networks->length++;
+        struct stat_network *tmp;
+        tmp = realloc(networks->networks, networks->length * sizeof(stat_network));
+        if (tmp == NULL) free(networks->networks);
+        networks->networks = tmp;
+      }
+      if (networks->networks == NULL) return 0;
+      networks->networks[networks->length - 1] = net;
     }
   }
 

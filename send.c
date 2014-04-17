@@ -6,6 +6,29 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
+typedef struct stat_networks stat_networks;
+typedef struct stat_network stat_network;
+
+struct stat_networks {
+  unsigned int length;
+  stat_network *networks;
+};
+
+struct stat_network {
+  unsigned int domid;
+  unsigned int netid;
+  /* Received */
+  unsigned long long rbytes;
+  unsigned long long rpackets;
+  unsigned long long rerrs;
+  unsigned long long rdrop;
+  /* Transmitted */
+  unsigned long long tbytes;
+  unsigned long long tpackets;
+  unsigned long long terrs;
+  unsigned long long tdrop;
+};
+
 #include "netstat.c"
 
 void send_stats_to_server() {
@@ -60,9 +83,18 @@ void send_stats_to_server() {
 }
 
 int main(int argc, char *argv[]) {
-  collect_networks_infomation();
+  unsigned int i;
+  stat_networks *networks;
   while (1) {
-    send_stats_to_server();
+    networks = (stat_networks *) calloc(1, sizeof(stat_networks));
+    if (collect_networks_infomation(networks)) {
+      for (i = 0; i < networks->length; i++) {
+        stat_network net = networks->networks[i];
+        printf("%u %llu %llu\n", net.domid, net.rbytes, net.tbytes);
+      }
+    }
+    free(networks);
+    // send_stats_to_server();
     sleep(1);
   }
   return 0;
