@@ -3,24 +3,45 @@
 #include <string.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <getopt.h>
 #include <sys/time.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
 #include "netstat.h"
 
+#define DEFAULT_IP_ADDRESS "127.0.0.1"
+#define DEFAULT_PORT 8124
+
+char ip_address[16] = DEFAULT_IP_ADDRESS;
+int port = DEFAULT_PORT;
+
+static int verbose_flag;
+
+static void help(const char *program) {
+  printf(
+    "Make and send statistics of XenServer virtual machines.\n"
+    "Copyright (c) 2014 Cai Guanhao (Choi Goon-ho)\n"
+    "Licensed under the terms of the MIT license.\n"
+    "Report bugs on http://github.com/caiguanhao/xen-monitor/issues\n\n"
+    "Usage: %s [OPTION]\n"
+    "  -h, --help        display this help and exit\n"
+    "  -v, --verbose     don't be silent\n"
+    "  -i, --ip-address  send to this IP address, default: %s\n"
+    "  -p, --port        send to this port, default: %u\n",
+    program, DEFAULT_IP_ADDRESS, DEFAULT_PORT);
+  return;
+}
+
 void send_stats_to_server(char *message) {
   short int sock;
   struct sockaddr_in server;
-  char ip_address[16];
   fd_set fdset;
   struct timeval timeout;
 
-  strcpy(ip_address, "127.0.0.1");
-
   server.sin_addr.s_addr = inet_addr(ip_address);
   server.sin_family = AF_INET;
-  server.sin_port = htons(8124);
+  server.sin_port = htons(port);
 
   timeout.tv_sec = 3;
   timeout.tv_usec = 0;
@@ -60,7 +81,36 @@ void send_stats_to_server(char *message) {
 }
 
 int main(int argc, char *argv[]) {
-  unsigned int i, j, p;
+  unsigned int c, i, j, p;
+  int option_index = 0;
+
+  while (1) {
+    static struct option opts[] = {
+      { "help",        no_argument,       0,             'h' },
+      { "verbose",     no_argument,       &verbose_flag, 'v' },
+      { "ip-address",  required_argument, 0,             'i' },
+      { "port",        required_argument, 0,             'p' },
+      { 0,             0,                 0,              0  }
+    };
+    c = getopt_long(argc, argv, "hvi:p:", opts, &option_index);
+    if (c == -1) break;
+    switch (c) {
+    case 'i':
+      snprintf(ip_address, sizeof ip_address, "%s", optarg);
+      break;
+    case 'p':
+      sscanf(optarg, "%u", &port);
+      break;
+    case '?':
+      exit(1);
+    case 'h':
+      help(argv[0]);
+      exit(0);
+    default:
+      help(argv[0]);
+      exit(1);
+     }
+  }
 
   virtual_machines *vm = calloc(1, sizeof(virtual_machines));
 
