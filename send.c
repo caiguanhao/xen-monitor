@@ -62,18 +62,40 @@ void send_stats_to_server() {
 
 int main(int argc, char *argv[]) {
   unsigned int i;
-  stat_networks *networks;
+  unsigned long long rdiff;
+  unsigned long long tdiff;
+  unsigned long long rrate;
+  unsigned long long trate;
+  stat_samples *samples;
   while (1) {
-    networks = (stat_networks *) calloc(1, sizeof(stat_networks));
-    if (collect_networks_infomation(networks)) {
-      for (i = 0; i < networks->length; i++) {
-        stat_network net = networks->networks[i];
-        printf("%u %llu %llu\n", net.domid, net.rbytes, net.tbytes);
-      }
+    samples = (stat_samples *) calloc(1, sizeof(stat_samples));
+    samples->before = (stat_networks *) calloc(1, sizeof(stat_networks));
+    if (collect_networks_infomation(samples->before) == 0) {
+      printf("failed to make before sample\n");
+      continue;
     }
-    free(networks);
+    sleep(sample_period);
+    samples->after = (stat_networks *) calloc(1, sizeof(stat_networks));
+    if (collect_networks_infomation(samples->after) == 0) {
+      printf("failed to make after sample\n");
+      continue;
+    }
+    for (i = 0; i < samples->after->length; i++) {
+      stat_network before = samples->before->networks[i];
+      stat_network after = samples->after->networks[i];
+
+      rdiff = after.rbytes - before.rbytes;
+      tdiff = after.tbytes - before.tbytes;
+
+      rrate = rdiff / sample_period;
+      trate = tdiff / sample_period;
+
+      printf("%llu %llu\n", rrate, trate);
+    }
+    free(samples->before);
+    free(samples->after);
+    free(samples);
     // send_stats_to_server();
-    sleep(1);
   }
   return 0;
 }
