@@ -100,12 +100,9 @@ int parseNetDevLine(char *line, char *iface,
             case 16: if (txCarrier != NULL) *txCarrier = ullTmp; break;
             case 17: if (txComp    != NULL) *txComp    = ullTmp; break;
           }
+        } else {
+          if (iface != NULL) strcpy(iface, tmp);
         }
-        else
-        /* There were errors when parsing this directly in RE.
-           strpbrk() helps */
-        if (iface != NULL)
-          strcpy(iface, strpbrk(tmp, "abcdefghijklmnopqrstvuwxyz0123456789"));
 
         memset(tmp, 0, matches[i].rm_eo - matches[i].rm_so);
       }
@@ -116,6 +113,93 @@ int parseNetDevLine(char *line, char *iface,
   regfree(&r);
 
   return 0;
+}
+
+int parseXLLISTVM(char *line, char *uuid, char *name, unsigned int *domid)
+{
+  int ret;
+  int i = 0, x = 0, col = 0;
+  regex_t r;
+  regmatch_t matches[4];
+  int num = 4;
+
+  char *regex = "([^ ]*)[ ]*([^ ]*)[ ]*([^ ]*)[ ]*";
+
+  if ((ret = regcomp(&r, regex, REG_EXTENDED))) {
+    regfree(&r);
+    return ret;
+  }
+
+  if (regexec (&r, line, num, matches, REG_EXTENDED) == 0){
+    for (i = 1; i < num; i++) {
+      if (matches[i].rm_eo - matches[i].rm_so > 0) {
+        col++;
+        if (col == 1 && uuid != NULL) {
+          for (x = 0;
+            x < MIN(matches[i].rm_eo - matches[i].rm_so, vmuuid_length); x++)
+            uuid[x] = line[matches[i].rm_so + x];
+          uuid[x] = '\0';
+        } else if (col == 2 && domid != NULL) {
+          char tmp[6];
+          for (x = 0; x < MIN(matches[i].rm_eo - matches[i].rm_so, 5); x++)
+            tmp[x] = line[matches[i].rm_so + x];
+          tmp[x] = '\0';
+          sscanf(tmp, "%u", domid);
+        } else if (col == 3 && name != NULL) {
+          for (x = 0;
+            x < MIN(matches[i].rm_eo - matches[i].rm_so, vmname_length); x++)
+            name[x] = line[matches[i].rm_so + x];
+          name[x] = '\0';
+        }
+      }
+    }
+  }
+
+  regfree(&r);
+
+  return 0;
+}
+
+int collect_virtual_machines_info(virtual_machines *vm)
+{
+  FILE *xllistvm;
+  xllistvm = popen("xl list-vm 2>/dev/null", "r");
+  if (xllistvm == NULL) {
+    printf("error executing xl command\n");
+    return 0;
+  }
+  char line[512];
+  int first_line = 1;
+  if (vm == NULL) {
+    vm->length = 0;
+  }
+  while (fgets(line, sizeof(line), xllistvm)) {
+    if (first_line == 1) {
+      first_line = 0;
+      continue;
+    }
+    unsigned int* tmp = realloc(vm->domids, (vm->length + 1) * sizeof(unsigned int));
+    if (tmp == NULL) free(vm->domids);
+    vm->domids = tmp;
+
+    char **tmp2 = realloc(vm->uuids, (vm->length + 1) * sizeof(char *));
+    if (tmp2 == NULL) free(vm->uuids);
+    vm->uuids = tmp2;
+    vm->uuids[vm->length] = malloc((vmuuid_length + 1) * sizeof(char));
+
+    char **tmp3 = realloc(vm->names, (vm->length + 1) * sizeof(char *));
+    if (tmp3 == NULL) free(vm->names);
+    vm->names = tmp3;
+    vm->names[vm->length] = malloc((vmname_length + 1) * sizeof(char));
+
+    parseXLLISTVM(line, vm->uuids[vm->length], vm->names[vm->length],
+      &vm->domids[vm->length]);
+
+    vm->length++;
+  }
+
+  if (pclose(xllistvm) != 0) return 0;
+  return 1;
 }
 
 static const char PROCNETDEV_HEADER[] =

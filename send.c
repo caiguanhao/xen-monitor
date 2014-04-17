@@ -62,10 +62,18 @@ void send_stats_to_server() {
 
 int main(int argc, char *argv[]) {
   unsigned int i;
-  unsigned long long rdiff;
-  unsigned long long tdiff;
-  unsigned long long rrate;
-  unsigned long long trate;
+
+  virtual_machines *vm = calloc(1, sizeof(virtual_machines));
+
+  if (collect_virtual_machines_info(vm) == 0) {
+    puts("could not get virtual machine information");
+    return 1;
+  }
+  for (i = 0; i < vm->length; i++) {
+    printf("%u, %s, %s\n", vm->domids[i], vm->uuids[i], vm->names[i]);
+  }
+
+  unsigned long long rdiff, tdiff, rrate, trate;
   stat_samples *samples;
   while (1) {
     samples = (stat_samples *) calloc(1, sizeof(stat_samples));
