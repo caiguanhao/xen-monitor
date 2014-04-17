@@ -16,6 +16,8 @@
 #include <unistd.h>
 #include <regex.h>
 
+#include "netstat.h"
+
 int parseNetDevLine(char *line, char *iface,
     unsigned long long *rxBytes,   unsigned long long *rxPackets,
     unsigned long long *rxErrs,    unsigned long long *rxDrops,
