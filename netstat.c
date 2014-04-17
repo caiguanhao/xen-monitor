@@ -163,7 +163,7 @@ int parseXLLISTVM(char *line, char *uuid, char *name, unsigned int *domid)
 int collect_virtual_machines_info(virtual_machines *vm)
 {
   FILE *xllistvm;
-  xllistvm = popen("xl list-vm 2>/dev/null", "r");
+  xllistvm = popen(xl_list_vm_command, "r");
   if (xllistvm == NULL) {
     printf("error executing xl command\n");
     return 0;
@@ -219,7 +219,7 @@ int collect_networks_infomation(stat_networks *networks)
   FILE *procnetdev;
 
   char header[sizeof(PROCNETDEV_HEADER)];
-  procnetdev = fopen("/proc/net/dev", "r");
+  procnetdev = fopen(proc_net_dev, "r");
   if (procnetdev == NULL) {
     perror("Error opening /proc/net/dev");
     return 0;
@@ -233,8 +233,7 @@ int collect_networks_infomation(stat_networks *networks)
   }
   header[sizeof(PROCNETDEV_HEADER) - 1] = '\0';
   if (strcmp(header, PROCNETDEV_HEADER) != 0) {
-    fprintf(stderr,
-      "Unexpected /proc/net/dev format\n");
+    fprintf(stderr, "Unexpected /proc/net/dev format\n");
     return 0;
   }
 

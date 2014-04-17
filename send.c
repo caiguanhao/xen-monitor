@@ -25,10 +25,12 @@ static void help(const char *program) {
     "Licensed under the terms of the MIT license.\n"
     "Report bugs on http://github.com/caiguanhao/xen-monitor/issues\n\n"
     "Usage: %s [OPTION]\n"
-    "  -h, --help        display this help and exit\n"
-    "  -v, --verbose     don't be silent\n"
-    "  -i, --ip-address  send to this IP address, default: %s\n"
-    "  -p, --port        send to this port, default: %u\n",
+    "  -h, --help                 display this help and exit\n"
+    "  -v, --verbose              don't be silent\n"
+    "  -i, --ip-address   <addr>  send to this IP address, default: %s\n"
+    "  -p, --port         <port>  send to this port, default: %u\n"
+    "  -X, --xl-list-vm   <file>  read this file as if running `xl list-vm`\n"
+    "  -D, --proc-net-dev <file>  read this file instead of /proc/net/dev\n",
     program, DEFAULT_IP_ADDRESS, DEFAULT_PORT);
   return;
 }
@@ -84,15 +86,25 @@ int main(int argc, char *argv[]) {
   unsigned int c, i, j, p;
   int option_index = 0;
 
+  if (xl_list_vm_command == NULL) {
+    snprintf(xl_list_vm_command, sizeof xl_list_vm_command,
+      "xl list-vm 2>/dev/null");
+  }
+  if (proc_net_dev == NULL) {
+    snprintf(proc_net_dev, sizeof proc_net_dev, "/proc/net/dev");
+  }
+
   while (1) {
     static struct option opts[] = {
-      { "help",        no_argument,       0,             'h' },
-      { "verbose",     no_argument,       &verbose_flag, 'v' },
-      { "ip-address",  required_argument, 0,             'i' },
-      { "port",        required_argument, 0,             'p' },
+      { "help",         no_argument,       0,             'h' },
+      { "verbose",      no_argument,       &verbose_flag, 'v' },
+      { "ip-address",   required_argument, 0,             'i' },
+      { "port",         required_argument, 0,             'p' },
+      { "xl-list-vm",   required_argument, 0,             'X' },
+      { "proc-net-dev", required_argument, 0,             'D' },
       { 0,             0,                 0,              0  }
     };
-    c = getopt_long(argc, argv, "hvi:p:", opts, &option_index);
+    c = getopt_long(argc, argv, "hvi:p:X:D:", opts, &option_index);
     if (c == -1) break;
     switch (c) {
     case 'i':
@@ -100,6 +112,13 @@ int main(int argc, char *argv[]) {
       break;
     case 'p':
       sscanf(optarg, "%u", &port);
+      break;
+    case 'X':
+      snprintf(xl_list_vm_command, sizeof xl_list_vm_command,
+        "cat \"%s\" 2>/dev/null", optarg);
+      break;
+    case 'D':
+      snprintf(proc_net_dev, sizeof proc_net_dev, "%s", optarg);
       break;
     case '?':
       exit(1);
@@ -128,13 +147,13 @@ int main(int argc, char *argv[]) {
     samples->before = (stat_networks *) calloc(1, sizeof(stat_networks));
     if (collect_networks_infomation(samples->before) == 0) {
       printf("failed to make before sample\n");
-      continue;
+      break;
     }
     sleep(sample_period);
     samples->after = (stat_networks *) calloc(1, sizeof(stat_networks));
     if (collect_networks_infomation(samples->after) == 0) {
       printf("failed to make after sample\n");
-      continue;
+      break;
     }
     p = snprintf(message, msgsize, "T:%u", (unsigned)time(NULL));
     unsigned int pos;

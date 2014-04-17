@@ -7,6 +7,9 @@
 
 #define MIN(a,b) (((a)<(b))?(a):(b))
 
+char xl_list_vm_command[128];
+char proc_net_dev[128];
+
 typedef struct virtual_machines virtual_machines;
 typedef struct stat_samples stat_samples;
 typedef struct stat_networks stat_networks;
