@@ -80,6 +80,7 @@ void send_stats_to_server(char *message) {
   }
 
   shutdown(sock, 2);
+  close(sock);
 }
 
 int main(int argc, char *argv[]) {

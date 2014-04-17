@@ -9,7 +9,6 @@
  * Copyright 2007 Sun Microsystems, Inc.  All rights reserved.
  * Use is subject to license terms.
  */
-#include <dirent.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -226,14 +225,15 @@ int collect_networks_infomation(stat_networks *networks)
   }
 
   /* Validate the format of /proc/net/dev */
-  if (fread(header, sizeof(PROCNETDEV_HEADER) - 1, 1,
-      procnetdev) != 1) {
+  if (fread(header, sizeof(PROCNETDEV_HEADER) - 1, 1, procnetdev) != 1) {
     perror("Error reading /proc/net/dev header");
+    fclose(procnetdev);
     return 0;
   }
   header[sizeof(PROCNETDEV_HEADER) - 1] = '\0';
   if (strcmp(header, PROCNETDEV_HEADER) != 0) {
     fprintf(stderr, "Unexpected /proc/net/dev format\n");
+    fclose(procnetdev);
     return 0;
   }
 
@@ -272,6 +272,8 @@ int collect_networks_infomation(stat_networks *networks)
       networks->networks[networks->length - 1] = net;
     }
   }
+
+  if (fclose(procnetdev) != 0) return 0;
 
   return 1;
 }
