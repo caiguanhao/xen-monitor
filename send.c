@@ -60,7 +60,7 @@ void send_stats_to_server(char *message) {
 }
 
 int main(int argc, char *argv[]) {
-  unsigned int i, j;
+  unsigned int i, j, p;
 
   virtual_machines *vm = calloc(1, sizeof(virtual_machines));
 
@@ -69,9 +69,10 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
+  unsigned int msgsize = 1024;
+  char message[msgsize];
   unsigned long long rdiff, tdiff, rrate, trate;
   stat_samples *samples;
-  char message[1024];
   while (1) {
     samples = (stat_samples *) calloc(1, sizeof(stat_samples));
     samples->before = (stat_networks *) calloc(1, sizeof(stat_networks));
@@ -85,7 +86,7 @@ int main(int argc, char *argv[]) {
       printf("failed to make after sample\n");
       continue;
     }
-    snprintf(message, sizeof message, "T:%u", (unsigned)time(NULL));
+    p = snprintf(message, msgsize, "T:%u", (unsigned)time(NULL));
     unsigned int pos;
     for (i = 0; i < samples->after->length; i++) {
       stat_network before = samples->before->networks[i];
@@ -99,8 +100,8 @@ int main(int argc, char *argv[]) {
 
       for (j = 0; j < vm->length; j++) {
         if (vm->domids[j] != after.domid) continue;
-        snprintf(message, sizeof message, "%s\n  I:%s N:%s U:%llu D:%llu",
-          message, vm->uuids[j], vm->names[j], rrate, trate);
+        p += snprintf(message + p, msgsize - p, "\n  I:%s N:%s U:%llu D:%llu",
+          vm->uuids[j], vm->names[j], rrate, trate);
       }
     }
     free(samples->before);
