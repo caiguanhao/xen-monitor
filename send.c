@@ -87,27 +87,30 @@ int main(int argc, char *argv[]) {
   unsigned int c, i, j, p;
   int option_index = 0;
 
-  if (xe_vm_list_command == NULL) {
+  if (strlen(xe_vm_list_command) == 0) {
     snprintf(xe_vm_list_command, sizeof xe_vm_list_command,
       "xe vm-list params=uuid,dom-id,networks 2>/dev/null");
   }
-  if (proc_net_dev == NULL) {
+  if (strlen(proc_net_dev) == 0) {
     snprintf(proc_net_dev, sizeof proc_net_dev, "/proc/net/dev");
   }
 
   while (1) {
     static struct option opts[] = {
-      { "help",         no_argument,       0,             'h' },
-      { "verbose",      no_argument,       &verbose_flag, 'v' },
-      { "ip-address",   required_argument, 0,             'i' },
-      { "port",         required_argument, 0,             'p' },
-      { "xe-vm-list",   required_argument, 0,             'X' },
-      { "proc-net-dev", required_argument, 0,             'D' },
-      { 0,              0,                 0,              0  }
+      { "help",         no_argument,       0, 'h' },
+      { "verbose",      no_argument,       0, 'v' },
+      { "ip-address",   required_argument, 0, 'i' },
+      { "port",         required_argument, 0, 'p' },
+      { "xe-vm-list",   required_argument, 0, 'X' },
+      { "proc-net-dev", required_argument, 0, 'D' },
+      { 0,              0,                 0,  0  }
     };
     c = getopt_long(argc, argv, "hvi:p:X:D:", opts, &option_index);
     if (c == -1) break;
     switch (c) {
+    case 'v':
+      verbose_flag = 1;
+      break;
     case 'i':
       snprintf(ip_address, sizeof ip_address, "%s", optarg);
       break;
@@ -177,6 +180,9 @@ int main(int argc, char *argv[]) {
     free(samples->before);
     free(samples->after);
     free(samples);
+    if (verbose_flag) {
+      puts(message);
+    }
     send_stats_to_server(message);
   }
   return 0;
