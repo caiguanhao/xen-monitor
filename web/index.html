@@ -1,0 +1,14 @@
+<script src="/socket.io/socket.io.js"></script>
+
+<script>
+  var socket = io.connect('/');
+  socket.on('connect', function() {
+    socket.emit('GiveMeTheIPAddresses');
+  });
+  socket.on('HereAreTheIPAddresses', function(data) {
+    console.log(data);
+  });
+  socket.on('Update', function(data) {
+    console.log(data)
+  });
+</script>

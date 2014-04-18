@@ -29,10 +29,14 @@ def parse(content):
 
 def store(stats):
   pipe = REDIS.pipeline();
+  update = []
   for stat in stats:
+    pipe.sadd('keys', stat[1]);
     pipe.lpush(stat[1] + ':T', stat[0]).ltrim(stat[1] + ':T', 0, E_MAX - 1);
     pipe.lpush(stat[1] + ':D', stat[2]).ltrim(stat[1] + ':D', 0, E_MAX - 1);
     pipe.lpush(stat[1] + ':U', stat[3]).ltrim(stat[1] + ':U', 0, E_MAX - 1);
+    update.append(stat[1])
+  pipe.publish('update', ','.join(update));
   pipe.execute();
 
 if __name__ == "__main__":

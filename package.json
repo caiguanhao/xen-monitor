@@ -1,0 +1,32 @@
+{
+  "name": "xen-monitor",
+  "version": "0.0.0",
+  "description": "Monitor XenServer in Choi-Goon-Ho way.",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/caiguanhao/xen-monitor.git"
+  },
+  "keywords": [
+    "XenServer",
+    "Xen",
+    "monitor",
+    "real-time"
+  ],
+  "author": "Cai Guanhao <Choi Goon-ho>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/caiguanhao/xen-monitor/issues"
+  },
+  "homepage": "https://github.com/caiguanhao/xen-monitor",
+  "dependencies": {
+    "express": "^4.0.0",
+    "hiredis": "^0.1.16",
+    "redis": "^0.10.1",
+    "socket.io": "^0.9.16"
+  },
+  "devDependencies": {
+    "grunt-contrib-watch": "^0.6.1",
+    "grunt": "^0.4.4",
+    "grunt-express-server": "^0.4.13"
+  }
+}
