@@ -114,90 +114,80 @@ int parseNetDevLine(char *line, char *iface,
   return 0;
 }
 
-int parseXLLISTVM(char *line, char *uuid, char *name, unsigned int *domid)
+int collect_virtual_machines_info(virtual_machines *vm)
 {
+  FILE *xevmlist;
+  xevmlist = popen(xe_vm_list_command, "r");
+  if (xevmlist == NULL) {
+    printf("error executing xe command\n");
+    return 0;
+  }
+  char line[512];
+  if (vm == NULL) {
+    vm->length = 0;
+  }
+
   int ret;
-  int i = 0, x = 0, col = 0;
+  int x = 0, l = 0;
   regex_t r;
-  regmatch_t matches[4];
-  int num = 4;
+  regmatch_t m[2];
 
-  char *regex = "([^ ]*)[ ]*([^ ]*)[ ]*([^ ]*)[ ]*";
+  char *regex = "[ ]*([^ ]*)$";
 
-  if ((ret = regcomp(&r, regex, REG_EXTENDED))) {
+  if ((ret = regcomp(&r, regex, REG_EXTENDED | REG_NEWLINE))) {
     regfree(&r);
     return ret;
   }
 
-  if (regexec (&r, line, num, matches, REG_EXTENDED) == 0){
-    for (i = 1; i < num; i++) {
-      if (matches[i].rm_eo - matches[i].rm_so > 0) {
-        col++;
-        if (col == 1 && uuid != NULL) {
-          for (x = 0;
-            x < MIN(matches[i].rm_eo - matches[i].rm_so, vmuuid_length); x++)
-            uuid[x] = line[matches[i].rm_so + x];
-          uuid[x] = '\0';
-        } else if (col == 2 && domid != NULL) {
-          char tmp[6];
-          for (x = 0; x < MIN(matches[i].rm_eo - matches[i].rm_so, 5); x++)
-            tmp[x] = line[matches[i].rm_so + x];
-          tmp[x] = '\0';
-          sscanf(tmp, "%u", domid);
-        } else if (col == 3 && name != NULL) {
-          for (x = 0;
-            x < MIN(matches[i].rm_eo - matches[i].rm_so, vmname_length); x++)
-            name[x] = line[matches[i].rm_so + x];
-          name[x] = '\0';
-        }
-      }
+  while (fgets(line, sizeof(line), xevmlist)) {
+    if (strlen(line) < 2 || regexec(&r, line, 2, m, REG_EXTENDED) != 0) {
+      continue;
     }
+    switch (l % 3) {
+    case 0: {
+      vm->length = (int)(l / 3) + 1;
+
+      char **tmp2 = realloc(vm->uuids, vm->length * sizeof(char *));
+      if (tmp2 == NULL) free(vm->uuids);
+      vm->uuids = tmp2;
+      vm->uuids[vm->length-1] = malloc((vmuuid_length + 1) * sizeof(char));
+
+      for (x = 0; x < MIN(m[1].rm_eo - m[1].rm_so, vmuuid_length); x++)
+        vm->uuids[vm->length-1][x] = line[m[1].rm_so + x];
+      vm->uuids[vm->length-1][x] = '\0';
+      break;
+    }
+    case 1: {
+      unsigned int* tmp = realloc(vm->domids, vm->length * sizeof(unsigned int));
+      if (tmp == NULL) free(vm->domids);
+      vm->domids = tmp;
+
+      char domid[6];
+      for (x = 0; x < MIN(m[1].rm_eo - m[1].rm_so, 5); x++)
+        domid[x] = line[m[1].rm_so + x];
+      domid[x] = '\0';
+      sscanf(domid, "%u", &vm->domids[vm->length-1]);
+      break;
+    }
+    case 2: {
+      char **tmp3 = realloc(vm->ips, vm->length * sizeof(char *));
+      if (tmp3 == NULL) free(vm->ips);
+      vm->ips = tmp3;
+      vm->ips[vm->length-1] = malloc((vmip_length + 1) * sizeof(char));
+
+      for (x = 0; x < MIN(m[1].rm_eo - m[1].rm_so, vmip_length); x++)
+        vm->ips[vm->length-1][x] = line[m[1].rm_so + x];
+      vm->ips[vm->length-1][x] = '\0';
+      break;
+    }
+    }
+    l++;
   }
 
   regfree(&r);
 
-  return 0;
-}
+  if (pclose(xevmlist) != 0) return 0;
 
-int collect_virtual_machines_info(virtual_machines *vm)
-{
-  FILE *xllistvm;
-  xllistvm = popen(xl_list_vm_command, "r");
-  if (xllistvm == NULL) {
-    printf("error executing xl command\n");
-    return 0;
-  }
-  char line[512];
-  int first_line = 1;
-  if (vm == NULL) {
-    vm->length = 0;
-  }
-  while (fgets(line, sizeof(line), xllistvm)) {
-    if (first_line == 1) {
-      first_line = 0;
-      continue;
-    }
-    unsigned int* tmp = realloc(vm->domids, (vm->length + 1) * sizeof(unsigned int));
-    if (tmp == NULL) free(vm->domids);
-    vm->domids = tmp;
-
-    char **tmp2 = realloc(vm->uuids, (vm->length + 1) * sizeof(char *));
-    if (tmp2 == NULL) free(vm->uuids);
-    vm->uuids = tmp2;
-    vm->uuids[vm->length] = malloc((vmuuid_length + 1) * sizeof(char));
-
-    char **tmp3 = realloc(vm->names, (vm->length + 1) * sizeof(char *));
-    if (tmp3 == NULL) free(vm->names);
-    vm->names = tmp3;
-    vm->names[vm->length] = malloc((vmname_length + 1) * sizeof(char));
-
-    parseXLLISTVM(line, vm->uuids[vm->length], vm->names[vm->length],
-      &vm->domids[vm->length]);
-
-    vm->length++;
-  }
-
-  if (pclose(xllistvm) != 0) return 0;
   return 1;
 }
 

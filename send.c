@@ -29,7 +29,7 @@ static void help(const char *program) {
     "  -v, --verbose              don't be silent\n"
     "  -i, --ip-address   <addr>  send to this IP address, default: %s\n"
     "  -p, --port         <port>  send to this port, default: %u\n"
-    "  -X, --xl-list-vm   <file>  read this file as if running `xl list-vm`\n"
+    "  -X, --xe-vm-list   <file>  read this file as if running `xe vm-list`\n"
     "  -D, --proc-net-dev <file>  read this file instead of /proc/net/dev\n",
     program, DEFAULT_IP_ADDRESS, DEFAULT_PORT);
   return;
@@ -87,9 +87,9 @@ int main(int argc, char *argv[]) {
   unsigned int c, i, j, p;
   int option_index = 0;
 
-  if (xl_list_vm_command == NULL) {
-    snprintf(xl_list_vm_command, sizeof xl_list_vm_command,
-      "xl list-vm 2>/dev/null");
+  if (xe_vm_list_command == NULL) {
+    snprintf(xe_vm_list_command, sizeof xe_vm_list_command,
+      "xe vm-list params=uuid,dom-id,networks 2>/dev/null");
   }
   if (proc_net_dev == NULL) {
     snprintf(proc_net_dev, sizeof proc_net_dev, "/proc/net/dev");
@@ -101,9 +101,9 @@ int main(int argc, char *argv[]) {
       { "verbose",      no_argument,       &verbose_flag, 'v' },
       { "ip-address",   required_argument, 0,             'i' },
       { "port",         required_argument, 0,             'p' },
-      { "xl-list-vm",   required_argument, 0,             'X' },
+      { "xe-vm-list",   required_argument, 0,             'X' },
       { "proc-net-dev", required_argument, 0,             'D' },
-      { 0,             0,                 0,              0  }
+      { 0,              0,                 0,              0  }
     };
     c = getopt_long(argc, argv, "hvi:p:X:D:", opts, &option_index);
     if (c == -1) break;
@@ -115,7 +115,7 @@ int main(int argc, char *argv[]) {
       sscanf(optarg, "%u", &port);
       break;
     case 'X':
-      snprintf(xl_list_vm_command, sizeof xl_list_vm_command,
+      snprintf(xe_vm_list_command, sizeof xe_vm_list_command,
         "cat \"%s\" 2>/dev/null", optarg);
       break;
     case 'D':
@@ -170,8 +170,8 @@ int main(int argc, char *argv[]) {
 
       for (j = 0; j < vm->length; j++) {
         if (vm->domids[j] != after.domid) continue;
-        p += snprintf(message + p, msgsize - p, "\n  I:%s N:%s U:%llu D:%llu",
-          vm->uuids[j], vm->names[j], rrate, trate);
+        p += snprintf(message + p, msgsize - p, "\n  I:%s U:%llu D:%llu",
+          vm->ips[j], rrate, trate);
       }
     }
     free(samples->before);

@@ -3,11 +3,11 @@
 
 #define sample_period 2
 #define vmuuid_length 36
-#define vmname_length 64
+#define vmip_length 15
 
 #define MIN(a,b) (((a)<(b))?(a):(b))
 
-char xl_list_vm_command[128];
+char xe_vm_list_command[128];
 char proc_net_dev[128];
 
 typedef struct virtual_machines virtual_machines;
@@ -19,7 +19,7 @@ struct virtual_machines {
   unsigned int length;
   unsigned int *domids;
   char **uuids;
-  char **names;
+  char **ips;
 };
 
 struct stat_samples {
