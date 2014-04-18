@@ -1,7 +1,7 @@
 #ifndef NETSTAT_H
 #define NETSTAT_H
 
-#define sample_period 2
+#define DEFAULT_SAMPLE_PERIOD 2
 #define vmuuid_length 36
 #define vmip_length 15
 
@@ -9,6 +9,8 @@
 
 char xe_vm_list_command[128];
 char proc_net_dev[128];
+
+unsigned int sample_period;
 
 typedef struct virtual_machines virtual_machines;
 typedef struct stat_samples stat_samples;

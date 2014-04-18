@@ -25,13 +25,14 @@ static void help(const char *program) {
     "Licensed under the terms of the MIT license.\n"
     "Report bugs on http://github.com/caiguanhao/xen-monitor/issues\n\n"
     "Usage: %s [OPTION]\n"
-    "  -h, --help                 display this help and exit\n"
-    "  -v, --verbose              don't be silent\n"
-    "  -i, --ip-address   <addr>  send to this IP address, default: %s\n"
-    "  -p, --port         <port>  send to this port, default: %u\n"
-    "  -X, --xe-vm-list   <file>  read this file as if running `xe vm-list`\n"
-    "  -D, --proc-net-dev <file>  read this file instead of /proc/net/dev\n",
-    program, DEFAULT_IP_ADDRESS, DEFAULT_PORT);
+    "  -h, --help                  display this help and exit\n"
+    "  -v, --verbose               don't be silent\n"
+    "  -s, --sample-period <secs>  sample period, default: %u second(s)\n"
+    "  -i, --ip-address    <addr>  send to this IP address, default: %s\n"
+    "  -p, --port          <port>  send to this port, default: %u\n"
+    "  -X, --xe-vm-list    <file>  read this file as if running `xe vm-list`\n"
+    "  -D, --proc-net-dev  <file>  read this file instead of /proc/net/dev\n",
+    program, DEFAULT_SAMPLE_PERIOD, DEFAULT_IP_ADDRESS, DEFAULT_PORT);
   return;
 }
 
@@ -97,19 +98,23 @@ int main(int argc, char *argv[]) {
 
   while (1) {
     static struct option opts[] = {
-      { "help",         no_argument,       0, 'h' },
-      { "verbose",      no_argument,       0, 'v' },
-      { "ip-address",   required_argument, 0, 'i' },
-      { "port",         required_argument, 0, 'p' },
-      { "xe-vm-list",   required_argument, 0, 'X' },
-      { "proc-net-dev", required_argument, 0, 'D' },
-      { 0,              0,                 0,  0  }
+      { "help",          no_argument,       0, 'h' },
+      { "verbose",       no_argument,       0, 'v' },
+      { "sample-period", required_argument, 0, 's' },
+      { "ip-address",    required_argument, 0, 'i' },
+      { "port",          required_argument, 0, 'p' },
+      { "xe-vm-list",    required_argument, 0, 'X' },
+      { "proc-net-dev",  required_argument, 0, 'D' },
+      { 0,               0,                 0,  0  }
     };
-    c = getopt_long(argc, argv, "hvi:p:X:D:", opts, &option_index);
+    c = getopt_long(argc, argv, "hvs:i:p:X:D:", opts, &option_index);
     if (c == -1) break;
     switch (c) {
     case 'v':
       verbose_flag = 1;
+      break;
+    case 's':
+      sscanf(optarg, "%u", &sample_period);
       break;
     case 'i':
       snprintf(ip_address, sizeof ip_address, "%s", optarg);
@@ -135,11 +140,17 @@ int main(int argc, char *argv[]) {
      }
   }
 
+  if (sample_period < 1) sample_period = DEFAULT_SAMPLE_PERIOD;
+
   virtual_machines *vm = calloc(1, sizeof(virtual_machines));
 
   if (collect_virtual_machines_info(vm) == 0) {
     puts("could not get virtual machine information");
     return 1;
+  }
+
+  if (verbose_flag) {
+    printf("sample period is %u second(s)\n", sample_period);
   }
 
   unsigned int msgsize = 1024;
