@@ -7,7 +7,13 @@ clean:
 fake: send
 	./send -X fake/xe-vm-list -D fake/proc/net/dev
 
-receive:
+receive: redis-bg
 	python receive.py
 
-.PHONY: clean fake receive
+redis:
+	redis-server /usr/local/etc/redis.conf
+
+redis-bg:
+	redis-server /usr/local/etc/redis.conf --daemonize yes
+
+.PHONY: clean fake receive redis redis-bg

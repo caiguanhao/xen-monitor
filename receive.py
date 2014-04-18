@@ -1,5 +1,10 @@
 import re
 import socket
+import redis
+
+E_MAX = 100
+
+REDIS = redis.StrictRedis(host='localhost', port=6379, db=0)
 
 def parse(content):
   lines = content.splitlines()
@@ -9,20 +14,26 @@ def parse(content):
     T = re.search('T:(\d+)', line)
     if T: time = T.group(1)
 
-    I = re.search('I:([a-f0-9\-]+)', line)
+    I = re.search('I:(([0-9]{1,3}\.){3}[0-9]{1,3})', line)
     if not I: continue
-    N = re.search('N:([^ ]+)', line)
     D = re.search('D:([0-9]+)', line)
     U = re.search('U:([0-9]+)', line)
 
     stats.append((
       int(time),
       I.group(1),
-      N.group(1) if N else None,
       int(D.group(1)) if D else 0,
       int(U.group(1)) if U else 0))
 
   return stats
+
+def store(stats):
+  pipe = REDIS.pipeline();
+  for stat in stats:
+    pipe.lpush(stat[1] + ':T', stat[0]).ltrim(stat[1] + ':T', 0, E_MAX - 1);
+    pipe.lpush(stat[1] + ':D', stat[2]).ltrim(stat[1] + ':D', 0, E_MAX - 1);
+    pipe.lpush(stat[1] + ':U', stat[3]).ltrim(stat[1] + ':U', 0, E_MAX - 1);
+  pipe.execute();
 
 if __name__ == "__main__":
   sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM);
@@ -32,4 +43,4 @@ if __name__ == "__main__":
     connection, address = sock.accept()
     data = connection.recv(1024)
     stats = parse(data)
-    print stats[0][0]
+    store(stats)
