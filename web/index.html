@@ -1,14 +1,93 @@
-<script src="/socket.io/socket.io.js"></script>
+<!DOCTYPE html>
+<html ng-app="xen-mon-app">
 
-<script>
-  var socket = io.connect('/');
-  socket.on('connect', function() {
-    socket.emit('GiveMeTheIPAddresses');
-  });
-  socket.on('HereAreTheIPAddresses', function(data) {
-    console.log(data);
-  });
-  socket.on('Update', function(data) {
-    console.log(data)
-  });
-</script>
+<head>
+  <meta charset="UTF-8">
+  <title>Xen-Monitor</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Xen-Monitor">
+  <link rel="stylesheet" href="/css/application.css">
+  <!--[if gt IE 9]><!-->
+  <script src="/js/vendor/angular.js"></script>
+  <script src="/js/vendor/angular-route.js"></script>
+  <script src="/js/application.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="http://localhost:35729/livereload.js"></script>
+  <!--<![endif]-->
+  <script type="text/ng-template" id="index">
+    <div id="wrap">
+      <header>
+        <nav class="navbar navbar-default navbar-fixed-top">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle">
+                <span class="sr-only"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="/#/">Xen Monitor</a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <ul class="nav navbar-nav">
+              </ul>
+            </div>
+          </div>
+        </nav>
+      </header>
+      <div id="content" class="container" ng-view></div>
+    </div>
+    <footer>
+      <div class="footer container">
+        <span i18n="footer:Copyright"></span> &copy; 2014
+        <a href="http://cgh.io/" target="_blank">cgh.io</a>
+        |
+        <a href="https://github.com/caiguanhao/xen-monitor"
+          target="_blank">View source code</a>
+      </div>
+    </footer>
+  </script>
+  <script type="text/ng-template" id="main">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>IP Address</th>
+          <th>Upload</th>
+          <th>Download</th>
+          <th>Time</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr ng-repeat="(server_name, server) in servers">
+          <td ng-bind="server_name"></td>
+          <td ng-bind="server.upload"></td>
+          <td ng-bind="server.download"></td>
+          <td ng-bind="server.time"></td>
+        </tr>
+      </tbody>
+    </table>
+  </script>
+</head>
+
+<body>
+  <!--[if lte IE 9]>
+    <div class="ie-warnings">
+      <b>Your browser is out of date.</b>
+      <br>
+      Please upgrade to IE 10 or use Chrome or Firefox browser.
+      <br>
+      Download Chrome from:
+      <a href="https://www.google.com/chrome/">Google</a> |
+      <a href="http://dl.pconline.com.cn/download/51614-1.html">
+        PCOnline (Windows)
+      </a>
+      <br>
+      Download Firefox from:
+      <a href="http://www.mozilla.org/en-US/firefox/new/">Mozilla</a>
+      <br>
+      You can also view this page on your iPhone or Android.
+    </div>
+  <![endif]-->
+</body>
+
+</html>

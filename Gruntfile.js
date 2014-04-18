@@ -8,6 +8,13 @@ module.exports = function(grunt) {
         }
       }
     },
+    less: {
+      application: {
+        files: {
+          'web/css/application.css': [ 'web/css/application.less' ]
+        }
+      }
+    },
     watch: {
       options: {
         livereload: true
@@ -23,16 +30,25 @@ module.exports = function(grunt) {
           livereload: false
         }
       },
+      js: {
+        files: [ 'web/**/*.js' ]
+      },
+      css: {
+        files: [ 'web/**/*.css', 'web/**/*.less' ],
+        tasks: [ 'less' ]
+      },
       html: {
-        files: [ 'web/' ]
+        files: [ 'web/**/*.html' ]
       }
     }
   });
 
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-express-server');
+  grunt.loadNpmTasks('grunt-contrib-less');
 
   grunt.registerTask('default', [
+    'less',
     'express',
     'watch'
   ]);
