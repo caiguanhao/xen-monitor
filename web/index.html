@@ -48,38 +48,40 @@
     </footer>
   </script>
   <script type="text/ng-template" id="main">
-    <table class="table">
-      <thead>
-        <tr>
-          <th>IP Address</th>
-          <th>Upload</th>
-          <th>Download</th>
-          <th>Time</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr ng-repeat="server in servers">
-          <td ng-bind="server.IP"></td>
-          <td>
-            <div class="progress">
-              <div class="progress-bar progress-bar-{{server.uploadColor}}"
-                style="width: {{server.uploadPercent}}%;">
-                <span ng-bind="server.uploadText"></span>
-              </div>
-            </div>
-          </td>
-          <td>
-            <div class="progress">
-              <div class="progress-bar progress-bar-{{server.downloadColor}}"
-                style="width: {{server.downloadPercent}}%;">
-                <span ng-bind="server.downloadText"></span>
-              </div>
-            </div>
-          </td>
-          <td ng-bind="server.time"></td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="row">
+      <div class="col-sm-6">
+        <table class="table table-stat">
+          <thead>
+            <tr>
+              <th class="ipaddr">IP Address</th>
+              <th class="upload">Upload</th>
+              <th class="download">Download</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr ng-repeat="server in servers">
+              <td ng-bind="server.IP"></td>
+              <td>
+                <div class="progress">
+                  <div class="progress-bar progress-bar-{{server.uploadColor}}"
+                    style="width: {{server.uploadPercent}}%;">
+                    <span ng-bind="server.uploadText"></span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="progress">
+                  <div class="progress-bar progress-bar-{{server.downloadColor}}"
+                    style="width: {{server.downloadPercent}}%;">
+                    <span ng-bind="server.downloadText"></span>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
   </script>
 </head>
 
