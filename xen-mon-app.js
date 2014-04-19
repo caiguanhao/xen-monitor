@@ -14,9 +14,13 @@ server.listen(PORT);
 
 io.set('log level', 0);
 
+app.use(express.static(__dirname + '/public'));
+
 if (ENVIRONMENT === 'production') {
-  app.use(express.static(__dirname + '/public'));
-} else {
+  io.disable('browser client');
+}
+
+if (ENVIRONMENT === 'development') {
   app.use(express.static(__dirname + '/web'));
 }
 

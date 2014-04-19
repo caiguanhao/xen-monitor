@@ -99,6 +99,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-yet-another-angular-templates');
 
   grunt.registerTask('default', [
+    'clean',
     'less',
     'express',
     'watch'
