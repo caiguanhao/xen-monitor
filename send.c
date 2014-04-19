@@ -15,6 +15,7 @@
 
 char ip_address[16] = DEFAULT_IP_ADDRESS;
 int port = DEFAULT_PORT;
+int is_disconnected = 1;
 
 static int verbose_flag;
 
@@ -51,7 +52,7 @@ void send_stats_to_server(char *message) {
 
   sock = socket(AF_INET, SOCK_STREAM, 0);
   if (sock == -1) {
-    puts("failed to create a socket");
+    perror("failed to create a socket");
     return;
   }
 
@@ -67,17 +68,22 @@ void send_stats_to_server(char *message) {
     socklen_t len = sizeof so_error;
     getsockopt(sock, SOL_SOCKET, SO_ERROR, &so_error, &len);
     if (so_error == 0) {
-      printf("connected... ");
+      if (verbose_flag || is_disconnected) {
+        printf("connected to %s:%u\n", ip_address, port);
+        is_disconnected = 0;
+      }
       if (send(sock, message, strlen(message), 0) < 0) {
-        puts("failed to send data");
+        perror("failed to send data");
       } else {
-        puts("data has been sent.");
+        if (verbose_flag) puts("... and data has been sent.");
       }
     } else {
-      printf("could not connect to %s\n", ip_address);
+      fprintf(stderr, "could not connect to %s:%u\n", ip_address, port);
+      is_disconnected = 1;
     }
   } else {
-    printf("could not connect to %s\n", ip_address);
+    fprintf(stderr, "could not connect to %s:%u\n", ip_address, port);
+    is_disconnected = 1;
   }
 
   shutdown(sock, 2);
@@ -145,7 +151,7 @@ int main(int argc, char *argv[]) {
   virtual_machines *vm = calloc(1, sizeof(virtual_machines));
 
   if (collect_virtual_machines_info(vm) == 0) {
-    puts("could not get virtual machine information");
+    perror("could not get virtual machine information");
     return 1;
   }
 
@@ -161,13 +167,13 @@ int main(int argc, char *argv[]) {
     samples = (stat_samples *) calloc(1, sizeof(stat_samples));
     samples->before = (stat_networks *) calloc(1, sizeof(stat_networks));
     if (collect_networks_infomation(samples->before) == 0) {
-      printf("failed to make before sample\n");
+      perror("failed to make before sample");
       break;
     }
     sleep(sample_period);
     samples->after = (stat_networks *) calloc(1, sizeof(stat_networks));
     if (collect_networks_infomation(samples->after) == 0) {
-      printf("failed to make after sample\n");
+      perror("failed to make after sample");
       break;
     }
     p = snprintf(message, msgsize, "T:%u", (unsigned)time(NULL));

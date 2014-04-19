@@ -119,7 +119,7 @@ int collect_virtual_machines_info(virtual_machines *vm)
   FILE *xevmlist;
   xevmlist = popen(xe_vm_list_command, "r");
   if (xevmlist == NULL) {
-    printf("error executing xe command\n");
+    perror("error executing xe command");
     return 0;
   }
   char line[512];

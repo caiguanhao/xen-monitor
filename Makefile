@@ -5,7 +5,7 @@ clean:
 	rm -f send
 
 fake: send
-	./send -X fake/xe-vm-list -D fake/proc/net/dev
+	./send -X fake/xe-vm-list -D fake/proc/net/dev ${ARGS}
 
 receive: redis-bg
 	./receive.py ${ARGS}
