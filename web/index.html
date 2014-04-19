@@ -49,11 +49,11 @@
   </script>
   <script type="text/ng-template" id="main">
     <div class="row">
-      <div class="col-sm-6">
+      <div class="col-sm-6" ng-repeat="(group_name, servers) in allServers">
         <table class="table table-stat">
           <thead>
             <tr>
-              <th class="ipaddr">IP Address</th>
+              <th class="ipaddr" ng-bind="group_name"></th>
               <th class="upload">Upload</th>
               <th class="download">Download</th>
             </tr>

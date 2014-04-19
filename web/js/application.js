@@ -28,18 +28,29 @@ service('Servers', [function() {
     if (percent > 33) return 'warning';
     return 'danger';
   };
-  this.updateServers = function($scope) {
+  this.groupByIPAddress = function(data) {
+    var names = Object.keys(data);
+    names.sort();
+    var last = names[0].lastIndexOf('.');
+    if (last > 0) {
+      return names[0].slice(0, last + 1) + (+names[0].slice(last + 1) - 1);
+    }
+    return names[0];
+  };
+  this.updateServers = function($scope, group_name) {
+    var groupServers = this.allServers[group_name] || {};
     var servers = [];
     var top = {
-      download: 0, upload: 0
+      download: 0,
+      upload: 0
     };
-    for (var ipaddr in this.allServers) {
-      var server = this.allServers[ipaddr];
+    for (var ipaddr in groupServers) {
+      var server = groupServers[ipaddr];
       if (server.upload > top.upload) top.upload = server.upload;
       if (server.download > top.download) top.download = server.download;
     }
-    for (var ipaddr in this.allServers) {
-      var server = this.allServers[ipaddr];
+    for (var ipaddr in groupServers) {
+      var server = groupServers[ipaddr];
       var uploadPercent = Math.floor(server.upload / top.upload * 100);
       var downloadPercent = Math.floor(server.download / top.download * 100);
       servers.push({
@@ -55,7 +66,11 @@ service('Servers', [function() {
         time: server.time
       });
     }
-    $scope.servers = servers;
+    servers.sort(function(a, b) {
+      return a.IP > b.IP ? 1 : -1;
+    });
+    $scope.allServers = $scope.allServers || {};
+    $scope.allServers[group_name] = servers;
     $scope.$apply();
   };
 }]).
@@ -66,11 +81,12 @@ controller('MainController', ['$scope', 'Socket', 'Servers',
     Socket.emit('GiveMeTheIPAddresses');
   });
   Socket.on('HereAreTheIPAddresses', function(data) {
-    console.log(data);
+    // console.log(data);
   });
   Socket.on('Update', function(data) {
-    angular.extend(Servers.allServers, data);
-    Servers.updateServers($scope);
+    var group = Servers.groupByIPAddress(data);
+    Servers.allServers[group] = data;
+    Servers.updateServers($scope, group);
   });
 }]).
 
