@@ -8,7 +8,7 @@ fake: send
 	./send -X fake/xe-vm-list -D fake/proc/net/dev
 
 receive: redis-bg
-	python receive.py
+	./receive.py ${ARGS}
 
 redis:
 	redis-server
