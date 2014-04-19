@@ -3,16 +3,25 @@ var app = express();
 var redis = require('redis');
 var client = redis.createClient();
 var subscribe = redis.createClient();
-var io;
 var PORT = 23456;
-
-app.use(express.static(__dirname + '/web'));
-
 var server = require('http').createServer(app)
+var io = require('socket.io').listen(server);
+var ENVIRONMENT = process.env.NODE_ENV || 'development';
+
+console.log('Entering ' + ENVIRONMENT + ' mode.');
 
 server.listen(PORT);
 
+io.set('log level', 0);
+
+if (ENVIRONMENT === 'production') {
+  app.use(express.static(__dirname + '/public'));
+} else {
+  app.use(express.static(__dirname + '/web'));
+}
+
 subscribe.subscribe('update');
+
 subscribe.on('message', function(channel, message) {
   if (channel === 'update') {
     var ipaddrs = message.split(',');
@@ -33,10 +42,6 @@ subscribe.on('message', function(channel, message) {
     });
   }
 });
-
-io = require('socket.io').listen(server);
-
-io.set('log level', 0);
 
 io.sockets.on('connection', function (socket) {
   socket.on('GiveMeTheIPAddresses', function() {
