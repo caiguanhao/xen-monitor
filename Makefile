@@ -11,9 +11,9 @@ receive: redis-bg
 	python receive.py
 
 redis:
-	redis-server /usr/local/etc/redis.conf
+	redis-server
 
 redis-bg:
-	redis-server /usr/local/etc/redis.conf --daemonize yes
+	redis-server --daemonize yes
 
 .PHONY: clean fake receive redis redis-bg

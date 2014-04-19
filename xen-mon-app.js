@@ -24,9 +24,9 @@ subscribe.on('message', function(channel, message) {
       var bundle = {};
       for (var i = 0; i < ipaddrs.length; i++) {
         bundle[ipaddrs[i]] = {
-          time: results[i * 3],
-          download: results[i * 3 + 1],
-          upload: results[i * 3 + 2]
+          time: +results[i * 3],
+          download: +results[i * 3 + 1],
+          upload: +results[i * 3 + 2]
         }
       }
       io.sockets.emit('Update', bundle);
@@ -35,6 +35,8 @@ subscribe.on('message', function(channel, message) {
 });
 
 io = require('socket.io').listen(server);
+
+io.set('log level', 0);
 
 io.sockets.on('connection', function (socket) {
   socket.on('GiveMeTheIPAddresses', function() {

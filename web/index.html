@@ -58,10 +58,24 @@
         </tr>
       </thead>
       <tbody>
-        <tr ng-repeat="(server_name, server) in servers">
-          <td ng-bind="server_name"></td>
-          <td ng-bind="server.upload"></td>
-          <td ng-bind="server.download"></td>
+        <tr ng-repeat="server in servers">
+          <td ng-bind="server.IP"></td>
+          <td>
+            <div class="progress">
+              <div class="progress-bar progress-bar-{{server.uploadColor}}"
+                style="width: {{server.uploadPercent}}%;">
+                <span ng-bind="server.uploadText"></span>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="progress">
+              <div class="progress-bar progress-bar-{{server.downloadColor}}"
+                style="width: {{server.downloadPercent}}%;">
+                <span ng-bind="server.downloadText"></span>
+              </div>
+            </div>
+          </td>
           <td ng-bind="server.time"></td>
         </tr>
       </tbody>
