@@ -13,6 +13,7 @@ B_ADDR = '127.0.0.1'
 B_PORT = 8124
 REDIS = None
 verbose = 0
+MAX_NUMBER_LENGTH = 10     # prevent insanely large number
 
 def help():
   print (
@@ -59,6 +60,8 @@ def store(stats):
   pipe = REDIS.pipeline();
   update = []
   for stat in stats:
+    if len(stat[2]) > MAX_NUMBER_LENGTH or len(stat[3]) > MAX_NUMBER_LENGTH:
+      return
     pipe.sadd('keys', stat[1]);
     pipe.lpush(stat[1] + ':T', stat[0]).ltrim(stat[1] + ':T', 0, E_MAX - 1);
     pipe.lpush(stat[1] + ':D', stat[2]).ltrim(stat[1] + ':D', 0, E_MAX - 1);
@@ -106,9 +109,11 @@ if __name__ == "__main__":
     redisport, redisdb)
   REDIS = redis.StrictRedis(host=redishost, port=redisport, db=redisdb)
 
-  sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM);
-  sock.bind((bind, port));
-  sock.listen(5);
+  sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+  # prevent 'address already in use' after re-start:
+  sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+  sock.bind((bind, port))
+  sock.listen(5)
   if verbose: print "Listening on %s, port %u" % (bind, port)
 
   if daemon:
