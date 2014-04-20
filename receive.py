@@ -41,10 +41,10 @@ def parse(content):
     U = re.search('U:([0-9]+)', line)
 
     stats.append((
-      int(time),
+      time,
       I.group(1),
-      int(D.group(1)) if D else 0,
-      int(U.group(1)) if U else 0))
+      D.group(1) if D else 0,
+      U.group(1) if U else 0))
 
   return stats
 
