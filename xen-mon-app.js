@@ -27,7 +27,7 @@ if (ENVIRONMENT === 'development') {
 subscribe.subscribe('update');
 
 subscribe.on('message', function(channel, message) {
-  if (channel === 'update') {
+  if (channel === 'update' && message) {
     var ipaddrs = message.split(',');
     ipaddrs.reduce(function(prev, cur) {
       return prev.lindex(cur + ':T', 0)
@@ -53,5 +53,5 @@ io.sockets.on('connection', function (socket) {
     client.smembers('keys', function(err, keys) {
       socket.emit('HereAreTheIPAddresses', keys);
     });
-  })
+  });
 });

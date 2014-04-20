@@ -64,9 +64,10 @@ def store(stats):
     pipe.lpush(stat[1] + ':D', stat[2]).ltrim(stat[1] + ':D', 0, E_MAX - 1);
     pipe.lpush(stat[1] + ':U', stat[3]).ltrim(stat[1] + ':U', 0, E_MAX - 1);
     update.append(stat[1])
-  pipe.publish('update', ','.join(update));
-  ret = pipe.execute()
-  if verbose: print "Executed %u Redis commands" % len(ret)
+  if update:
+    pipe.publish('update', ','.join(update));
+    ret = pipe.execute()
+    if verbose: print "Executed %u Redis commands" % len(ret)
 
 if __name__ == "__main__":
   daemon = 0
