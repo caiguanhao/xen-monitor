@@ -1,3 +1,4 @@
 send
 public
 node_modules
+*.log
