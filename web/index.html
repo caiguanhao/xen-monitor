@@ -48,21 +48,40 @@
     </footer>
   </script>
   <script type="text/ng-template" id="main">
-    <div class="row">
+    <div class="row"
+      ng-class="{ showWarning: show.warning, showDanger: show.danger }">
       <div class="col-sm-12">
         <div class="progress">
           <div class="progress-bar progress-bar-success"
             style="width: {{colorStats.successPercent}}%">
+            <span ng-bind="colorStats.success"></span>
           </div>
           <div class="progress-bar progress-bar-warning"
             style="width: {{colorStats.warningPercent}}%">
+            <span ng-bind="colorStats.warning"></span>
           </div>
           <div class="progress-bar progress-bar-danger"
             style="width: {{colorStats.dangerPercent}}%">
+            <span ng-bind="colorStats.danger"></span>
           </div>
         </div>
       </div>
-      <div class="col-sm-6" ng-repeat="(group_name, servers) in allServers">
+      <div class="col-sm-12">
+        <div class="form-inline form-group">
+          <div class="form-group checkbox">
+            <label>
+              <input type="checkbox" ng-model="show.warning"> Show Warning
+            </label>
+          </div>
+          <div class="form-group checkbox">
+            <label>
+              <input type="checkbox" ng-model="show.danger"> Show Danger
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-6 stat {{serverClassName[group_name]}}"
+        ng-repeat="(group_name, servers) in allServers">
         <table class="table table-stat">
           <thead>
             <tr>

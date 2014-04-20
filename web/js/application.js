@@ -66,12 +66,14 @@ service('Servers', [function() {
       if (server.upload > top.upload) top.upload = server.upload;
       if (server.download > top.download) top.download = server.download;
     }
-    var byColor = {};
+    var byColor = {}, containsWarning = false, containsDanger = false;
     for (var ipaddr in groupServers) {
       var server = groupServers[ipaddr];
       var uploadPercent = Math.floor(server.upload / top.upload * 100);
       var downloadPercent = Math.floor(server.download / top.download * 100);
       var uploadColor = this.colorBySpeed(server.upload);
+      if (uploadColor === 'warning') containsWarning = true;
+      if (uploadColor === 'danger') containsDanger = true;
       byColor[uploadColor] = byColor[uploadColor] || 0;
       byColor[uploadColor]++;
       servers.push({
@@ -92,6 +94,14 @@ service('Servers', [function() {
     });
     $scope.allServers = $scope.allServers || {};
     $scope.allServers[group_name] = servers;
+    $scope.serverClassName = $scope.serverClassName || {};
+    $scope.serverClassName[group_name] = '';
+    if (containsWarning) {
+      $scope.serverClassName[group_name] += 'containsWarning ';
+    }
+    if (containsDanger) {
+      $scope.serverClassName[group_name] += 'containsDanger ';
+    }
     this.allServersByColor[group_name] = byColor;
     if ((+new Date) - this.lastTimeCountServersByColor > 3000) {
       this.countServersByColor($scope);
@@ -114,6 +124,7 @@ controller('MainController', ['$scope', 'Socket', 'Servers',
     Servers.allServers[group] = data;
     Servers.updateServers($scope, group);
   });
+  $scope.show = { danger: true };
 }]).
 
 run([function() {
