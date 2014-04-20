@@ -1,6 +1,12 @@
 send: clean
 	gcc -o send send.c netstat.c
 
+install: send
+	cp -f send /usr/bin/send
+
+uninstall: clean
+	rm -f /usr/bin/send
+
 clean:
 	rm -f send
 
