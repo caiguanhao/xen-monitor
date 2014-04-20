@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+import os
 import re
 import sys, getopt
 import socket
@@ -19,6 +19,9 @@ def help():
     "Usage: %s [OPTION]\n"
     "  -h, --help                Show help and exit\n"
     "  -v, --verbose             Don't be silent\n"
+    "  -D, --daemon              Run as a daemon\n"
+    "  -o, --stdout <file>       Write stdout to file\n"
+    "  -e, --stderr <file>       Write stderr to file\n"
     "  -b, --bind  <ip-address>  Bind to this IP address, default: %s\n"
     "  -p, --port  <port>        Bind to this port, default: %u\n"
     "  -r, --redis <ip-address>  Connect to Redis with this IP, default: %s\n"
@@ -62,18 +65,25 @@ def store(stats):
   if verbose: print "Executed %u Redis commands" % len(ret)
 
 if __name__ == "__main__":
+  daemon = 0
   bind = B_ADDR
   port = B_PORT
   redishost = R_ADDR
   redisport = R_PORT
   redisdb = R_DB
   try:
-    opts, args = getopt.getopt(sys.argv[1:], "hb:p:vr:t:n:", [
-      "help", "bind", "port", "verbose", "redis", "redis-port", "redis-db" ])
+    opts, args = getopt.getopt(sys.argv[1:], "hDo:e:b:p:vr:t:n:", [
+      "help", "daemon", "stdout", "stderr", "bind", "port", "verbose",
+      "redis", "redis-port", "redis-db" ])
   except getopt.GetoptError as err:
     help()
   for o, a in opts:
     if o in ("-h", "--help"):     help()
+    elif o in ("-D", "--daemon"): daemon = 1
+    elif o in ("-o", "--stdout"):
+      sys.stdout = open(os.path.realpath(a), 'w', 0)
+    elif o in ("-e", "--stderr"):
+      sys.stderr = open(os.path.realpath(a), 'w', 0)
     elif o in ("-b", "--bind"):   bind = a
     elif o in ("-p", "--port"):
       try: port = int(a)
@@ -86,6 +96,18 @@ if __name__ == "__main__":
       try: redisdb = int(a)
       except: pass
     elif o in ("-v", "--verbose"): verbose = 1
+
+  if daemon:
+    try:
+      pid = os.fork()
+      if pid > 0: sys.exit(0)
+    except OSError, e:
+      sys.stderr.write("failed to fork: %d (%s)" % (e.errno, e.strerror))
+      sys.exit(1)
+
+    os.chdir("/")
+    os.setsid()
+    os.umask(0)
 
   if verbose: print "Connecting to Redis %s, port %u, number %u" % (redishost,
     redisport, redisdb)
