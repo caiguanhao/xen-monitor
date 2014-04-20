@@ -29,19 +29,17 @@ subscribe.subscribe('update');
 subscribe.on('message', function(channel, message) {
   if (channel === 'update' && message) {
     var ipaddrs = message.split(',');
-    ipaddrs.reduce(function(prev, cur) {
-      return prev.lindex(cur + ':T', 0)
-                 .lindex(cur + ':D', 0)
-                 .lindex(cur + ':U', 0);
-    }, client.multi()).exec(function(err, results) {
+    client.multi()
+      .mget(ipaddrs.map(function(i) { return i + ':U'; }))
+      .mget(ipaddrs.map(function(i) { return i + ':D'; }))
+      .exec(function(err, results) {
       if (!results) return;
       var bundle = {};
       for (var i = 0; i < ipaddrs.length; i++) {
         bundle[ipaddrs[i]] = {
-          time: +results[i * 3],
-          download: +results[i * 3 + 1],
-          upload: +results[i * 3 + 2]
-        }
+          upload: +results[0][i],
+          download: +results[1][i]
+        };
       }
       io.sockets.emit('Update', bundle);
     });

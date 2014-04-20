@@ -38,18 +38,12 @@ def help():
 def parse(content):
   lines = content.splitlines()
   stats = []
-  time = 0
   for line in lines:
-    T = re.search('T:(\d+)', line)
-    if T: time = T.group(1)
-
-    I = re.search('I:(([0-9]{1,3}\.){3}[0-9]{1,3})', line)
+    I = re.search('I:([0-9\.]{7,15})', line)  # easy check
     if not I: continue
     D = re.search('D:([0-9]+)', line)
     U = re.search('U:([0-9]+)', line)
-
     stats.append((
-      time,
       I.group(1),
       D.group(1) if D else 0,
       U.group(1) if U else 0))
@@ -57,18 +51,17 @@ def parse(content):
   return stats
 
 def store(stats):
-  pipe = REDIS.pipeline();
+  pipe = REDIS.pipeline()
   update = []
   for stat in stats:
-    if len(stat[2]) > MAX_NUMBER_LENGTH or len(stat[3]) > MAX_NUMBER_LENGTH:
+    if len(stat[1]) > MAX_NUMBER_LENGTH or len(stat[2]) > MAX_NUMBER_LENGTH:
       return
-    pipe.sadd('keys', stat[1]);
-    pipe.lpush(stat[1] + ':T', stat[0]).ltrim(stat[1] + ':T', 0, E_MAX - 1);
-    pipe.lpush(stat[1] + ':D', stat[2]).ltrim(stat[1] + ':D', 0, E_MAX - 1);
-    pipe.lpush(stat[1] + ':U', stat[3]).ltrim(stat[1] + ':U', 0, E_MAX - 1);
-    update.append(stat[1])
+    pipe.sadd('keys', stat[0])
+    pipe.set(stat[0] + ':D', stat[1])
+    pipe.set(stat[0] + ':U', stat[2])
+    update.append(stat[0])
   if update:
-    pipe.publish('update', ','.join(update));
+    pipe.publish('update', ','.join(update))
     ret = pipe.execute()
     if verbose: print "Executed %u Redis commands" % len(ret)
 
