@@ -49,6 +49,19 @@
   </script>
   <script type="text/ng-template" id="main">
     <div class="row">
+      <div class="col-sm-12">
+        <div class="progress">
+          <div class="progress-bar progress-bar-success"
+            style="width: {{colorStats.successPercent}}%">
+          </div>
+          <div class="progress-bar progress-bar-warning"
+            style="width: {{colorStats.warningPercent}}%">
+          </div>
+          <div class="progress-bar progress-bar-danger"
+            style="width: {{colorStats.dangerPercent}}%">
+          </div>
+        </div>
+      </div>
       <div class="col-sm-6" ng-repeat="(group_name, servers) in allServers">
         <table class="table table-stat">
           <thead>
