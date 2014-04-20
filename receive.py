@@ -16,6 +16,10 @@ verbose = 0
 
 def help():
   print (
+    "Receive and save statistics of XenServer virtual machines.\n"
+    "Copyright (c) 2014 Cai Guanhao (Choi Goon-ho)\n"
+    "Licensed under the terms of the MIT license.\n"
+    "Report bugs on http://github.com/caiguanhao/xen-monitor/issues\n\n"
     "Usage: %s [OPTION]\n"
     "  -h, --help                Show help and exit\n"
     "  -v, --verbose             Don't be silent\n"
@@ -97,18 +101,6 @@ if __name__ == "__main__":
       except: pass
     elif o in ("-v", "--verbose"): verbose = 1
 
-  if daemon:
-    try:
-      pid = os.fork()
-      if pid > 0: sys.exit(0)
-    except OSError, e:
-      sys.stderr.write("failed to fork: %d (%s)" % (e.errno, e.strerror))
-      sys.exit(1)
-
-    os.chdir("/")
-    os.setsid()
-    os.umask(0)
-
   if verbose: print "Connecting to Redis %s, port %u, number %u" % (redishost,
     redisport, redisdb)
   REDIS = redis.StrictRedis(host=redishost, port=redisport, db=redisdb)
@@ -117,6 +109,18 @@ if __name__ == "__main__":
   sock.bind((bind, port));
   sock.listen(5);
   if verbose: print "Listening on %s, port %u" % (bind, port)
+
+  if daemon:
+    try:
+      pid = os.fork()
+      if pid > 0: sys.exit(0)
+    except OSError, e:
+      sys.stderr.write("failed to fork: %d (%s)" % (e.errno, e.strerror))
+      sys.exit(1)
+    os.chdir("/")
+    os.setsid()
+    os.umask(0)
+
   while 1:
     connection, address = sock.accept()
     data = connection.recv(1024)
