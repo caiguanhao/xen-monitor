@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <getopt.h>
 #include <sys/time.h>
+#include <sys/stat.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
@@ -18,6 +19,7 @@ int port = DEFAULT_PORT;
 int is_disconnected = 1;
 
 static int verbose_flag;
+static int daemon_flag;
 
 static void help(const char *program) {
   printf(
@@ -28,11 +30,14 @@ static void help(const char *program) {
     "Usage: %s [OPTION]\n"
     "  -h, --help                  display this help and exit\n"
     "  -v, --verbose               don't be silent\n"
+    "  -D, --daemon                run as a daemon\n"
+    "  -o, --stdout        <file>  write stdout to file\n"
+    "  -e, --stderr        <file>  write stderr to file\n"
     "  -s, --sample-period <secs>  sample period, default: %u second(s)\n"
     "  -i, --ip-address    <addr>  send to this IP address, default: %s\n"
     "  -p, --port          <port>  send to this port, default: %u\n"
-    "  -X, --xe-vm-list    <file>  read this file as if running `xe vm-list`\n"
-    "  -D, --proc-net-dev  <file>  read this file instead of /proc/net/dev\n",
+    "  -x, --xe-vm-list    <file>  read this file as if running `xe vm-list`\n"
+    "  -d, --proc-net-dev  <file>  read this file instead of /proc/net/dev\n",
     program, DEFAULT_SAMPLE_PERIOD, DEFAULT_IP_ADDRESS, DEFAULT_PORT);
   return;
 }
@@ -102,6 +107,8 @@ int main(int argc, char *argv[]) {
     snprintf(proc_net_dev, sizeof proc_net_dev, "/proc/net/dev");
   }
 
+  int stdout_to_file = 0, stderr_to_file = 0;
+
   while (1) {
     static struct option opts[] = {
       { "help",          no_argument,       0, 'h' },
@@ -109,11 +116,14 @@ int main(int argc, char *argv[]) {
       { "sample-period", required_argument, 0, 's' },
       { "ip-address",    required_argument, 0, 'i' },
       { "port",          required_argument, 0, 'p' },
-      { "xe-vm-list",    required_argument, 0, 'X' },
-      { "proc-net-dev",  required_argument, 0, 'D' },
+      { "daemon",        required_argument, 0, 'D' },
+      { "stdout",        required_argument, 0, 'o' },
+      { "stderr",        required_argument, 0, 'e' },
+      { "xe-vm-list",    required_argument, 0, 'x' },
+      { "proc-net-dev",  required_argument, 0, 'd' },
       { 0,               0,                 0,  0  }
     };
-    c = getopt_long(argc, argv, "hvs:i:p:X:D:", opts, &option_index);
+    c = getopt_long(argc, argv, "hvs:i:p:Do:e:x:d:", opts, &option_index);
     if (c == -1) break;
     switch (c) {
     case 'v':
@@ -128,13 +138,38 @@ int main(int argc, char *argv[]) {
     case 'p':
       sscanf(optarg, "%u", &port);
       break;
-    case 'X':
+    case 'x': {
+      char path[256];
+      realpath(optarg, path);
       snprintf(xe_vm_list_command, sizeof xe_vm_list_command,
-        "cat \"%s\" 2>/dev/null", optarg);
+        "cat \"%s\" 2>/dev/null", path);
       break;
+    }
+    case 'd': {
+      char path[256];
+      realpath(optarg, path);
+      snprintf(proc_net_dev, sizeof proc_net_dev, "%s", path);
+      break;
+    }
     case 'D':
-      snprintf(proc_net_dev, sizeof proc_net_dev, "%s", optarg);
+      daemon_flag = 1;
       break;
+    case 'o': {
+      char path[256];
+      realpath(optarg, path);
+      freopen(path, "w", stdout);
+      setvbuf(stdout, NULL, _IONBF, 0);
+      stdout_to_file = 1;
+      break;
+    }
+    case 'e': {
+      char path[256];
+      realpath(optarg, path);
+      freopen(path, "w", stderr);
+      setvbuf(stderr, NULL, _IONBF, 0);
+      stderr_to_file = 1;
+      break;
+    }
     case '?':
       exit(1);
     case 'h':
@@ -146,15 +181,32 @@ int main(int argc, char *argv[]) {
      }
   }
 
-  if (sample_period < 1) sample_period = DEFAULT_SAMPLE_PERIOD;
-
   virtual_machines *vm = calloc(1, sizeof(virtual_machines));
 
   if (collect_virtual_machines_info(vm) == 0) {
-    perror("could not get virtual machine information");
+    fprintf(stderr, "Error: could not get virtual machine information.\n");
     return 1;
   }
 
+  if (daemon_flag) {
+    pid_t pid, sid;
+    pid = fork();
+    if (pid < 0) exit(EXIT_FAILURE);
+    umask(0);
+    sid = setsid();
+    if (sid < 0) exit(EXIT_FAILURE);
+    if ((chdir("/")) < 0) exit(EXIT_FAILURE);
+    if (pid > 0) {
+      printf("Started daemon process %u.\n", pid);
+      exit(EXIT_SUCCESS);
+    }
+
+    close(STDIN_FILENO);
+    if (!stdout_to_file) close(STDOUT_FILENO);
+    if (!stderr_to_file) close(STDERR_FILENO);
+  }
+
+  if (sample_period < 1) sample_period = DEFAULT_SAMPLE_PERIOD;
   if (verbose_flag) {
     printf("sample period is %u second(s)\n", sample_period);
   }
@@ -163,6 +215,7 @@ int main(int argc, char *argv[]) {
   char message[msgsize];
   unsigned long long rdiff, tdiff, rrate, trate;
   stat_samples *samples;
+
   while (1) {
     samples = (stat_samples *) calloc(1, sizeof(stat_samples));
     samples->before = (stat_networks *) calloc(1, sizeof(stat_networks));
