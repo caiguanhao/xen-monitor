@@ -34,6 +34,7 @@ subscribe.on('message', function(channel, message) {
                  .lindex(cur + ':D', 0)
                  .lindex(cur + ':U', 0);
     }, client.multi()).exec(function(err, results) {
+      if (!results) return;
       var bundle = {};
       for (var i = 0; i < ipaddrs.length; i++) {
         bundle[ipaddrs[i]] = {

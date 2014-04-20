@@ -4,6 +4,9 @@ send: clean
 install: send
 	cp -f send /usr/bin/send
 
+install-receive:
+	cp -f receive.py /usr/bin/receive
+
 uninstall: clean
 	rm -f /usr/bin/send
 
@@ -25,4 +28,4 @@ redis:
 redis-bg:
 	redis-server --daemonize yes
 
-.PHONY: clean fake receive redis redis-bg
+.PHONY: install install-receive uninstall clean fake fake-daemon receive redis redis-bg

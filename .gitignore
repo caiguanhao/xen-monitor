@@ -2,3 +2,5 @@ send
 public
 node_modules
 *.log
+dist
+*.tar.gz
