@@ -43,6 +43,8 @@ if __name__ == "__main__":
   redishost = R_ADDR
   redisport = R_PORT
   redisdb = R_DB
+  stdout_to_file = 0
+  stderr_to_file = 0
   try:
     opts, args = getopt.getopt(sys.argv[1:], "hDo:e:b:p:vr:t:n:", [
       "help", "daemon", "stdout", "stderr", "bind", "port", "verbose",
@@ -53,8 +55,10 @@ if __name__ == "__main__":
     if o in ("-h", "--help"):     help()
     elif o in ("-D", "--daemon"): daemon = 1
     elif o in ("-o", "--stdout"):
+      stdout_to_file = 1
       sys.stdout = open(os.path.realpath(a), 'w', 0)
     elif o in ("-e", "--stderr"):
+      stderr_to_file = 1
       sys.stderr = open(os.path.realpath(a), 'w', 0)
     elif o in ("-b", "--bind"):   bind = a
     elif o in ("-p", "--port"):
@@ -90,6 +94,9 @@ if __name__ == "__main__":
     os.chdir("/")
     os.setsid()
     os.umask(0)
+    sys.stdin.close()
+    if not stdout_to_file: sys.stdout.close()
+    if not stderr_to_file: sys.stderr.close()
 
   while 1:
     try:
