@@ -109,13 +109,15 @@ if __name__ == "__main__":
       VO = {}
       V = stats["V"].strip().split()
       for index, val in enumerate(V[::2]):
-        VO[V[2* index]] = V[2 * index + 1];
+        if len(V) > 2 * index + 1:
+          VO[V[2 * index]] = V[2 * index + 1];
       S = {}
       for A in stats["A"]:
         if len(A["U"]) > MAX_NUMBER_LENGTH or len(A["D"]) > MAX_NUMBER_LENGTH:
           S = {}
           break
-        S[VO[A["I"]]] = { "U": int(A["U"]), "D": int(A["D"]) }
+        if A["I"] in VO:
+          S[VO[A["I"]]] = { "U": int(A["U"]), "D": int(A["D"]) }
 
       if not S: continue
 
@@ -132,4 +134,4 @@ if __name__ == "__main__":
       ret = pipe.execute()
       if verbose: print "Executed %u Redis commands" % len(ret)
     except Exception, e:
-      sys.stderr.write("Error: %s\n" % e)
+      sys.stderr.write("Error: %s\nData:%s\n" % (e, data))
