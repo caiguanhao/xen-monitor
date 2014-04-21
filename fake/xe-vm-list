@@ -1,23 +1,18 @@
-uuid ( RO)        : 32713ba0-3f25-c20b-7125-a3132d04cd03
-      dom-id ( RO): 18
+dom-id ( RO)      : 18
     networks (MRO): 1/ip: 198.156.124.92
 
 
-uuid ( RO)        : 14589b63-d145-f7c4-8539-7901245c4c7e
-      dom-id ( RO): 6
+dom-id ( RO)      : 6
     networks (MRO): 1/ip: 198.156.124.91
 
 
-uuid ( RO)        : 64300cf8-d5ce-9336-e19d-759f8c0386a5
-      dom-id ( RO): 7
+dom-id ( RO)      : 7
     networks (MRO): 1/ip: 198.156.124.94
 
 
-uuid ( RO)        : 9fc51127-d37c-4265-84b9-8af6bb403bbc
-      dom-id ( RO): 0
+dom-id ( RO)      : 0
     networks (MRO): <not in database>
 
 
-uuid ( RO)        : 55cfff76-756f-4e40-7cf6-7e6ab9a507db
-      dom-id ( RO): 17
+dom-id ( RO)      : 17
     networks (MRO): 1/ip: 198.156.124.93

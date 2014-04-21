@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include <unistd.h>
 #include <regex.h>
 
@@ -114,7 +115,7 @@ int parseNetDevLine(char *line, char *iface,
   return 0;
 }
 
-int collect_virtual_machines_info(virtual_machines *vm)
+int collect_virtual_machines_info(char *vm, unsigned int *vmlength)
 {
   FILE *xevmlist;
   xevmlist = popen(xe_vm_list_command, "r");
@@ -123,68 +124,30 @@ int collect_virtual_machines_info(virtual_machines *vm)
     return 0;
   }
   char line[512];
-  if (vm == NULL) {
-    vm->length = 0;
-  }
-
-  int ret;
-  int x = 0, l = 0;
-  regex_t r;
-  regmatch_t m[2];
-
-  char *regex = "[ ]*([^ ]*)$";
-
-  if ((ret = regcomp(&r, regex, REG_EXTENDED | REG_NEWLINE))) {
-    regfree(&r);
-    return ret;
-  }
+  int p = 0, l = 0, i = 0, s = 0;
 
   while (fgets(line, sizeof(line), xevmlist)) {
-    if (strlen(line) < 2 || regexec(&r, line, 2, m, REG_EXTENDED) != 0) {
+    if (strlen(line) < 2) {
       continue;
     }
-    switch (l % 3) {
-    case 0: {
-      vm->length = (int)(l / 3) + 1;
-
-      char **tmp2 = realloc(vm->uuids, vm->length * sizeof(char *));
-      if (tmp2 == NULL) free(vm->uuids);
-      vm->uuids = tmp2;
-      vm->uuids[vm->length-1] = malloc((vmuuid_length + 1) * sizeof(char));
-
-      for (x = 0; x < MIN(m[1].rm_eo - m[1].rm_so, vmuuid_length); x++)
-        vm->uuids[vm->length-1][x] = line[m[1].rm_so + x];
-      vm->uuids[vm->length-1][x] = '\0';
-      break;
+    if (line[0] == '0') {
+      s = 1;
+      continue;
     }
-    case 1: {
-      unsigned int* tmp = realloc(vm->domids, vm->length * sizeof(unsigned int));
-      if (tmp == NULL) free(vm->domids);
-      vm->domids = tmp;
-
-      char domid[6];
-      for (x = 0; x < MIN(m[1].rm_eo - m[1].rm_so, 5); x++)
-        domid[x] = line[m[1].rm_so + x];
-      domid[x] = '\0';
-      sscanf(domid, "%u", &vm->domids[vm->length-1]);
-      break;
+    if (s == 1) {
+      s = 0;
+      continue;
     }
-    case 2: {
-      char **tmp3 = realloc(vm->ips, vm->length * sizeof(char *));
-      if (tmp3 == NULL) free(vm->ips);
-      vm->ips = tmp3;
-      vm->ips[vm->length-1] = malloc((vmip_length + 1) * sizeof(char));
-
-      for (x = 0; x < MIN(m[1].rm_eo - m[1].rm_so, vmip_length); x++)
-        vm->ips[vm->length-1][x] = line[m[1].rm_so + x];
-      vm->ips[vm->length-1][x] = '\0';
-      break;
+    for (i = 0; i < strlen(line); i++) {
+      if (isspace(line[i])) break;
+      p += snprintf(vm + p, 1024 - p, "%c", line[i]);
     }
-    }
+    p += snprintf(vm + p, 1024 - p, " ");
+    (*vmlength)++;
     l++;
   }
 
-  regfree(&r);
+  (*vmlength) /= 2;
 
   if (pclose(xevmlist) != 0) return 0;
 

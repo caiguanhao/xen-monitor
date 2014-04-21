@@ -4,6 +4,7 @@ import re
 import sys, getopt
 import socket
 import redis
+import json
 
 E_MAX = 100
 R_ADDR = '127.0.0.1'
@@ -34,36 +35,6 @@ def help():
     "  -n, --redis-db  <number>  Database number to connect, default: %u\n"
   ) % (sys.argv[0], B_ADDR, B_PORT, R_ADDR, R_PORT, R_DB)
   sys.exit()
-
-def parse(content):
-  lines = content.splitlines()
-  stats = []
-  for line in lines:
-    I = re.search('I:([0-9\.]{7,15})', line)  # easy check
-    if not I: continue
-    D = re.search('D:([0-9]+)', line)
-    U = re.search('U:([0-9]+)', line)
-    stats.append((
-      I.group(1),
-      D.group(1) if D else 0,
-      U.group(1) if U else 0))
-
-  return stats
-
-def store(stats):
-  pipe = REDIS.pipeline()
-  update = []
-  for stat in stats:
-    if len(stat[1]) > MAX_NUMBER_LENGTH or len(stat[2]) > MAX_NUMBER_LENGTH:
-      return
-    pipe.sadd('keys', stat[0])
-    pipe.set(stat[0] + ':D', stat[1])
-    pipe.set(stat[0] + ':U', stat[2])
-    update.append(stat[0])
-  if update:
-    pipe.publish('update', ','.join(update))
-    ret = pipe.execute()
-    if verbose: print "Executed %u Redis commands" % len(ret)
 
 if __name__ == "__main__":
   daemon = 0
@@ -114,16 +85,44 @@ if __name__ == "__main__":
       pid = os.fork()
       if pid > 0: sys.exit(0)
     except OSError, e:
-      sys.stderr.write("failed to fork: %d (%s)" % (e.errno, e.strerror))
+      sys.stderr.write("failed to fork: %d (%s)\n" % (e.errno, e.strerror))
       sys.exit(1)
     os.chdir("/")
     os.setsid()
     os.umask(0)
 
   while 1:
-    connection, address = sock.accept()
-    data = connection.recv(1024)
-    if verbose: print "Received %u bytes from %s:%u" % (len(data), address[0],
-      address[1])
-    stats = parse(data)
-    store(stats)
+    try:
+      connection, address = sock.accept()
+      data = connection.recv(1024)
+      if verbose: print "Received %u bytes from %s:%u" % (len(data), address[0],
+        address[1])
+      stats = json.loads(data)
+
+      VO = {}
+      V = stats["V"].strip().split()
+      for index, val in enumerate(V[::2]):
+        VO[V[2* index]] = V[2 * index + 1];
+      S = {}
+      for A in stats["A"]:
+        if len(A["U"]) > MAX_NUMBER_LENGTH or len(A["D"]) > MAX_NUMBER_LENGTH:
+          S = {}
+          break
+        S[VO[A["I"]]] = { "U": int(A["U"]), "D": int(A["D"]) }
+
+      if not S: continue
+
+      DATA = { "K": [], "U": [], "D": [] }
+      for key in sorted(S):
+        DATA["K"].append(key)
+        DATA["U"].append(S[key]["U"])
+        DATA["D"].append(S[key]["D"])
+
+      pipe = REDIS.pipeline()
+      pipe.set(stats["I"], json.dumps(DATA))
+      pipe.sadd('keys', stats["I"])
+      pipe.publish('update', stats["I"])
+      ret = pipe.execute()
+      if verbose: print "Executed %u Redis commands" % len(ret)
+    except Exception, e:
+      sys.stderr.write("Error: %s\n" % e)

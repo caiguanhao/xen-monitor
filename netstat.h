@@ -7,22 +7,14 @@
 
 #define MIN(a,b) (((a)<(b))?(a):(b))
 
-char xe_vm_list_command[128];
-char proc_net_dev[128];
+char xe_vm_list_command[256];
+char proc_net_dev[256];
 
 unsigned int sample_period;
 
-typedef struct virtual_machines virtual_machines;
 typedef struct stat_samples stat_samples;
 typedef struct stat_networks stat_networks;
 typedef struct stat_network stat_network;
-
-struct virtual_machines {
-  unsigned int length;
-  unsigned int *domids;
-  char **uuids;
-  char **ips;
-};
 
 struct stat_samples {
   stat_networks *before;
@@ -49,7 +41,7 @@ struct stat_network {
   unsigned long long tdrop;
 };
 
-int collect_virtual_machines_info(virtual_machines *vm);
+int collect_virtual_machines_info(char *vm, unsigned int *vmlength);
 int collect_networks_infomation(stat_networks *networks);
 void get_host_ip(char *host_ip_address);
 

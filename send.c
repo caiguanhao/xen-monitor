@@ -101,7 +101,8 @@ int main(int argc, char *argv[]) {
 
   if (strlen(xe_vm_list_command) == 0) {
     snprintf(xe_vm_list_command, sizeof xe_vm_list_command,
-      "xe vm-list params=uuid,dom-id,networks 2>/dev/null");
+      "xe vm-list params=dom-id,networks 2>/dev/null | "
+      "sed 's/.*: //' 2>/dev/null");
   }
   if (strlen(proc_net_dev) == 0) {
     snprintf(proc_net_dev, sizeof proc_net_dev, "/proc/net/dev");
@@ -142,7 +143,7 @@ int main(int argc, char *argv[]) {
       char path[256];
       realpath(optarg, path);
       snprintf(xe_vm_list_command, sizeof xe_vm_list_command,
-        "cat \"%s\" 2>/dev/null", path);
+        "sed 's/.*: //' \"%s\" 2>/dev/null", path);
       break;
     }
     case 'd': {
@@ -181,9 +182,10 @@ int main(int argc, char *argv[]) {
      }
   }
 
-  virtual_machines *vm = calloc(1, sizeof(virtual_machines));
+  char *vm = malloc(1024);
+  unsigned int vmlength = 0;
 
-  if (collect_virtual_machines_info(vm) == 0) {
+  if (collect_virtual_machines_info(vm, &vmlength) == 0) {
     fprintf(stderr, "Error: could not get virtual machine information.\n");
     return 1;
   }
@@ -191,7 +193,7 @@ int main(int argc, char *argv[]) {
   char *host_ip_address = malloc(vmip_length + 1);
   get_host_ip(host_ip_address);
 
-  printf("%s has %u virtual machine(s).\n", host_ip_address, vm->length - 1);
+  printf("%s has %u virtual machine(s).\n", host_ip_address, vmlength);
 
   if (daemon_flag) {
     pid_t pid, sid;
@@ -234,7 +236,9 @@ int main(int argc, char *argv[]) {
       perror("failed to make after sample");
       break;
     }
-    p = snprintf(message, msgsize, "T:%u", (unsigned)time(NULL));
+    p = snprintf(message, msgsize,
+      "{\"T\":%u,\"I\":\"%s\",\"V\":\"%s\",\"A\":[",
+      (unsigned)time(NULL), host_ip_address, vm);
     unsigned int pos;
     for (i = 0; i < samples->after->length; i++) {
       stat_network before = samples->before->networks[i];
@@ -246,12 +250,14 @@ int main(int argc, char *argv[]) {
       rrate = rdiff / sample_period;
       trate = tdiff / sample_period;
 
-      for (j = 0; j < vm->length; j++) {
-        if (vm->domids[j] != after.domid) continue;
-        p += snprintf(message + p, msgsize - p, "\n  I:%s U:%llu D:%llu",
-          vm->ips[j], rrate, trate);
+      if (i > 0) {
+        p += snprintf(message + p, msgsize - p, ",");
       }
+      p += snprintf(message + p, msgsize - p,
+        "{\"I\":\"%u\",\"U\":\"%llu\",\"D\":\"%llu\"}",
+        after.domid, rrate, trate);
     }
+    p += snprintf(message + p, msgsize - p, "]}");
     free(samples->before);
     free(samples->after);
     free(samples);
