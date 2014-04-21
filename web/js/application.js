@@ -32,15 +32,23 @@ service('Servers', [function() {
     if (percent > 33) return 'warning';
     return 'danger';
   };
+  this.rangeBySpeed = function(speed) {
+    if (speed > 10485760) return 10;
+    if (speed > 8388608) return 8;
+    if (speed > 5242880) return 5;
+    // if (speed > 3145728) return 3;
+    return 0;
+  };
   this.allServers = {};
-  this.allServersByColor = {};
   this.lastTimeCountServersByColor = 0;
   this.countServersByColor = function($scope) {
     var cS = { success: 0, warning: 0, danger: 0 };
+    var rS = { 10: 0, 8: 0, 5: 0, 0: 0 };
     for (var host in $scope.allServers) {
       var VMs = $scope.allServers[host]
       for (var i = 0; i < VMs.UC.length; i++) {
         cS[VMs.UC[i]]++;
+        rS[VMs.R]++;
       }
     }
     cS.total = cS.success + cS.warning + cS.danger;
@@ -48,6 +56,7 @@ service('Servers', [function() {
     cS.warningPercent = Math.floor(cS.warning / cS.total * 100);
     cS.dangerPercent = 100 - cS.successPercent - cS.warningPercent;
     $scope.colorStats = cS;
+    $scope.rangeStats = rS;
   };
   this.topTotalUpload = 1;
   this.updateServers = function($scope, host) {
@@ -63,7 +72,8 @@ service('Servers', [function() {
       TUC: this.colorByPercent(TUP),
       TUP: TUP,
       K: VMs.K,
-      W: 100 / (VMs.K.length + 1)
+      W: 100 / (VMs.K.length + 1),
+      R: this.rangeBySpeed(totalUpload)
     };
     var i;
     for (i = 0; i < VM.K.length; i++) {
@@ -94,7 +104,7 @@ controller('MainController', ['$scope', 'Socket', 'Servers',
     Servers.allServers[host] = JSON.parse(data);
     Servers.updateServers($scope, host);
   });
-  $scope.show = { danger: true };
+  $scope.range = 5;
 }]).
 
 run([function() {

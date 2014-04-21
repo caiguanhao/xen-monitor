@@ -48,7 +48,7 @@
     </footer>
   </script>
   <script type="text/ng-template" id="main">
-    <div class="row">
+    <div class="row show-range-{{range}}">
       <div class="col-sm-12">
         <div class="progress">
           <div class="progress-bar progress-bar-success"
@@ -67,20 +67,29 @@
       </div>
       <div class="col-sm-12">
         <div class="form-inline form-group">
-          <div class="form-group checkbox">
-            <label>
-              <input type="checkbox" ng-model="show.warning"> Show Warning
-            </label>
-          </div>
-          <div class="form-group checkbox">
-            <label>
-              <input type="checkbox" ng-model="show.danger"> Show Danger
-            </label>
+          <div class="form-group">
+            <div class="btn-toolbar" role="toolbar">
+              <div class="btn-group">
+                <button class="btn btn-default" ng-click="range=0"
+                  ng-class="{active:range===0}">0-5M
+                  <span class="badge" ng-bind="rangeStats[0]"></span></button>
+                <button class="btn btn-default" ng-click="range=5"
+                  ng-class="{active:range===5}">5-8M
+                  <span class="badge" ng-bind="rangeStats[5]"></span></button>
+                <button class="btn btn-default" ng-click="range=8"
+                  ng-class="{active:range===8}">8-10M
+                  <span class="badge" ng-bind="rangeStats[8]"></span></button>
+                <button class="btn btn-default" ng-click="range=10"
+                  ng-class="{active:range===10}">10M+
+                  <span class="badge" ng-bind="rangeStats[10]"></span></button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-      <div class="col-sm-12 stat" ng-repeat="(host, VMs) in allServers">
-        <div class="progress">
+      <div class="col-sm-12 stats range-{{VMs.R}}"
+        ng-repeat="(host, VMs) in allServers">
+        <div class="progress stat">
           <div class="vm-progress" style="width: {{VMs.W}}%">
             <div class="progress-bar progress-bar-{{VMs.TUC}}"
               style="width: {{VMs.TUP}}%;">
