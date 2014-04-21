@@ -51,5 +51,6 @@ struct stat_network {
 
 int collect_virtual_machines_info(virtual_machines *vm);
 int collect_networks_infomation(stat_networks *networks);
+void get_host_ip(char *host_ip_address);
 
 #endif

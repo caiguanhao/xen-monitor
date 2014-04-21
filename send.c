@@ -188,7 +188,10 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  printf("Found %u virtual machine(s).\n", vm->length - 1);
+  char *host_ip_address = malloc(vmip_length + 1);
+  get_host_ip(host_ip_address);
+
+  printf("%s has %u virtual machine(s).\n", host_ip_address, vm->length - 1);
 
   if (daemon_flag) {
     pid_t pid, sid;

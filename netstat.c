@@ -267,3 +267,26 @@ int collect_networks_infomation(stat_networks *networks)
 
   return 1;
 }
+
+void get_host_ip(char *host_ip_address)
+{
+  FILE *hipaddr;
+  hipaddr = popen("xe host-param-get uuid=$(xe pool-param-get uuid=`"
+    "xe pool-list --minimal 2>/dev/null` param-name=master 2>/dev/null) "
+    "param-name=address 2>/dev/null", "r");
+  if (hipaddr != NULL) {
+    char line[512];
+    int x = 0;
+    if (fgets(line, sizeof(line), hipaddr)) {
+      for (x = 0; x < MIN(strlen(line), vmip_length); x++) {
+        if (isspace(line[x])) break;
+        host_ip_address[x] = line[x];
+      }
+      host_ip_address[x] = '\0';
+    }
+  }
+  pclose(hipaddr);
+  if (strlen(host_ip_address) == 0) {
+    snprintf(host_ip_address, vmip_length, "127.0.0.1");
+  }
+}
