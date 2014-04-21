@@ -32,24 +32,16 @@ service('Servers', [function() {
     if (percent > 33) return 'warning';
     return 'danger';
   };
-  this.groupByIPAddress = function(data) {
-    var names = Object.keys(data);
-    names.sort();
-    var last = names[0].lastIndexOf('.');
-    if (last > 0) {
-      return names[0].slice(0, last + 1) + (+names[0].slice(last + 1) - 1);
-    }
-    return names[0];
-  };
   this.allServers = {};
   this.allServersByColor = {};
   this.lastTimeCountServersByColor = 0;
   this.countServersByColor = function($scope) {
     var cS = { success: 0, warning: 0, danger: 0 };
-    for (var group_name in this.allServersByColor) {
-      cS.success += this.allServersByColor[group_name].success || 0;
-      cS.warning += this.allServersByColor[group_name].warning || 0;
-      cS.danger += this.allServersByColor[group_name].danger || 0;
+    for (var host in $scope.allServers) {
+      var VMs = $scope.allServers[host]
+      for (var i = 0; i < VMs.UC.length; i++) {
+        cS[VMs.UC[i]]++;
+      }
     }
     cS.total = cS.success + cS.warning + cS.danger;
     cS.successPercent = Math.floor(cS.success / cS.total * 100);
@@ -57,52 +49,31 @@ service('Servers', [function() {
     cS.dangerPercent = 100 - cS.successPercent - cS.warningPercent;
     $scope.colorStats = cS;
   };
-  this.updateServers = function($scope, group_name) {
-    var groupServers = this.allServers[group_name] || {};
-    var servers = [];
-    var top = { download: 0, upload: 0 };
-    for (var ipaddr in groupServers) {
-      var server = groupServers[ipaddr];
-      if (server.upload > top.upload) top.upload = server.upload;
-      if (server.download > top.download) top.download = server.download;
+  this.topTotalUpload = 1;
+  this.updateServers = function($scope, host) {
+    var VMs = this.allServers[host] || {};
+    var topUpload = Math.max.apply(Math, VMs.U);
+    var totalUpload = VMs.U.reduce(function(p, c) { return p + c; }, 0);
+    if (totalUpload > this.topTotalUpload) this.topTotalUpload = totalUpload;
+    var TUP = Math.floor(totalUpload / this.topTotalUpload * 100);
+    var VM = {
+      UC: [],
+      UP: [],
+      TU: totalUpload,
+      TUC: this.colorByPercent(TUP),
+      TUP: TUP,
+      K: VMs.K,
+      W: 100 / (VMs.K.length + 1)
+    };
+    var i;
+    for (i = 0; i < VM.K.length; i++) {
+      var uploadPercent = Math.floor(VMs.U[i] / topUpload * 100);
+      var uploadColor = this.colorBySpeed(VMs.U[i]);
+      VM.UP.push(uploadPercent || 0);
+      VM.UC.push(uploadColor);
     }
-    var byColor = {}, containsWarning = false, containsDanger = false;
-    for (var ipaddr in groupServers) {
-      var server = groupServers[ipaddr];
-      var uploadPercent = Math.floor(server.upload / top.upload * 100);
-      var downloadPercent = Math.floor(server.download / top.download * 100);
-      var uploadColor = this.colorBySpeed(server.upload);
-      if (uploadColor === 'warning') containsWarning = true;
-      if (uploadColor === 'danger') containsDanger = true;
-      byColor[uploadColor] = byColor[uploadColor] || 0;
-      byColor[uploadColor]++;
-      servers.push({
-        IP: ipaddr,
-        upload: server.upload,
-        uploadText: Math.floor(server.upload / 1024) + ' KB/s',
-        uploadPercent: uploadPercent,
-        uploadColor: uploadColor,
-        download: server.download,
-        downloadText: Math.floor(server.download / 1024) + ' KB/s',
-        downloadPercent: downloadPercent,
-        downloadColor: this.colorByPercent(downloadPercent),
-        time: server.time
-      });
-    }
-    servers.sort(function(a, b) {
-      return a.IP > b.IP ? 1 : -1;
-    });
     $scope.allServers = $scope.allServers || {};
-    $scope.allServers[group_name] = servers;
-    $scope.serverClassName = $scope.serverClassName || {};
-    $scope.serverClassName[group_name] = '';
-    if (containsWarning) {
-      $scope.serverClassName[group_name] += 'containsWarning ';
-    }
-    if (containsDanger) {
-      $scope.serverClassName[group_name] += 'containsDanger ';
-    }
-    this.allServersByColor[group_name] = byColor;
+    $scope.allServers[host] = VM;
     if ((+new Date) - this.lastTimeCountServersByColor > 3000) {
       this.countServersByColor($scope);
       this.lastTimeCountServersByColor = +new Date
@@ -119,10 +90,9 @@ controller('MainController', ['$scope', 'Socket', 'Servers',
   Socket.on('HereAreTheIPAddresses', function(data) {
     // console.log(data);
   });
-  Socket.on('Update', function(data) {
-    var group = Servers.groupByIPAddress(data);
-    Servers.allServers[group] = data;
-    Servers.updateServers($scope, group);
+  Socket.on('Update', function(host, data) {
+    Servers.allServers[host] = JSON.parse(data);
+    Servers.updateServers($scope, host);
   });
   $scope.show = { danger: true };
 }]).

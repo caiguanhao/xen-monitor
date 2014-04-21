@@ -48,8 +48,7 @@
     </footer>
   </script>
   <script type="text/ng-template" id="main">
-    <div class="row"
-      ng-class="{ showWarning: show.warning, showDanger: show.danger }">
+    <div class="row">
       <div class="col-sm-12">
         <div class="progress">
           <div class="progress-bar progress-bar-success"
@@ -80,38 +79,21 @@
           </div>
         </div>
       </div>
-      <div class="col-sm-6 stat {{serverClassName[group_name]}}"
-        ng-repeat="(group_name, servers) in allServers">
-        <table class="table table-stat">
-          <thead>
-            <tr>
-              <th class="ipaddr" ng-bind="group_name"></th>
-              <th class="upload">Upload</th>
-              <th class="download">Download</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr ng-repeat="server in servers">
-              <td ng-bind="server.IP"></td>
-              <td>
-                <div class="progress">
-                  <div class="progress-bar progress-bar-{{server.uploadColor}}"
-                    style="width: {{server.uploadPercent}}%;">
-                    <span ng-bind="server.uploadText"></span>
-                  </div>
-                </div>
-              </td>
-              <td>
-                <div class="progress">
-                  <div class="progress-bar progress-bar-{{server.downloadColor}}"
-                    style="width: {{server.downloadPercent}}%;">
-                    <span ng-bind="server.downloadText"></span>
-                  </div>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      <div class="col-sm-12 stat" ng-repeat="(host, VMs) in allServers">
+        <div class="progress">
+          <div class="vm-progress" style="width: {{VMs.W}}%">
+            <div class="progress-bar progress-bar-{{VMs.TUC}}"
+              style="width: {{VMs.TUP}}%;">
+              <span ng-bind="host"></span>
+            </div>
+          </div>
+          <div class="vm-progress" ng-repeat="VM in VMs.K" style="width: {{VMs.W}}%">
+            <div class="progress-bar progress-bar-{{VMs.UC[$index]}}"
+              style="width: {{VMs.UP[$index]}}%;">
+              <span ng-bind="VM"></span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </script>
