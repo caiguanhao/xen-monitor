@@ -188,6 +188,8 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
+  printf("Found %u virtual machine(s).\n", vm->length - 1);
+
   if (daemon_flag) {
     pid_t pid, sid;
     pid = fork();
