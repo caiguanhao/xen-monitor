@@ -17,6 +17,20 @@ directive('body', [function() {
   };
 }]).
 
+directive('xmShow', [function() {
+  return {
+    scope: {
+      xmShow: '='
+    },
+    link: function($scope, elem, attrs) {
+      $scope.$on('showChanged', function() {
+        elem.text($scope.xmShow[$scope.$parent.show]);
+      });
+      $scope.$emit('showChanged');
+    }
+  };
+}]).
+
 factory('Socket', ['$window', function($window) {
   return $window.io.connect('/');
 }]).
@@ -40,6 +54,9 @@ service('Servers', [function() {
     if (speed > 7340032) return 7;
     if (speed > 4194304) return 4;
     return 0;
+  };
+  this.formatSize = function(size) {
+    return (size / 1048576).toFixed(2) + ' MB/s'
   };
   this.allServers = {};
   this.lastTimeCountServersByColor = 0;
@@ -70,8 +87,10 @@ service('Servers', [function() {
     var VM = {
       UC: [],
       UP: [],
+      UT: [],
       TU: totalUpload,
       TUC: this.colorByPercent(TUP),
+      TUT: this.formatSize(totalUpload),
       TUP: TUP,
       K: VMs.K,
       W: 100,
@@ -89,6 +108,7 @@ service('Servers', [function() {
       var uploadColor = this.colorBySpeed(VMs.U[i]);
       VM.UP.unshift(uploadPercent || 0);
       VM.UC.unshift(uploadColor);
+      VM.UT.unshift(this.formatSize(VMs.U[i]));
       c++;
     }
     VM.W = 100 / (c + 1);
@@ -117,6 +137,10 @@ controller('MainController', ['$scope', 'Socket', 'Servers',
   });
   $scope.range = 4;
   $scope.live = true;
+  $scope.$watch('show', function() {
+    $scope.$broadcast('showChanged');
+  });
+  $scope.show = 0;
 }]).
 
 run([function() {
