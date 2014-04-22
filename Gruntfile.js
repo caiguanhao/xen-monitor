@@ -26,9 +26,10 @@ module.exports = function(grunt) {
         }
       },
       fonts: {
-        files: {
-          'public/fonts': 'web/css/fonts'
-        }
+        expand: true,
+        cwd: 'web/css/fonts/',
+        src: '*',
+        dest: 'public/fonts/'
       }
     },
     uglify: {
@@ -101,6 +102,7 @@ module.exports = function(grunt) {
   grunt.registerTask('default', [
     'clean',
     'less',
+    'copy:fonts',
     'express',
     'watch'
   ]);

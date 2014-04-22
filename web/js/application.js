@@ -103,10 +103,12 @@ controller('MainController', ['$scope', 'Socket', 'Servers',
     // console.log(data);
   });
   Socket.on('Update', function(host, data) {
+    if (!$scope.live) return;
     Servers.allServers[host] = JSON.parse(data);
     Servers.updateServers($scope, host);
   });
   $scope.range = 4;
+  $scope.live = true;
 }]).
 
 run([function() {
