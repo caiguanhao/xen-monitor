@@ -33,17 +33,19 @@ service('Servers', [function() {
     return 'danger';
   };
   this.rangeBySpeed = function(speed) {
+    if (speed > 11534336) return 11;
     if (speed > 10485760) return 10;
+    if (speed > 9437184) return 9;
     if (speed > 8388608) return 8;
-    if (speed > 5242880) return 5;
-    // if (speed > 3145728) return 3;
+    if (speed > 7340032) return 7;
+    if (speed > 4194304) return 4;
     return 0;
   };
   this.allServers = {};
   this.lastTimeCountServersByColor = 0;
   this.countServersByColor = function($scope) {
     var cS = { success: 0, warning: 0, danger: 0 };
-    var rS = { 10: 0, 8: 0, 5: 0, 0: 0 };
+    var rS = { 11: 0, 10: 0, 9: 0, 8: 0, 7: 0, 4: 0, 0: 0 };
     for (var host in $scope.allServers) {
       var VMs = $scope.allServers[host]
       for (var i = 0; i < VMs.UC.length; i++) {
@@ -104,7 +106,7 @@ controller('MainController', ['$scope', 'Socket', 'Servers',
     Servers.allServers[host] = JSON.parse(data);
     Servers.updateServers($scope, host);
   });
-  $scope.range = 5;
+  $scope.range = 4;
 }]).
 
 run([function() {

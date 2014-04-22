@@ -69,19 +69,28 @@
         <div class="form-inline form-group">
           <div class="form-group">
             <div class="btn-toolbar" role="toolbar">
-              <div class="btn-group">
+              <div class="btn-group btn-group-sm">
                 <button class="btn btn-default" ng-click="range=0"
-                  ng-class="{active:range===0}">0-5M
+                  ng-class="{active:range===0}">0-4M
                   <span class="badge" ng-bind="rangeStats[0]"></span></button>
-                <button class="btn btn-default" ng-click="range=5"
-                  ng-class="{active:range===5}">5-8M
-                  <span class="badge" ng-bind="rangeStats[5]"></span></button>
+                <button class="btn btn-default" ng-click="range=4"
+                  ng-class="{active:range===4}">4M
+                  <span class="badge" ng-bind="rangeStats[4]"></span></button>
+                <button class="btn btn-default" ng-click="range=7"
+                  ng-class="{active:range===7}">7M
+                  <span class="badge" ng-bind="rangeStats[7]"></span></button>
                 <button class="btn btn-default" ng-click="range=8"
-                  ng-class="{active:range===8}">8-10M
+                  ng-class="{active:range===8}">8M
                   <span class="badge" ng-bind="rangeStats[8]"></span></button>
+                <button class="btn btn-default" ng-click="range=9"
+                  ng-class="{active:range===9}">9M
+                  <span class="badge" ng-bind="rangeStats[9]"></span></button>
                 <button class="btn btn-default" ng-click="range=10"
-                  ng-class="{active:range===10}">10M+
+                  ng-class="{active:range===10}">10M
                   <span class="badge" ng-bind="rangeStats[10]"></span></button>
+                <button class="btn btn-default" ng-click="range=11"
+                  ng-class="{active:range===11}">11M+
+                  <span class="badge" ng-bind="rangeStats[11]"></span></button>
               </div>
             </div>
           </div>
