@@ -74,16 +74,24 @@ service('Servers', [function() {
       TUC: this.colorByPercent(TUP),
       TUP: TUP,
       K: VMs.K,
-      W: 100 / (VMs.K.length + 1),
+      W: 100,
       R: this.rangeBySpeed(totalUpload)
     };
-    var i;
-    for (i = 0; i < VM.K.length; i++) {
+    var i, c = 0;
+    for (i = VMs.K.length - 1; i > -1 ; i--) {
+      if (!/^[0-9.]+$/.test(VMs.K[i])) {
+        VMs.K.splice(i, 1);
+        VMs.U.splice(i, 1);
+        VMs.D.splice(i, 1);
+        continue;
+      }
       var uploadPercent = Math.floor(VMs.U[i] / topUpload * 100);
       var uploadColor = this.colorBySpeed(VMs.U[i]);
-      VM.UP.push(uploadPercent || 0);
-      VM.UC.push(uploadColor);
+      VM.UP.unshift(uploadPercent || 0);
+      VM.UC.unshift(uploadColor);
+      c++;
     }
+    VM.W = 100 / (c + 1);
     $scope.allServers = $scope.allServers || {};
     $scope.allServers[host] = VM;
     if ((+new Date) - this.lastTimeCountServersByColor > 3000) {
