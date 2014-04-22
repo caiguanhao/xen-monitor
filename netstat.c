@@ -143,11 +143,11 @@ int collect_virtual_machines_info(char *vm, unsigned int *vmlength)
       p += snprintf(vm + p, 1024 - p, "%c", line[i]);
     }
     p += snprintf(vm + p, 1024 - p, " ");
-    (*vmlength)++;
+    if (vmlength != NULL) (*vmlength)++;
     l++;
   }
 
-  (*vmlength) /= 2;
+  if (vmlength != NULL) (*vmlength) /= 2;
 
   if (pclose(xevmlist) != 0) return 0;
 

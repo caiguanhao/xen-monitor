@@ -190,6 +190,8 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
+  free(vm);
+
   char *host_ip_address = malloc(vmip_length + 1);
   get_host_ip(host_ip_address);
 
@@ -223,22 +225,35 @@ int main(int argc, char *argv[]) {
   unsigned long long rdiff, tdiff, rrate, trate;
   stat_samples *samples;
 
+  unsigned int fail_wait = sample_period;
+
   while (1) {
     samples = (stat_samples *) calloc(1, sizeof(stat_samples));
     samples->before = (stat_networks *) calloc(1, sizeof(stat_networks));
     if (collect_networks_infomation(samples->before) == 0) {
       perror("failed to make before sample");
-      break;
+      sleep(fail_wait);
+      continue;
     }
     sleep(sample_period);
     samples->after = (stat_networks *) calloc(1, sizeof(stat_networks));
     if (collect_networks_infomation(samples->after) == 0) {
       perror("failed to make after sample");
-      break;
+      sleep(fail_wait);
+      continue;
     }
+    char *vm = malloc(1024);
+    if (collect_virtual_machines_info(vm, NULL) == 0) {
+      fprintf(stderr, "Error: could not get virtual machine information.\n");
+      sleep(fail_wait);
+      continue;
+    }
+
     p = snprintf(message, msgsize,
       "{\"T\":%u,\"I\":\"%s\",\"V\":\"%s\",\"A\":[",
       (unsigned)time(NULL), host_ip_address, vm);
+    free(vm);
+
     unsigned int pos;
     for (i = 0; i < samples->after->length; i++) {
       stat_network before = samples->before->networks[i];
