@@ -111,7 +111,7 @@ service('Servers', [function() {
       VM.UT.unshift(this.formatSize(VMs.U[i]));
       c++;
     }
-    VM.W = 100 / (c + 1);
+    VM.W = 80 / (c < 4 ? 4 : c);
     $scope.allServers = $scope.allServers || {};
     $scope.allServers[host] = VM;
     if ((+new Date) - this.lastTimeCountServersByColor > 3000) {
@@ -124,12 +124,6 @@ service('Servers', [function() {
 
 controller('MainController', ['$scope', 'Socket', 'Servers',
   function($scope, Socket, Servers) {
-  Socket.on('connect', function() {
-    Socket.emit('GiveMeTheIPAddresses');
-  });
-  Socket.on('HereAreTheIPAddresses', function(data) {
-    // console.log(data);
-  });
   Socket.on('Update', function(host, data) {
     if (!$scope.live) return;
     Servers.allServers[host] = JSON.parse(data);

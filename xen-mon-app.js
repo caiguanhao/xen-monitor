@@ -35,11 +35,3 @@ subscribe.on('message', function(channel, message) {
     });
   }
 });
-
-io.sockets.on('connection', function (socket) {
-  socket.on('GiveMeTheIPAddresses', function() {
-    client.smembers('keys', function(err, keys) {
-      socket.emit('HereAreTheIPAddresses', keys);
-    });
-  });
-});
