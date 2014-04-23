@@ -71,6 +71,25 @@
           <div class="form-group">
             <div class="btn-toolbar" role="toolbar">
               <div class="btn-group btn-group-sm">
+                <button class="btn btn-default" ng-click="live=true"
+                  ng-class="{active:live}">
+                  <span class="glyphicon glyphicon-play"></span>
+                  Live</button>
+                <button class="btn btn-default" ng-click="live=false"
+                  ng-class="{active:!live}">
+                  <span class="glyphicon glyphicon-pause"></span>
+                  Paused</button>
+              </div>
+              <div class="btn-group btn-group-sm">
+                <button class="btn btn-default" ng-click="show=0"
+                  ng-class="{active:show===0}">IP Address</button>
+                <button class="btn btn-default" ng-click="show=1"
+                  ng-class="{active:show===1}">Speed</button>
+              </div>
+              <div class="btn-group btn-group-sm">
+                <button class="btn btn-default" ng-click="range='all'"
+                  ng-class="{active:range==='all'}">
+                  <span class="glyphicon glyphicon-asterisk"></span></button>
                 <button class="btn btn-default" ng-click="range=0"
                   ng-class="{active:range===0}">0-4M
                   <span class="badge" ng-bind="rangeStats[0]"></span></button>
@@ -92,22 +111,6 @@
                 <button class="btn btn-default" ng-click="range=11"
                   ng-class="{active:range===11}">11M+
                   <span class="badge" ng-bind="rangeStats[11]"></span></button>
-              </div>
-              <div class="btn-group btn-group-sm">
-                <button class="btn btn-default" ng-click="live=true"
-                  ng-class="{active:live}">
-                  <span class="glyphicon glyphicon-play"></span>
-                  Live</button>
-                <button class="btn btn-default" ng-click="live=false"
-                  ng-class="{active:!live}">
-                  <span class="glyphicon glyphicon-pause"></span>
-                  Paused</button>
-              </div>
-              <div class="btn-group btn-group-sm">
-                <button class="btn btn-default" ng-click="show=0"
-                  ng-class="{active:show===0}">IP Address</button>
-                <button class="btn btn-default" ng-click="show=1"
-                  ng-class="{active:show===1}">Speed</button>
               </div>
             </div>
           </div>
