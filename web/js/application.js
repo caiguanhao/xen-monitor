@@ -17,16 +17,39 @@ directive('body', [function() {
   };
 }]).
 
-directive('xmShow', [function() {
+directive('totalProgressBar', [function() {
   return {
     scope: {
-      xmShow: '='
+      VMs: '=totalProgressBar',
+      ip: '='
     },
     link: function($scope, elem, attrs) {
-      $scope.$on('showChanged', function() {
-        elem.text($scope.xmShow[$scope.$parent.show]);
+      $scope.$on('totalProgressBarChanged', function() {
+        var t = $scope.$parent.type;
+        elem[0].className = 'progress-bar progress-bar-'+$scope.VMs['T' + t + 'C'];
+        elem.css('width', $scope.VMs['T' + t + 'P'] + '%');
+        elem.text($scope.$parent.show ? $scope.VMs['T' + t + 'T'] : $scope.ip);
       });
-      $scope.$emit('showChanged');
+      $scope.$emit('totalProgressBarChanged');
+    }
+  };
+}]).
+
+directive('progressBar', [function() {
+  return {
+    scope: {
+      VMs: '=progressBar',
+      index: '=',
+      ip: '='
+    },
+    link: function($scope, elem, attrs) {
+      $scope.$on('progressBarChanged', function() {
+        var i = $scope.index, t = $scope.$parent.type;
+        elem[0].className = 'progress-bar progress-bar-'+$scope.VMs[t + 'C'][i];
+        elem.css('width', $scope.VMs[t + 'P'][i] + '%');
+        elem.text($scope.$parent.show ? $scope.VMs[t + 'T'][i] : $scope.ip);
+      });
+      $scope.$emit('progressBarChanged');
     }
   };
 }]).
@@ -56,7 +79,8 @@ service('Servers', [function() {
     return 0;
   };
   this.formatSize = function(size) {
-    return (size / 1048576).toFixed(2) + ' MB/s'
+    if (size > 1048576) return (size / 1048576).toFixed(2) + ' MB/s';
+    return (size / 1024).toFixed(2) + ' KB/s';
   };
   this.allServers = {};
   this.lastTimeCountServersByColor = 0;
@@ -78,20 +102,39 @@ service('Servers', [function() {
     $scope.rangeStats = rS;
   };
   this.topTotalUpload = 1;
+  this.topTotalDownload = 1;
   this.updateServers = function($scope, host) {
     var VMs = this.allServers[host] || {};
     var topUpload = Math.max.apply(Math, VMs.U);
+    var topDownload = Math.max.apply(Math, VMs.D);
+
     var totalUpload = VMs.U.reduce(function(p, c) { return p + c; }, 0);
     if (totalUpload > this.topTotalUpload) this.topTotalUpload = totalUpload;
     var TUP = Math.floor(totalUpload / this.topTotalUpload * 100);
+
+    var totalDownload = VMs.D.reduce(function(p, c) { return p + c; }, 0);
+    if (totalDownload > this.topTotalDownload) this.topTotalDownload = totalDownload;
+    var TDP = Math.floor(totalDownload / this.topTotalDownload * 100);
+
     var VM = {
       UC: [],
       UP: [],
       UT: [],
+
+      DC: [],
+      DP: [],
+      DT: [],
+
       TU: totalUpload,
       TUC: this.colorByPercent(TUP),
       TUT: this.formatSize(totalUpload),
       TUP: TUP,
+
+      TD: totalDownload,
+      TDC: this.colorByPercent(TDP),
+      TDT: this.formatSize(totalDownload),
+      TDP: TDP,
+
       K: VMs.K,
       W: 100,
       R: this.rangeBySpeed(totalUpload)
@@ -104,11 +147,19 @@ service('Servers', [function() {
         VMs.D.splice(i, 1);
         continue;
       }
+
       var uploadPercent = Math.floor(VMs.U[i] / topUpload * 100);
       var uploadColor = this.colorBySpeed(VMs.U[i]);
       VM.UP.unshift(uploadPercent || 0);
       VM.UC.unshift(uploadColor);
       VM.UT.unshift(this.formatSize(VMs.U[i]));
+
+      var downloadPercent = Math.floor(VMs.D[i] / topDownload * 100);
+      var downloadColor = this.colorBySpeed(VMs.D[i]);
+      VM.DP.unshift(downloadPercent || 0);
+      VM.DC.unshift(downloadColor);
+      VM.DT.unshift(this.formatSize(VMs.D[i]));
+
       c++;
     }
     VM.W = 80 / (c < 4 ? 4 : c);
@@ -128,13 +179,21 @@ controller('MainController', ['$scope', 'Socket', 'Servers',
     if (!$scope.live) return;
     Servers.allServers[host] = JSON.parse(data);
     Servers.updateServers($scope, host);
+    $scope.$broadcast('totalProgressBarChanged');
+    $scope.$broadcast('progressBarChanged');
   });
   $scope.range = 4;
   $scope.live = true;
   $scope.$watch('show', function() {
-    $scope.$broadcast('showChanged');
+    $scope.$broadcast('totalProgressBarChanged');
+    $scope.$broadcast('progressBarChanged');
+  });
+  $scope.$watch('type', function() {
+    $scope.$broadcast('totalProgressBarChanged');
+    $scope.$broadcast('progressBarChanged');
   });
   $scope.show = 0;
+  $scope.type = 'U';
 }]).
 
 run([function() {

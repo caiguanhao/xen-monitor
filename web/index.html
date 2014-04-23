@@ -87,6 +87,12 @@
                   ng-class="{active:show===1}">Speed</button>
               </div>
               <div class="btn-group btn-group-sm">
+                <button class="btn btn-default" ng-click="type='U'"
+                  ng-class="{active:type==='U'}">Upload</button>
+                <button class="btn btn-default" ng-click="type='D'"
+                  ng-class="{active:type==='D'}">Download</button>
+              </div>
+              <div class="btn-group btn-group-sm">
                 <button class="btn btn-default" ng-click="range='all'"
                   ng-class="{active:range==='all'}">
                   <span class="glyphicon glyphicon-asterisk"></span></button>
@@ -120,16 +126,10 @@
         ng-repeat="(host, VMs) in allServers">
         <div class="progress stat">
           <div class="vm-progress" style="width: 20%">
-            <div class="progress-bar progress-bar-{{VMs.TUC}}"
-              style="width: {{VMs.TUP}}%;">
-              <span xm-show="[host,VMs.TUT]"></span>
-            </div>
+            <div total-progress-bar="VMs" ip="host"></div>
           </div>
           <div class="vm-progress" ng-repeat="VM in VMs.K" style="width: {{VMs.W}}%">
-            <div class="progress-bar progress-bar-{{VMs.UC[$index]}}"
-              style="width: {{VMs.UP[$index]}}%;">
-              <span xm-show="[VM,VMs.UT[$index]]"></span>
-            </div>
+            <div progress-bar="VMs" index="$index" ip="VM"></div>
           </div>
         </div>
       </div>
