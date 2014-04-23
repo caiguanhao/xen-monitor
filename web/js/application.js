@@ -58,6 +58,31 @@ factory('Socket', ['$window', function($window) {
   return $window.io.connect('/');
 }]).
 
+service('LocalSettings', ['$window', function($window) {
+  var lskey = 'XenMonApp.LocalSettings';
+  this.getLocalSettings = function(defaultSettings) {
+    var LS = defaultSettings;
+    try {
+      var _LS;
+      _LS = angular.fromJson($window.localStorage[lskey]);
+      if (_LS.type !== undefined) LS.type = _LS.type;
+      if (_LS.show !== undefined) LS.show = _LS.show;
+      if (_LS.range !== undefined) LS.range = _LS.range;
+    } catch(e) {}
+    return LS;
+  };
+  this.saveLocalSettings = function($scope) {
+    var LS = {
+      type: $scope.type, show: $scope.show, range: $scope.range
+    };
+    try {
+      $window.localStorage[lskey] = angular.toJson(LS);
+    } catch(e) {
+      delete $window.localStorage[lskey];
+    }
+  };
+}]).
+
 service('Servers', [function() {
   this.colorBySpeed = function(speed) {
     if (speed > 2000000) return 'success';
@@ -173,8 +198,8 @@ service('Servers', [function() {
   };
 }]).
 
-controller('MainController', ['$scope', 'Socket', 'Servers',
-  function($scope, Socket, Servers) {
+controller('MainController', ['$scope', 'Socket', 'Servers', 'LocalSettings',
+  function($scope, Socket, Servers, LocalSettings) {
   Socket.on('Update', function(host, data) {
     if (!$scope.live) return;
     Servers.allServers[host] = JSON.parse(data);
@@ -182,18 +207,20 @@ controller('MainController', ['$scope', 'Socket', 'Servers',
     $scope.$broadcast('totalProgressBarChanged');
     $scope.$broadcast('progressBarChanged');
   });
-  $scope.range = 4;
   $scope.live = true;
-  $scope.$watch('show', function() {
+  $scope.$watch('range', function() {
+    LocalSettings.saveLocalSettings($scope);
+  });
+  var onShowOrTypeChanged = function() {
+    LocalSettings.saveLocalSettings($scope);
     $scope.$broadcast('totalProgressBarChanged');
     $scope.$broadcast('progressBarChanged');
-  });
-  $scope.$watch('type', function() {
-    $scope.$broadcast('totalProgressBarChanged');
-    $scope.$broadcast('progressBarChanged');
-  });
-  $scope.show = 0;
-  $scope.type = 'U';
+  };
+  $scope.$watch('show', onShowOrTypeChanged);
+  $scope.$watch('type', onShowOrTypeChanged);
+  angular.extend($scope, LocalSettings.getLocalSettings({
+    range: 4, show: 0, type: 'U'
+  }));
 }]).
 
 run([function() {
