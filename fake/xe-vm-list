@@ -7,7 +7,7 @@ dom-id ( RO)      : 6
 
 
 dom-id ( RO)      : 7
-    networks (MRO): 1/ip: 198.156.124.94
+    networks (MRO): 1/ip: 198.156.124.94; 1/ipv6/0: fe80:0000:0000:0000:2003:ffff:253.142.123.175%6
 
 
 dom-id ( RO)      : 0

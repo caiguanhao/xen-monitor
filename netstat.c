@@ -124,28 +124,40 @@ int collect_virtual_machines_info(char *vm, unsigned int *vmlength)
     return 0;
   }
   char line[512];
-  int p = 0, l = 0, i = 0, s = 0;
+  int p = 0, i = 0, s = 0, offset = 20;
+  char *a;
 
   while (fgets(line, sizeof(line), xevmlist)) {
-    if (strlen(line) < 2) {
+    if (strlen(line) < offset) {
       continue;
     }
-    if (line[0] == '0') {
-      s = 1;
-      continue;
+    s = 0;
+    for (i = offset; i < strlen(line); i++) {
+      if (isspace(line[i]) || line[i] == ';') {
+        if (s > 0) {
+          int pass = 1;
+          for (a = vm + p; *a; a++) {
+            if (!isdigit(*a) && *a != '.') {  // check if [0-9.]+
+              pass = 0;
+              break;
+            }
+          }
+          if (pass) break;
+        }
+        s = 0;
+        continue;
+      }
+      s += snprintf(vm + p + s, 1024 - p - s, "%c", line[i]);
     }
-    if (s == 1) {
-      s = 0;
-      continue;
-    }
-    for (i = 0; i < strlen(line); i++) {
-      if (isspace(line[i])) break;
-      p += snprintf(vm + p, 1024 - p, "%c", line[i]);
-    }
+    // skip if dom-id is 0 or nothing acceptable in network
+    if (s == 0 || strcmp(vm + p, "0") == 0) continue;
+    p += s;
     p += snprintf(vm + p, 1024 - p, " ");
     if (vmlength != NULL) (*vmlength)++;
-    l++;
   }
+
+  // remove possible trailing space
+  if (strlen(vm) > 0) vm[strlen(vm) - 1] = 0;
 
   if (vmlength != NULL) (*vmlength) /= 2;
 

@@ -101,8 +101,7 @@ int main(int argc, char *argv[]) {
 
   if (strlen(xe_vm_list_command) == 0) {
     snprintf(xe_vm_list_command, sizeof xe_vm_list_command,
-      "xe vm-list params=dom-id,networks 2>/dev/null | "
-      "sed 's/.*: //' 2>/dev/null");
+      "xe vm-list params=dom-id,networks 2>/dev/null");
   }
   if (strlen(proc_net_dev) == 0) {
     snprintf(proc_net_dev, sizeof proc_net_dev, "/proc/net/dev");
@@ -143,7 +142,7 @@ int main(int argc, char *argv[]) {
       char path[256];
       realpath(optarg, path);
       snprintf(xe_vm_list_command, sizeof xe_vm_list_command,
-        "sed 's/.*: //' \"%s\" 2>/dev/null", path);
+        "cat \"%s\" 2>/dev/null", path);
       break;
     }
     case 'd': {
@@ -184,12 +183,10 @@ int main(int argc, char *argv[]) {
 
   char *vm = malloc(1024);
   unsigned int vmlength = 0;
-
   if (collect_virtual_machines_info(vm, &vmlength) == 0) {
     fprintf(stderr, "Error: could not get virtual machine information.\n");
     return 1;
   }
-
   free(vm);
 
   char *host_ip_address = malloc(vmip_length + 1);
