@@ -184,16 +184,16 @@
         <tr>
           <td class="attr">Command</td>
           <td>
-            <form class="form-inline">
-              <select class="form-control input-sm">
-                <option>Force Restart</option>
-                <option>Restart</option>
-                <option>Shutdown</option>
-                <option>Start</option>
+            <form class="form-inline" ng-submit="execute()">
+              <select class="form-control input-sm" ng-model="command">
+                <option value="FORCERESTART">Force Restart</option>
+                <option value="RESTART">Restart</option>
+                <option value="SHUTDOWN">Shutdown</option>
+                <option value="START">Start</option>
               </select>
               <input type="password" class="form-control input-sm"
-                placeholder="Password">
-              <button type="submit"
+                placeholder="Password" ng-model="password">
+              <button type="submit" ng-disabled="btnExecuteDisabled()"
                 class="btn btn-sm btn-default">Execute</button>
             </form>
           </td>

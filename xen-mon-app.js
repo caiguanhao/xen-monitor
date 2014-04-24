@@ -7,6 +7,7 @@ var PORT = 23456;
 var server = require('http').createServer(app)
 var io = require('socket.io').listen(server);
 var ENVIRONMENT = process.env.NODE_ENV || 'development';
+var net = require('net');
 
 console.log('Entering ' + ENVIRONMENT + ' mode.');
 
@@ -34,4 +35,39 @@ subscribe.on('message', function(channel, message) {
       io.sockets.emit('Update', host, result);
     });
   }
+});
+
+var IP = /^(([01]?\d\d?|2[0-4]\d|25[0-5])\.){3}([01]?\d\d?|2[0-4]\d|25[0-5])$/;
+
+function checkIPAddress(ipaddr) {
+  if (!ipaddr || !IP.test(ipaddr)) return false;
+  // block all reserved http://en.wikipedia.org/wiki/Reserved_IP_addresses
+  if (/^(0|10|127|192\.168)\./.test(ipaddr)) return false;
+  // 224.0.0.0 - 255.255.255.255:
+  if (/^2(2[4-9])|([3-4][0-9]{1})|(5[0-5])\./.test(ipaddr)) return false;
+  return true;
+}
+
+io.sockets.on('connection', function (socket) {
+  socket.on('ExecuteCommand', function(password, command, host, vm) {
+    if (!password || password.length < 10 || password.length > 250) return;
+    if (!command || command.length < 5 || command.length > 20) return;
+    if (!checkIPAddress(host)) return;
+    if (!checkIPAddress(vm)) return;
+
+    var cmdsocket = new net.Socket();
+    cmdsocket.connect(3333, '127.0.0.1', function() {
+      cmdsocket.end(command + ' ' + vm);
+      cmdsocket.destroy();
+      socket.emit('CommandStatus', 0);
+    });
+    cmdsocket.on('error', function() {
+      cmdsocket.destroy();
+      socket.emit('CommandStatus', 1, host);
+    });
+    cmdsocket.setTimeout(3000, function() {
+      cmdsocket.destroy();
+      socket.emit('CommandStatus', 2, host);
+    });
+  });
 });

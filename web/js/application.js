@@ -261,8 +261,12 @@ controller('VMController', ['$scope', '$routeParams', 'Socket', 'Servers',
     UT: 'Loading...',
     DT: 'Loading...'
   };
+  $scope.command = 'FORCERESTART';
 
-  if (Socket.$events) delete Socket.$events['Update'];
+  if (Socket.$events) {
+    delete Socket.$events['Update'];
+    delete Socket.$events['CommandStatus'];
+  }
   Socket.on('Update', function(host, data) {
     if (host !== $scope.host) return;
     var stats = angular.fromJson(data);
@@ -277,6 +281,32 @@ controller('VMController', ['$scope', '$routeParams', 'Socket', 'Servers',
     };
     $scope.$apply();
   });
+  Socket.on('CommandStatus', function(status, host) {
+    switch (status) {
+    case 0:
+      alert('Command has been sent to host.');
+      break;
+    case 1:
+      alert('Cannot connect to the host ' + host + '.');
+      break;
+    case 2:
+      alert('Timed out connecting to host ' + host + '.');
+      break;
+    }
+  });
+
+  $scope.btnExecuteDisabled = function() {
+    return !$scope.password || $scope.password.length < 10;
+  };
+  $scope.execute = function() {
+    if (!Socket.socket.connected) {
+      return alert('It seems you\'re not connected! Aborted!');
+    }
+    if (!confirm('Are you sure you want to execute this command?')) return;
+    Socket.emit('ExecuteCommand', $scope.password, $scope.command,
+      $scope.host, $scope.vm);
+    $scope.password = null;
+  };
 }]).
 
 run([function() {
