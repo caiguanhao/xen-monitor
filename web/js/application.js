@@ -262,6 +262,7 @@ controller('VMController', ['$scope', '$routeParams', 'Socket', 'Servers',
     DT: 'Loading...'
   };
   $scope.command = 'FORCERESTART';
+  $scope.password = '1234567890';
 
   if (Socket.$events) {
     delete Socket.$events['Update'];
@@ -284,7 +285,7 @@ controller('VMController', ['$scope', '$routeParams', 'Socket', 'Servers',
   Socket.on('CommandStatus', function(status, host) {
     switch (status) {
     case 0:
-      alert('Command has been sent to host.');
+      console.log('Command has been sent to host.');
       break;
     case 1:
       alert('Cannot connect to the host ' + host + '.');

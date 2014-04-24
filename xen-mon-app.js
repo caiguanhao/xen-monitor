@@ -48,23 +48,31 @@ function checkIPAddress(ipaddr) {
   return true;
 }
 
+function checkCommand(cmd) {
+  return [ "FORCERESTART", "RESTART", "FORCESHUTDOWN", "SHUTDOWN",
+    "START" ].indexOf(cmd) !== -1;
+}
+
 io.sockets.on('connection', function (socket) {
   socket.on('ExecuteCommand', function(password, command, host, vm) {
     if (!password || password.length < 10 || password.length > 250) return;
     if (!command || command.length < 5 || command.length > 20) return;
+    if (!checkCommand(command)) return;
     if (!checkIPAddress(host)) return;
     if (!checkIPAddress(vm)) return;
 
     var cmdsocket = new net.Socket();
     cmdsocket.connect(3333, '127.0.0.1', function() {
       cmdsocket.end(password + ' ' + command + ' ' + vm);
+    });
+    cmdsocket.on('end', function() {
       socket.emit('CommandStatus', 0);
     });
     cmdsocket.on('error', function() {
       cmdsocket.destroy();
       socket.emit('CommandStatus', 1, host);
     });
-    cmdsocket.setTimeout(3000, function() {
+    cmdsocket.setTimeout(15000, function() {
       cmdsocket.destroy();
       socket.emit('CommandStatus', 2, host);
     });
