@@ -1,21 +1,25 @@
 #include <stdio.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
+#define MAXMSGSIZE 512
+
 int read_from_client(int fd) {
-  char buffer[512];
+  char buffer[MAXMSGSIZE];
+  bzero(buffer, MAXMSGSIZE);
   int nbytes;
-  nbytes = read(fd, buffer, 512);
+  nbytes = read(fd, buffer, MAXMSGSIZE - 1);
   if (nbytes < 0) {
     perror("read");
     exit(EXIT_FAILURE);
   } else if (nbytes == 0) {
     return -1;
   } else {
-    puts(buffer);
+    printf("%s\n", buffer);
     return 0;
   }
 }

@@ -57,8 +57,7 @@ io.sockets.on('connection', function (socket) {
 
     var cmdsocket = new net.Socket();
     cmdsocket.connect(3333, '127.0.0.1', function() {
-      cmdsocket.end(command + ' ' + vm);
-      cmdsocket.destroy();
+      cmdsocket.end(password + ' ' + command + ' ' + vm);
       socket.emit('CommandStatus', 0);
     });
     cmdsocket.on('error', function() {
