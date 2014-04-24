@@ -18,7 +18,7 @@ clean:
 	rm -f send
 
 fake-listen: listen
-	./listen
+	./listen ${ARGS}
 
 fake: send
 	./send -x fake/xe-vm-list -d fake/proc/net/dev ${ARGS}

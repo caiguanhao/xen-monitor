@@ -3,10 +3,40 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <getopt.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <arpa/inet.h>
 
 #define MAXMSGSIZE 512
+
+#define DEFAULT_PASSWORD_FILE "/etc/listen.passwd"
+#define DEFAULT_PORT 3333
+
+int port = DEFAULT_PORT;
+
+static int verbose_flag;
+static int daemon_flag;
+
+char password_file[256];
+
+static void help(const char *program) {
+  printf(
+    "Listen and execute xe commands.\n"
+    "Copyright (c) 2014 Cai Guanhao (Choi Goon-ho)\n"
+    "Licensed under the terms of the MIT license.\n"
+    "Report bugs on http://github.com/caiguanhao/xen-monitor/issues\n\n"
+    "Usage: %s [OPTION]\n"
+    "  -h, --help                  display this help and exit\n"
+    "  -v, --verbose               don't be silent\n"
+    "  -D, --daemon                run as a daemon\n"
+    "  -o, --stdout        <file>  write stdout to file\n"
+    "  -e, --stderr        <file>  write stderr to file\n"
+    "  -P, --password-file <file>  password file to read, default:%s\n"
+    "  -p, --port          <port>  listen to this port, default: %u\n",
+    program, DEFAULT_PASSWORD_FILE, DEFAULT_PORT);
+  return;
+}
 
 int read_from_client(int fd) {
   char buffer[MAXMSGSIZE];
@@ -19,9 +49,17 @@ int read_from_client(int fd) {
   } else if (nbytes == 0) {
     return -1;
   } else {
+    if (verbose_flag) {
+      printf("Received: %s\n", buffer);
+    }
     char *pch = strtok(buffer, " ");
     if (pch != NULL) {
-      if (strcmp(pch, "1234567890") != 0) return -1;    // validate password
+      if (strcmp(pch, "1234567890") != 0) {     // validate password
+        if (verbose_flag) {
+          printf("Client entered an invalid password: %s.\n", pch);
+        }
+        return -1;
+      }
       pch = strtok(NULL, " ");
     }
     if (pch != NULL) {
@@ -46,27 +84,34 @@ int read_from_client(int fd) {
         switch (action) {
         case 1:
           x = snprintf(command, cmdsize,
-              "xe vm-reboot --force name-label=\"%s\" > /dev/null", pch);
+              "xe vm-reboot --force name-label=\"%s\"", pch);
           break;
         case 2:
           x = snprintf(command, cmdsize,
-              "xe vm-reboot name-label=\"%s\" > /dev/null", pch);
+              "xe vm-reboot name-label=\"%s\"", pch);
           break;
         case 3:
           x = snprintf(command, cmdsize,
-              "xe vm-shutdown --force name-label=\"%s\" > /dev/null", pch);
+              "xe vm-shutdown --force name-label=\"%s\"", pch);
           break;
         case 4:
           x = snprintf(command, cmdsize,
-              "xe vm-shutdown name-label=\"%s\" > /dev/null", pch);
+              "xe vm-shutdown name-label=\"%s\"", pch);
           break;
         case 5:
           x = snprintf(command, cmdsize,
-              "xe vm-start name-label=\"%s\" > /dev/null", pch);
+              "xe vm-start name-label=\"%s\"", pch);
           break;
         }
         if (x > 0 && x < cmdsize) {
-          system(command);
+          if (verbose_flag) {
+            printf("Command: %s\n", command);
+          }
+          int status;
+          status = system(command);
+          if (verbose_flag) {
+            printf("Returned: %d\n", status);
+          }
         }
       }
     }
@@ -75,6 +120,70 @@ int read_from_client(int fd) {
 }
 
 int main(int argc, char *argv[]) {
+  unsigned int c;
+  int option_index = 0;
+  int stdout_to_file = 0, stderr_to_file = 0;
+
+  if (strlen(password_file) == 0) {
+    snprintf(password_file, sizeof password_file, DEFAULT_PASSWORD_FILE);
+  }
+
+  while (1) {
+    static struct option opts[] = {
+      { "help",          no_argument,       0, 'h' },
+      { "verbose",       no_argument,       0, 'v' },
+      { "password-file", required_argument, 0, 'P' },
+      { "port",          required_argument, 0, 'p' },
+      { "daemon",        required_argument, 0, 'D' },
+      { "stdout",        required_argument, 0, 'o' },
+      { "stderr",        required_argument, 0, 'e' },
+      { 0,               0,                 0,  0  }
+    };
+    c = getopt_long(argc, argv, "hvP:p:Do:e:", opts, &option_index);
+    if (c == -1) break;
+    switch (c) {
+    case 'v':
+      verbose_flag = 1;
+      break;
+    case 'p':
+      sscanf(optarg, "%u", &port);
+      break;
+    case 'P': {
+      char path[256];
+      realpath(optarg, path);
+      snprintf(password_file, sizeof password_file, "%s", path);
+      break;
+    }
+    case 'D':
+      daemon_flag = 1;
+      break;
+    case 'o': {
+      char path[256];
+      realpath(optarg, path);
+      freopen(path, "w", stdout);
+      setvbuf(stdout, NULL, _IONBF, 0);
+      stdout_to_file = 1;
+      break;
+    }
+    case 'e': {
+      char path[256];
+      realpath(optarg, path);
+      freopen(path, "w", stderr);
+      setvbuf(stderr, NULL, _IONBF, 0);
+      stderr_to_file = 1;
+      break;
+    }
+    case '?':
+      exit(1);
+    case 'h':
+      help(argv[0]);
+      exit(0);
+    default:
+      help(argv[0]);
+      exit(1);
+     }
+  }
+
   int sock;
   fd_set active_fd_set, read_fd_set;
   int i;
@@ -88,7 +197,7 @@ int main(int argc, char *argv[]) {
   }
 
   server.sin_family = AF_INET;
-  server.sin_port = htons(3333);
+  server.sin_port = htons(port);
   server.sin_addr.s_addr = htonl(INADDR_ANY);
 
   if (bind(sock, (struct sockaddr *)&server, sizeof(server)) < 0) {
@@ -103,6 +212,28 @@ int main(int argc, char *argv[]) {
 
   FD_ZERO(&active_fd_set);
   FD_SET(sock, &active_fd_set);
+
+  if (verbose_flag) {
+    printf("Started listening on port %u.\n", port);
+  }
+
+  if (daemon_flag) {
+    pid_t pid, sid;
+    pid = fork();
+    if (pid < 0) exit(EXIT_FAILURE);
+    umask(0);
+    sid = setsid();
+    if (sid < 0) exit(EXIT_FAILURE);
+    if ((chdir("/")) < 0) exit(EXIT_FAILURE);
+    if (pid > 0) {
+      printf("Started daemon process %u.\n", pid);
+      exit(EXIT_SUCCESS);
+    }
+
+    close(STDIN_FILENO);
+    if (!stdout_to_file) close(STDOUT_FILENO);
+    if (!stderr_to_file) close(STDERR_FILENO);
+  }
 
   while(1) {
     read_fd_set = active_fd_set;
@@ -121,7 +252,9 @@ int main(int argc, char *argv[]) {
           perror("accept");
           exit(EXIT_FAILURE);
         }
-        printf("New client: IP: %s.\n", inet_ntoa(client.sin_addr));
+        if (verbose_flag) {
+          printf("New client: IP: %s.\n", inet_ntoa(client.sin_addr));
+        }
         FD_SET(new, &active_fd_set);
       } else {
         if (read_from_client(i) < 0) {
@@ -131,4 +264,6 @@ int main(int argc, char *argv[]) {
       }
     }
   }
+
+  return 0;
 }
