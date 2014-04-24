@@ -19,7 +19,57 @@ int read_from_client(int fd) {
   } else if (nbytes == 0) {
     return -1;
   } else {
-    printf("%s\n", buffer);
+    char *pch = strtok(buffer, " ");
+    if (pch != NULL) {
+      if (strcmp(pch, "1234567890") != 0) return -1;    // validate password
+      pch = strtok(NULL, " ");
+    }
+    if (pch != NULL) {
+      int action;
+      if (strcmp(pch, "FORCERESTART") == 0) {
+        action = 1;
+      } else if (strcmp(pch, "RESTART") == 0) {
+        action = 2;
+      } else if (strcmp(pch, "FORCESHUTDOWN") == 0) {
+        action = 3;
+      } else if (strcmp(pch, "SHUTDOWN") == 0) {
+        action = 4;
+      } else if (strcmp(pch, "START") == 0) {
+        action = 5;
+      } else {
+        return 0;
+      }
+      while ((pch = strtok(NULL, " "))) {
+        unsigned int cmdsize = 512;
+        char command[cmdsize];
+        int x = 0;
+        switch (action) {
+        case 1:
+          x = snprintf(command, cmdsize,
+              "xe vm-reboot --force name-label=\"%s\" > /dev/null", pch);
+          break;
+        case 2:
+          x = snprintf(command, cmdsize,
+              "xe vm-reboot name-label=\"%s\" > /dev/null", pch);
+          break;
+        case 3:
+          x = snprintf(command, cmdsize,
+              "xe vm-shutdown --force name-label=\"%s\" > /dev/null", pch);
+          break;
+        case 4:
+          x = snprintf(command, cmdsize,
+              "xe vm-shutdown name-label=\"%s\" > /dev/null", pch);
+          break;
+        case 5:
+          x = snprintf(command, cmdsize,
+              "xe vm-start name-label=\"%s\" > /dev/null", pch);
+          break;
+        }
+        if (x > 0 && x < cmdsize) {
+          system(command);
+        }
+      }
+    }
     return 0;
   }
 }
