@@ -125,15 +125,44 @@
       <div class="col-sm-12 stats range-{{VMs.R}}"
         ng-repeat="(host, VMs) in allServers">
         <div class="progress stat">
-          <div class="vm-progress" style="width: 20%">
+          <a href="/#/host/{{host}}" class="vm-progress" style="width: 20%">
             <div total-progress-bar="VMs" ip="host"></div>
-          </div>
-          <div class="vm-progress" ng-repeat="VM in VMs.K" style="width: {{VMs.W}}%">
+          </a>
+          <a href="/#/host/{{host}}/vm/{{VM}}" class="vm-progress"
+            ng-repeat="VM in VMs.K" style="width: {{VMs.W}}%">
             <div progress-bar="VMs" index="$index" ip="VM"></div>
-          </div>
+          </a>
         </div>
       </div>
     </div>
+  </script>
+  <script type="text/ng-template" id="host">
+    <h3 ng-bind="host"></h3>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>IP Address</th>
+          <th>Upload</th>
+          <th>Download</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr ng-repeat="VM in VMs.K">
+          <td>
+            <a href="/#/host/{{host}}/vm/{{VM}}" ng-bind="VM"></a>
+          </td>
+          <td ng-bind="VMs.UT[$index]"></td>
+          <td ng-bind="VMs.DT[$index]"></td>
+        </tr>
+        <tr ng-hide="VMs">
+          <td colspan="3" class="text-center">
+            Please wait while the host sends its statictics here...
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </script>
+  <script type="text/ng-template" id="vm">
   </script>
 </head>
 

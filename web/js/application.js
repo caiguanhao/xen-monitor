@@ -6,8 +6,16 @@ config(['$routeProvider', '$locationProvider', '$compileProvider',
   when('/', {
     templateUrl: 'main',
     controller: 'MainController'
+  }).
+  when('/host/:host', {
+    templateUrl: 'host',
+    controller: 'HostController'
+  }).
+  when('/host/:host/vm/:vm', {
+    templateUrl: 'vm',
+    controller: 'VMController'
   });
-  $locationProvider.html5Mode(true);
+  $locationProvider.html5Mode(false);
 }]).
 
 directive('body', [function() {
@@ -200,9 +208,10 @@ service('Servers', [function() {
 
 controller('MainController', ['$scope', 'Socket', 'Servers', 'LocalSettings',
   function($scope, Socket, Servers, LocalSettings) {
+  if (Socket.$events) delete Socket.$events['Update'];
   Socket.on('Update', function(host, data) {
     if (!$scope.live) return;
-    Servers.allServers[host] = JSON.parse(data);
+    Servers.allServers[host] = angular.fromJson(data);
     Servers.updateServers($scope, host);
     $scope.$broadcast('totalProgressBarChanged');
     $scope.$broadcast('progressBarChanged');
@@ -221,6 +230,31 @@ controller('MainController', ['$scope', 'Socket', 'Servers', 'LocalSettings',
   angular.extend($scope, LocalSettings.getLocalSettings({
     range: 4, show: 0, type: 'U'
   }));
+}]).
+
+controller('HostController', ['$scope', '$routeParams', 'Socket', 'Servers',
+  function($scope, $routeParams, Socket, Servers) {
+  $scope.host = $routeParams.host;
+
+  if (Socket.$events) delete Socket.$events['Update'];
+  Socket.on('Update', function(host, data) {
+    if (host !== $scope.host) return;
+    var stats = angular.fromJson(data);
+    stats.UT = [];
+    stats.DT = [];
+    stats.U.forEach(function(item) {
+      stats.UT.push(Servers.formatSize(item));
+    });
+    stats.D.forEach(function(item) {
+      stats.DT.push(Servers.formatSize(item));
+    });
+    $scope.VMs = stats;
+    $scope.$apply();
+  });
+}]).
+
+controller('VMController', ['$scope', function($scope) {
+
 }]).
 
 run([function() {
