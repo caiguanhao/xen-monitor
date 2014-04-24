@@ -18,6 +18,7 @@ int port = DEFAULT_PORT;
 static int verbose_flag;
 static int daemon_flag;
 
+char password[250];
 char password_file[256];
 
 static void help(const char *program) {
@@ -32,7 +33,8 @@ static void help(const char *program) {
     "  -D, --daemon                run as a daemon\n"
     "  -o, --stdout        <file>  write stdout to file\n"
     "  -e, --stderr        <file>  write stderr to file\n"
-    "  -P, --password-file <file>  password file to read, default:%s\n"
+    "  -P, --password-file <file>  file or - (stdin) to read password from,\n"
+    "                              default is file %s\n"
     "  -p, --port          <port>  listen to this port, default: %u\n",
     program, DEFAULT_PASSWORD_FILE, DEFAULT_PORT);
   return;
@@ -54,7 +56,7 @@ int read_from_client(int fd) {
     }
     char *pch = strtok(buffer, " ");
     if (pch != NULL) {
-      if (strcmp(pch, "1234567890") != 0) {     // validate password
+      if (strcmp(pch, password) != 0) {     // validate password
         if (verbose_flag) {
           printf("Client entered an invalid password: %s.\n", pch);
         }
@@ -149,9 +151,11 @@ int main(int argc, char *argv[]) {
       sscanf(optarg, "%u", &port);
       break;
     case 'P': {
-      char path[256];
-      realpath(optarg, path);
-      snprintf(password_file, sizeof password_file, "%s", path);
+      if (strcmp(optarg, "-") != 0) {
+        realpath(optarg, password_file);
+      } else {
+        sprintf(password_file, "-");
+      }
       break;
     }
     case 'D':
@@ -183,6 +187,27 @@ int main(int argc, char *argv[]) {
       exit(1);
      }
   }
+
+  FILE *passwdfile;
+  if (strcmp(password_file, "-") == 0) {
+    passwdfile = stdin;
+  } else {
+    passwdfile = fopen(password_file, "r");
+  }
+  if (passwdfile == NULL) {
+    fprintf(stderr, "password file %s: %s\n", password_file, strerror(errno));
+    exit(EXIT_FAILURE);
+  }
+  if (!fgets(password, sizeof(password), passwdfile)) {
+    fprintf(stderr, "error reading password file %s\n", password_file);
+    exit(EXIT_FAILURE);
+  }
+  if (strlen(password) < 10) {
+    fprintf(stderr, "password should have at least 10 characters\n");
+    exit(EXIT_FAILURE);
+  }
+  strtok(password, " \r\n");
+  fclose(passwdfile);
 
   int sock;
   fd_set active_fd_set, read_fd_set;
