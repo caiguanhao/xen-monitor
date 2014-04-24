@@ -253,8 +253,30 @@ controller('HostController', ['$scope', '$routeParams', 'Socket', 'Servers',
   });
 }]).
 
-controller('VMController', ['$scope', function($scope) {
+controller('VMController', ['$scope', '$routeParams', 'Socket', 'Servers',
+  function($scope, $routeParams, Socket, Servers) {
+  $scope.host = $routeParams.host;
+  $scope.vm = $routeParams.vm;
+  $scope.VM = {
+    UT: 'Loading...',
+    DT: 'Loading...'
+  };
 
+  if (Socket.$events) delete Socket.$events['Update'];
+  Socket.on('Update', function(host, data) {
+    if (host !== $scope.host) return;
+    var stats = angular.fromJson(data);
+    var pos = stats.K.indexOf($scope.vm);
+    if (pos === -1) return;
+    $scope.VM = {
+      K: stats.K[pos],
+      U: stats.U[pos],
+      D: stats.D[pos],
+      UT: Servers.formatSize(stats.U[pos]),
+      DT: Servers.formatSize(stats.D[pos])
+    };
+    $scope.$apply();
+  });
 }]).
 
 run([function() {
