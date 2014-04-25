@@ -65,7 +65,6 @@ directive('progressBar', [function() {
 factory('Socket', ['$window', 'ASSETS', function($window, ASSETS) {
   var socket = $window.io.connect('/');
   socket.on('CheckAssetsVersion', function(data) {
-    console.log(data)
     if (typeof data !== 'object' || typeof ASSETS !== 'object') {
       return;
     }

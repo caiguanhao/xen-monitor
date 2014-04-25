@@ -144,25 +144,29 @@ int collect_virtual_machines_info(char *vm, unsigned int *vmlength)
     return 0;
   }
   char line[512];
-  unsigned int offset = 23, datasize = 1, p = 0, i = 0;
+  unsigned int offset = 23, datasize = 0, p = 0, i = 0;
   char *data = NULL, *tmp = NULL;
 
   while (fgets(line, sizeof(line), xevmlist)) {
     if (strlen(line) < offset) {
       continue;
     }
-    datasize += strlen(line) - offset;
-    tmp = realloc(data, datasize);
-    if (!tmp) {
-      free(data);
-      data = NULL;
-      return 0;
+    if (datasize <= p) {
+      datasize += 512;
+      tmp = realloc(data, datasize);
+      if (!tmp) {
+        free(data);
+        data = NULL;
+        return 0;
+      }
+      data = tmp;
     }
-    data = tmp;
     for (i = offset; i < strlen(line); i++) {
-      data[p++] = line[i];
+      data[p] = line[i];
+      p++;
     }
   }
+  data[p] = 0;
 
   if (pclose(xevmlist) != 0) return 0;
 

@@ -251,7 +251,8 @@ int main(int argc, char *argv[]) {
     free(vm);
 
     unsigned int pos;
-    for (i = 0; i < samples->after->length; i++) {
+    unsigned int min = MIN(samples->before->length, samples->after->length);
+    for (i = 0; i < min; i++) {
       stat_network before = samples->before->networks[i];
       stat_network after = samples->after->networks[i];
 
