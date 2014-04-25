@@ -62,7 +62,13 @@ function validateCommand(password, command, host, vm) {
   return true;
 }
 
+var assetsHashes = {};
+try {
+  assetsHashes = require('./assets.json');
+} catch(e) {}
+
 io.sockets.on('connection', function (socket) {
+  socket.emit('CheckAssetsVersion', assetsHashes);
   socket.on('ExecuteCommand', function(password, command, host, vm) {
     if (!validateCommand(password, command, host, vm)) {
       socket.emit('CommandStatus', 1, host);

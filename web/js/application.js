@@ -62,8 +62,27 @@ directive('progressBar', [function() {
   };
 }]).
 
-factory('Socket', ['$window', function($window) {
-  return $window.io.connect('/');
+factory('Socket', ['$window', 'ASSETS', function($window, ASSETS) {
+  var socket = $window.io.connect('/');
+  socket.on('CheckAssetsVersion', function(data) {
+    console.log(data)
+    if (typeof data !== 'object' || typeof ASSETS !== 'object') {
+      return;
+    }
+    if (angular.equals(ASSETS, {})) return;
+    if (angular.equals(data, {})) return;
+    var assetsHasChanged = !angular.equals(data, ASSETS);
+    if (assetsHasChanged) {
+      // prevent reload loop
+      if ($window.localStorage['XenMonApp.Reloaded'] !== "1") {
+        $window.localStorage['XenMonApp.Reloaded'] = "1";
+        $window.location.reload();
+      } else {
+        delete $window.localStorage['XenMonApp.Reloaded'];
+      }
+    }
+  });
+  return socket;
 }]).
 
 service('LocalSettings', ['$window', function($window) {
