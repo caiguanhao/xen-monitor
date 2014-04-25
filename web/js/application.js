@@ -288,9 +288,12 @@ controller('VMController', ['$scope', '$routeParams', 'Socket', 'Servers',
       console.log('Command has been sent to host.');
       break;
     case 1:
-      alert('Cannot connect to the host ' + host + '.');
+      alert('Invalid format of password, command or IP addresses.');
       break;
     case 2:
+      alert('Cannot connect to the host ' + host + '.');
+      break;
+    case 3:
       alert('Timed out connecting to host ' + host + '.');
       break;
     }
