@@ -135,18 +135,27 @@ service('Servers', [function() {
     $scope.rangeStats = rS;
   };
   this.topTotalUpload = 1;
+  this.topTotalUploadTime = 0;
   this.topTotalDownload = 1;
+  this.topTotalDownloadTime = 0;
+  this.sum = function(p, c) {
+    return p + (c < 99999999 ? c : 0); // ignore insanely large number
+  };
   this.updateServers = function($scope, host) {
     var VMs = this.allServers[host] || {};
     var topUpload = Math.max.apply(Math, VMs.U);
     var topDownload = Math.max.apply(Math, VMs.D);
 
-    var totalUpload = VMs.U.reduce(function(p, c) { return p + c; }, 0);
-    if (totalUpload > this.topTotalUpload) this.topTotalUpload = totalUpload;
+    var totalUpload = VMs.U.reduce(this.sum, 0);
+    if (totalUpload > this.topTotalUpload) {
+      this.topTotalUpload = totalUpload;
+    }
     var TUP = Math.floor(totalUpload / this.topTotalUpload * 100);
 
-    var totalDownload = VMs.D.reduce(function(p, c) { return p + c; }, 0);
-    if (totalDownload > this.topTotalDownload) this.topTotalDownload = totalDownload;
+    var totalDownload = VMs.D.reduce(this.sum, 0);
+    if (totalDownload > this.topTotalDownload) {
+      this.topTotalDownload = totalDownload;
+    }
     var TDP = Math.floor(totalDownload / this.topTotalDownload * 100);
 
     var VM = {
@@ -198,9 +207,18 @@ service('Servers', [function() {
     VM.W = 80 / (c < 4 ? 4 : c);
     $scope.allServers = $scope.allServers || {};
     $scope.allServers[host] = VM;
-    if ((+new Date) - this.lastTimeCountServersByColor > 3000) {
+    var now = +new Date;
+    if (now - this.lastTimeCountServersByColor > 3000) {
       this.countServersByColor($scope);
-      this.lastTimeCountServersByColor = +new Date
+      this.lastTimeCountServersByColor = now;
+    }
+    if (now - this.topTotalUploadTime > 20000) {
+      this.topTotalUpload = 0;
+      this.topTotalUploadTime = now;
+    }
+    if (now - this.topTotalDownloadTime > 20000) {
+      this.topTotalDownload = 0;
+      this.topTotalDownloadTime = now;
     }
     $scope.$apply();
   };

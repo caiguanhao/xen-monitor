@@ -54,7 +54,7 @@
           <div class="progress-bar progress-bar-success"
             style="width: {{colorStats.successPercent}}%">
             <span ng-bind="colorStats.success + ' / ' +
-              colorStats.total"></span>
+              colorStats.total" ng-show="colorStats.success"></span>
           </div>
           <div class="progress-bar progress-bar-warning"
             style="width: {{colorStats.warningPercent}}%">
