@@ -181,8 +181,9 @@ service('Servers', [function() {
   this.topTotalUploadTime = 0;
   this.topTotalDownload = 1;
   this.topTotalDownloadTime = 0;
+  var MAXSPEED = 15728640; // 15M
   this.sum = function(p, c) {
-    return p + (c < 99999999 ? c : 0); // ignore insanely large number
+    return p + (c > MAXSPEED ? MAXSPEED : c); // ignore insanely large number
   };
   this.updateServers = function(host, data) {
     this.allServers[host] = data;
@@ -190,7 +191,9 @@ service('Servers', [function() {
     if (!VM) return;
 
     var topUpload = Math.max.apply(Math, VM.U);
+    if (topUpload > MAXSPEED) topUpload = MAXSPEED;
     var topDownload = Math.max.apply(Math, VM.D);
+    if (topDownload > MAXSPEED) topDownload = MAXSPEED;
 
     var totalUpload = VM.U.reduce(this.sum, 0);
     if (totalUpload > this.topTotalUpload) {
