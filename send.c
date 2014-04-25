@@ -116,7 +116,7 @@ int main(int argc, char *argv[]) {
       { "sample-period", required_argument, 0, 's' },
       { "ip-address",    required_argument, 0, 'i' },
       { "port",          required_argument, 0, 'p' },
-      { "daemon",        required_argument, 0, 'D' },
+      { "daemon",        no_argument      , 0, 'D' },
       { "stdout",        required_argument, 0, 'o' },
       { "stderr",        required_argument, 0, 'e' },
       { "xe-vm-list",    required_argument, 0, 'x' },

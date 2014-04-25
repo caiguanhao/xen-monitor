@@ -17,6 +17,7 @@ int port = DEFAULT_PORT;
 
 static int verbose_flag;
 static int daemon_flag;
+static int dry_run_flag;
 
 char password[250];
 char password_file[256];
@@ -35,7 +36,8 @@ static void help(const char *program) {
     "  -e, --stderr        <file>  write stderr to file\n"
     "  -P, --password-file <file>  file or - (stdin) to read password from,\n"
     "                              default is file %s\n"
-    "  -p, --port          <port>  listen to this port, default: %u\n",
+    "  -p, --port          <port>  listen to this port, default: %u\n"
+    "  -n, --dry-run               show commands but don't execute them\n",
     program, DEFAULT_PASSWORD_FILE, DEFAULT_PORT);
   return;
 }
@@ -55,7 +57,9 @@ int read_from_client(int fd) {
       printf("Received: %s\n", buffer);
     }
     char *pch = strtok(buffer, " ");
-    if (pch != NULL) {
+    if (pch == NULL) {
+      return -1;
+    } else {
       if (strcmp(pch, password) != 0) {     // validate password
         if (verbose_flag) {
           printf("Client entered an invalid password: %s.\n", pch);
@@ -64,7 +68,9 @@ int read_from_client(int fd) {
       }
       pch = strtok(NULL, " ");
     }
-    if (pch != NULL) {
+    if (pch == NULL) {
+      return -1;
+    } else {
       int action;
       if (strcmp(pch, "FORCERESTART") == 0) {
         action = 1;
@@ -109,8 +115,12 @@ int read_from_client(int fd) {
           if (verbose_flag) {
             printf("Command: %s\n", command);
           }
-          int status;
-          status = system(command);
+          int status = 0;
+          if (dry_run_flag) {
+            puts(command);
+          } else {
+            status = system(command);
+          }
           if (verbose_flag) {
             printf("Returned: %d\n", status);
           }
@@ -136,12 +146,13 @@ int main(int argc, char *argv[]) {
       { "verbose",       no_argument,       0, 'v' },
       { "password-file", required_argument, 0, 'P' },
       { "port",          required_argument, 0, 'p' },
-      { "daemon",        required_argument, 0, 'D' },
+      { "daemon",        no_argument,       0, 'D' },
       { "stdout",        required_argument, 0, 'o' },
       { "stderr",        required_argument, 0, 'e' },
+      { "dry-run",       no_argument      , 0, 'n' },
       { 0,               0,                 0,  0  }
     };
-    c = getopt_long(argc, argv, "hvP:p:Do:e:", opts, &option_index);
+    c = getopt_long(argc, argv, "hvP:p:Do:e:n", opts, &option_index);
     if (c == -1) break;
     switch (c) {
     case 'v':
@@ -160,6 +171,9 @@ int main(int argc, char *argv[]) {
     }
     case 'D':
       daemon_flag = 1;
+      break;
+    case 'n':
+      dry_run_flag = 1;
       break;
     case 'o': {
       char path[256];
@@ -190,6 +204,7 @@ int main(int argc, char *argv[]) {
 
   FILE *passwdfile;
   if (strcmp(password_file, "-") == 0) {
+    printf("type your password (at least 10 characters): ");
     passwdfile = stdin;
   } else {
     passwdfile = fopen(password_file, "r");
@@ -215,7 +230,7 @@ int main(int argc, char *argv[]) {
   struct sockaddr_in server;
   struct sockaddr_in client;
 
-  sock = socket (PF_INET, SOCK_STREAM, 0);
+  sock = socket(PF_INET, SOCK_STREAM, 0);
   if (sock < 0) {
     perror("socket");
     exit(EXIT_FAILURE);
@@ -227,6 +242,13 @@ int main(int argc, char *argv[]) {
 
   if (bind(sock, (struct sockaddr *)&server, sizeof(server)) < 0) {
     perror("bind");
+    exit(EXIT_FAILURE);
+  }
+
+  int on = 0;
+  if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
+    (const char *)&on, sizeof(on)) < 0) {
+    perror("setsockopt SO_REUSEADDR");
     exit(EXIT_FAILURE);
   }
 
