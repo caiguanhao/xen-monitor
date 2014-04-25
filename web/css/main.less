@@ -129,10 +129,13 @@ footer {
   }
 }
 
-.progress-bar-dead {
-  width: 100% !important;
+.progress-bar-dead, .progress-bar-dead-auto {
   background-image: -webkit-linear-gradient(top, #505050 0%, #333333 100%);
   background-image:         linear-gradient(to bottom, #505050 0%, #333333 100%);
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff505050', endColorstr='#ff333333', GradientType=0);
   background-repeat: repeat-x;
+}
+
+.progress-bar-dead {
+  width: 100% !important;
 }
