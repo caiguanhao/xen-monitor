@@ -71,19 +71,16 @@ io.sockets.on('connection', function (socket) {
   socket.emit('CheckAssetsVersion', assetsHashes);
   socket.on('ExecuteCommand', function(password, command, host, vm) {
     if (!validateCommand(password, command, host, vm)) {
-      socket.emit('CommandStatus', 1, host);
       return;
     }
     var cmdsocket = new net.Socket();
     cmdsocket.connect(3333, host, function() {
       cmdsocket.end(password + ' ' + command + ' ' + vm);
     });
-    cmdsocket.on('end', function() {
-      socket.emit('CommandStatus', 0, host);
-    });
+    cmdsocket.on('end', function() {});
     cmdsocket.on('error', function() {
       cmdsocket.destroy();
-      socket.emit('CommandStatus', 2, host);
+      socket.emit('CommandFailed', host);
     });
     cmdsocket.setTimeout(5000, function() {
       cmdsocket.destroy();

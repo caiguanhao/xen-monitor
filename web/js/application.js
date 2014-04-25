@@ -341,13 +341,8 @@ controller('VMController', ['$scope', '$routeParams', 'Socket', 'Servers',
       $scope.$apply();
     }
   });
-  Socket.on('CommandStatus', function(status, host) {
-    var messages = {
-      0: 'Command has been sent to the host {}. Please wait a moment.',
-      1: 'Invalid format of password, command or IP addresses.',
-      2: 'Cannot connect to the host {}.'
-    }
-    $scope.message = (messages[status] || '').replace(/{}/g, host);
+  Socket.on('CommandFailed', function(status, host) {
+    $scope.message = 'Cannot connect to the host {}.'.replace(/{}/g, host);
     $scope.$apply();
   });
 
@@ -375,6 +370,7 @@ controller('VMController', ['$scope', '$routeParams', 'Socket', 'Servers',
     var command = Servers.COMMANDS.C[cmdindex];
     Socket.emit('ExecuteCommand', $scope.password, command,
       $scope.host, $scope.vm);
+    $scope.message = 'Command has been sent. Please wait a moment.'
     $scope.password = null;
     Servers.freezeTimes[$scope.vm] = (+new Date) +
       Servers.COMMANDS.W[cmdindex] * 1000;
