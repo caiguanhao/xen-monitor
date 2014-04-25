@@ -14,7 +14,7 @@ B_ADDR = '127.0.0.1'
 B_PORT = 8124
 REDIS = None
 verbose = 0
-MAX_NUMBER_LENGTH = 10     # prevent insanely large number
+MAX_NUMBER_LENGTH = 9     # prevent insanely large number
 
 def help():
   print (
@@ -106,26 +106,26 @@ if __name__ == "__main__":
         address[1])
       stats = json.loads(data)
 
-      VO = {}
-      V = stats["V"].strip().split()
-      for index, val in enumerate(V[::2]):
-        if len(V) > 2 * index + 1:
-          VO[V[2 * index]] = V[2 * index + 1];
       S = {}
       for A in stats["A"]:
         if len(A["U"]) > MAX_NUMBER_LENGTH or len(A["D"]) > MAX_NUMBER_LENGTH:
           S = {}
           break
-        if A["I"] in VO:
-          S[VO[A["I"]]] = { "U": int(A["U"]), "D": int(A["D"]) }
+        if A["I"] in stats["V"]:
+          S[stats["V"][A["I"]]["IP"]] = {
+            "U": int(A["U"]),
+            "D": int(A["D"]),
+            "S": stats["V"][A["I"]]["PS"] or "U"
+          }
 
       if not S: continue
 
-      DATA = { "K": [], "U": [], "D": [] }
+      DATA = { "K": [], "U": [], "D": [], "S": [] }
       for key in sorted(S):
         DATA["K"].append(key)
         DATA["U"].append(S[key]["U"])
         DATA["D"].append(S[key]["D"])
+        DATA["S"].append(S[key]["S"])
 
       pipe = REDIS.pipeline()
       pipe.set(stats["I"], json.dumps(DATA))

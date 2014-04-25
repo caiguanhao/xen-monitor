@@ -101,7 +101,7 @@ int main(int argc, char *argv[]) {
 
   if (strlen(xe_vm_list_command) == 0) {
     snprintf(xe_vm_list_command, sizeof xe_vm_list_command,
-      "xe vm-list params=dom-id,networks 2>/dev/null");
+      "xe vm-list params=power-state,dom-id,networks 2>/dev/null");
   }
   if (strlen(proc_net_dev) == 0) {
     snprintf(proc_net_dev, sizeof proc_net_dev, "/proc/net/dev");
@@ -246,8 +246,7 @@ int main(int argc, char *argv[]) {
       continue;
     }
 
-    p = snprintf(message, msgsize,
-      "{\"T\":%u,\"I\":\"%s\",\"V\":\"%s\",\"A\":[",
+    p = snprintf(message, msgsize, "{\"T\":%u,\"I\":\"%s\",\"V\":{%s},\"A\":[",
       (unsigned)time(NULL), host_ip_address, vm);
     free(vm);
 

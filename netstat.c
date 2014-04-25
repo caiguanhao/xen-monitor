@@ -115,6 +115,24 @@ int parseNetDevLine(char *line, char *iface,
   return 0;
 }
 
+int is_unsigned_int(const char *str)
+{
+  if (!*str) return 0;
+  for (; *str; ++str)
+    if (!isdigit(*str))
+      return 0;
+  return 1;
+}
+
+int is_ip_address(const char *str)
+{
+  if (!*str) return 0;
+  for (; *str; ++str)
+    if (!isdigit(*str) && *str != '.')
+      return 0;
+  return 1;
+}
+
 int collect_virtual_machines_info(char *vm, unsigned int *vmlength)
 {
   FILE *xevmlist;
@@ -124,44 +142,64 @@ int collect_virtual_machines_info(char *vm, unsigned int *vmlength)
     return 0;
   }
   char line[512];
-  int p = 0, i = 0, s = 0, offset = 20;
-  char *a;
+  unsigned int offset = 23, datasize = 1, p = 0, i = 0;
+  char *data = NULL, *tmp = NULL;
 
   while (fgets(line, sizeof(line), xevmlist)) {
     if (strlen(line) < offset) {
       continue;
     }
-    s = 0;
-    for (i = offset; i < strlen(line); i++) {
-      if (isspace(line[i]) || line[i] == ';') {
-        if (s > 0) {
-          int pass = 1;
-          for (a = vm + p; *a; a++) {
-            if (!isdigit(*a) && *a != '.') {  // check if [0-9.]+
-              pass = 0;
-              break;
-            }
-          }
-          if (pass) break;
-        }
-        s = 0;
-        continue;
-      }
-      s += snprintf(vm + p + s, 1024 - p - s, "%c", line[i]);
+    datasize += strlen(line) - offset;
+    tmp = realloc(data, datasize);
+    if (!tmp) {
+      free(data);
+      data = NULL;
+      return 0;
     }
-    // skip if dom-id is 0 or nothing acceptable in network
-    if (s == 0 || strcmp(vm + p, "0") == 0) continue;
-    p += s;
-    p += snprintf(vm + p, 1024 - p, " ");
-    if (vmlength != NULL) (*vmlength)++;
+    data = tmp;
+    for (i = offset; i < strlen(line); i++) {
+      data[p++] = line[i];
+    }
   }
 
-  // remove possible trailing space
+  if (pclose(xevmlist) != 0) return 0;
+
+  const char *delim = " ;\n";
+  const char states[] = "URHPS";
+  char *pch = strtok(data, delim);
+  int powerstate = 0;
+  char domid[10] = {0};
+  char ip[16] = {0};
+  p = 0;
+  do {
+    if (is_unsigned_int(pch)) {
+      snprintf(domid, sizeof domid, "%s", pch);
+    } else if (is_ip_address(pch)) {
+      snprintf(ip, sizeof ip, "%s", pch);
+    } else if (strcmp(pch, "running") == 0) {
+      powerstate = 1;
+    } else if (strcmp(pch, "halted") == 0) {
+      powerstate = 2;
+    } else if (strcmp(pch, "paused") == 0) {
+      powerstate = 3;
+    } else if (strcmp(pch, "suspended") == 0) {
+      powerstate = 4;
+    }
+    if (strlen(domid) > 0 && strlen(ip) > 0) {
+      p += snprintf(vm + p, 1024 - p, "\"%s\":{\"PS\":\"%c\",\"IP\":\"%s\"},",
+        domid, states[powerstate], ip);
+      if (vmlength != NULL) (*vmlength)++;
+      powerstate = 0;
+      bzero(domid, sizeof domid);
+      bzero(ip, sizeof ip);
+    }
+  } while ((pch = strtok(NULL, delim)));
+
+  // remove possible trailing comma
   if (strlen(vm) > 0) vm[strlen(vm) - 1] = 0;
 
-  if (vmlength != NULL) (*vmlength) /= 2;
-
-  if (pclose(xevmlist) != 0) return 0;
+  free(data);
+  free(pch);
 
   return 1;
 }

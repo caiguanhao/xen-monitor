@@ -1,18 +1,23 @@
-dom-id ( RO)      : 18
-    networks (MRO): 1/ip: 198.156.124.92
+power-state ( RO)    : running
+         dom-id ( RO): 18
+       networks (MRO): 1/ip: 198.156.124.92
 
 
-dom-id ( RO)      : 6
-    networks (MRO): 1/ip: 198.156.124.91
+power-state ( RO)    : halted
+         dom-id ( RO): 6
+       networks (MRO): 1/ip: 198.156.124.91
 
 
-dom-id ( RO)      : 7
-    networks (MRO): 1/ip: 198.156.124.94; 1/ipv6/0: fe80:0000:0000:0000:2003:ffff:253.142.123.175%6
+power-state ( RO)    : running
+         dom-id ( RO): 7
+       networks (MRO): 1/ip: 198.156.124.94; 1/ipv6/0: fe80:0000:0000:0000:2003:ffff:253.142.123.175%6
 
 
-dom-id ( RO)      : 0
-    networks (MRO): <not in database>
+power-state ( RO)    : running
+         dom-id ( RO): 0
+       networks (MRO): <not in database>
 
 
-dom-id ( RO)      : 17
-    networks (MRO): 1/ip: 198.156.124.93
+power-state ( RO)    : running
+         dom-id ( RO): 17
+       networks (MRO): 1/ip: 198.156.124.93
