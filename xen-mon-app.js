@@ -79,15 +79,14 @@ io.sockets.on('connection', function (socket) {
       cmdsocket.end(password + ' ' + command + ' ' + vm);
     });
     cmdsocket.on('end', function() {
-      socket.emit('CommandStatus', 0);
+      socket.emit('CommandStatus', 0, host);
     });
     cmdsocket.on('error', function() {
       cmdsocket.destroy();
       socket.emit('CommandStatus', 2, host);
     });
-    cmdsocket.setTimeout(15000, function() {
+    cmdsocket.setTimeout(5000, function() {
       cmdsocket.destroy();
-      socket.emit('CommandStatus', 3, host);
     });
   });
 });

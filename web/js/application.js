@@ -117,6 +117,11 @@ service('Servers', [function() {
     P: 'Paused',
     S: 'Suspended'
   };
+  this.COMMANDS = {
+    C: [ 'FORCERESTART', 'RESTART', 'FORCESHUTDOWN', 'SHUTDOWN', 'START' ],
+    T: [ 'Force Restart', 'Restart', 'Force Shutdown', 'Shutdown', 'Start' ],
+    W: [ 30, 60, 10, 35, 30 ] // wait n seconds
+  };
   this.colorBySpeed = function(speed) {
     if (speed > 2048000) return 'success';
     if (speed > 1024000) return 'warning';
@@ -142,6 +147,7 @@ service('Servers', [function() {
     if (size > 1048576) return (size / 1048576).toFixed(2) + ' MB/s';
     return (size / 1024).toFixed(2) + ' KB/s';
   };
+  this.freezeTimes = {};
   this.allServers = {};
   this.colorStats = {};
   this.rangeStats = {};
@@ -313,8 +319,10 @@ controller('VMController', ['$scope', '$routeParams', 'Socket', 'Servers',
   function($scope, $routeParams, Socket, Servers) {
   $scope.host = $routeParams.host;
   $scope.vm = $routeParams.vm;
-  $scope.command = 'FORCERESTART';
+  $scope.commands = Servers.COMMANDS;
+  $scope.command = 0;
   $scope.VMs = Servers.allServers[$scope.host];
+  $scope.index = -1;
   if ($scope.VMs) $scope.index = $scope.VMs.K.indexOf($scope.vm);
 
   if (Socket.$events) {
@@ -334,33 +342,42 @@ controller('VMController', ['$scope', '$routeParams', 'Socket', 'Servers',
     }
   });
   Socket.on('CommandStatus', function(status, host) {
-    switch (status) {
-    case 0:
-      console.log('Command has been sent to host.');
-      break;
-    case 1:
-      alert('Invalid format of password, command or IP addresses.');
-      break;
-    case 2:
-      alert('Cannot connect to the host ' + host + '.');
-      break;
-    case 3:
-      alert('Timed out connecting to host ' + host + '.');
-      break;
+    var messages = {
+      0: 'Command has been sent to the host {}. Please wait a moment.',
+      1: 'Invalid format of password, command or IP addresses.',
+      2: 'Cannot connect to the host {}.'
     }
+    $scope.message = (messages[status] || '').replace(/{}/g, host);
+    $scope.$apply();
   });
 
   $scope.btnExecuteDisabled = function() {
     return !$scope.password || $scope.password.length < 10;
   };
+  $scope.commandInputDisabled = function() {
+    if ($scope.index > -1) {
+      var freeze_time = Servers.freezeTimes[$scope.vm];
+      if (freeze_time && +new Date < freeze_time) {
+        return true;
+      } else {
+        $scope.message = null;
+      }
+    }
+    return false;
+  };
   $scope.execute = function() {
+    if ($scope.index < 0) return alert('Not ready yet.');
     if (!Socket.socket.connected) {
       return alert('It seems you\'re not connected! Aborted!');
     }
     if (!confirm('Are you sure you want to execute this command?')) return;
-    Socket.emit('ExecuteCommand', $scope.password, $scope.command,
+    var cmdindex = $scope.command;
+    var command = Servers.COMMANDS.C[cmdindex];
+    Socket.emit('ExecuteCommand', $scope.password, command,
       $scope.host, $scope.vm);
     $scope.password = null;
+    Servers.freezeTimes[$scope.vm] = (+new Date) +
+      Servers.COMMANDS.W[cmdindex] * 1000;
   };
 }]).
 
