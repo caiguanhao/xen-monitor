@@ -92,10 +92,17 @@ service('LocalSettings', ['$window', function($window) {
 }]).
 
 service('Servers', [function() {
+  this.POWERSTATES = {
+    U: 'Unknown',
+    R: 'Running',
+    H: 'Halted',
+    P: 'Paused',
+    S: 'Suspended'
+  };
   this.colorBySpeed = function(speed) {
-    if (speed > 2000000) return 'success';
-    if (speed > 1000000) return 'warning';
-    if (speed < 100000) return 'dead';
+    if (speed > 2048000) return 'success';
+    if (speed > 1024000) return 'warning';
+    if (speed < 102400) return 'dead';
     return 'danger';
   };
   this.colorByPercent = function(percent) {
@@ -118,12 +125,24 @@ service('Servers', [function() {
     return (size / 1024).toFixed(2) + ' KB/s';
   };
   this.allServers = {};
+  this.colorStats = {};
+  this.rangeStats = {};
   this.lastTimeCountServersByColor = 0;
-  this.countServersByColor = function($scope) {
-    var cS = { success: 0, warning: 0, danger: 0 };
-    var rS = { 11: 0, 10: 0, 9: 0, 8: 0, 7: 0, 4: 0, 0: 0 };
-    for (var host in $scope.allServers) {
-      var VMs = $scope.allServers[host]
+  this.countServersByColor = function() {
+    var cS = this.colorStats;
+    var rS = this.rangeStats;
+    cS.success = 0;
+    cS.warning = 0;
+    cS.danger  = 0;
+    rS['11']   = 0;
+    rS['10']   = 0;
+    rS['9']    = 0;
+    rS['8']    = 0;
+    rS['7']    = 0;
+    rS['4']    = 0;
+    rS['0']    = 0;
+    for (var host in this.allServers) {
+      var VMs = this.allServers[host]
       for (var i = 0; i < VMs.UC.length; i++) {
         cS[VMs.UC[i]]++;
         rS[VMs.R]++;
@@ -133,8 +152,6 @@ service('Servers', [function() {
     cS.successPercent = Math.floor(cS.success / cS.total * 100);
     cS.warningPercent = Math.floor(cS.warning / cS.total * 100);
     cS.dangerPercent = 100 - cS.successPercent - cS.warningPercent;
-    $scope.colorStats = cS;
-    $scope.rangeStats = rS;
   };
   this.topTotalUpload = 1;
   this.topTotalUploadTime = 0;
@@ -143,75 +160,79 @@ service('Servers', [function() {
   this.sum = function(p, c) {
     return p + (c < 99999999 ? c : 0); // ignore insanely large number
   };
-  this.updateServers = function($scope, host) {
-    var VMs = this.allServers[host] || {};
-    var topUpload = Math.max.apply(Math, VMs.U);
-    var topDownload = Math.max.apply(Math, VMs.D);
+  this.updateServers = function(host, data) {
+    this.allServers[host] = data;
+    var VM = this.allServers[host];
+    if (!VM) return;
 
-    var totalUpload = VMs.U.reduce(this.sum, 0);
+    var topUpload = Math.max.apply(Math, VM.U);
+    var topDownload = Math.max.apply(Math, VM.D);
+
+    var totalUpload = VM.U.reduce(this.sum, 0);
     if (totalUpload > this.topTotalUpload) {
       this.topTotalUpload = totalUpload;
     }
     var TUP = Math.floor(totalUpload / this.topTotalUpload * 100);
 
-    var totalDownload = VMs.D.reduce(this.sum, 0);
+    var totalDownload = VM.D.reduce(this.sum, 0);
     if (totalDownload > this.topTotalDownload) {
       this.topTotalDownload = totalDownload;
     }
     var TDP = Math.floor(totalDownload / this.topTotalDownload * 100);
 
-    var VM = {
-      UC: [],
-      UP: [],
-      UT: [],
+    VM.UC  = [];
+    VM.UP  = [];
+    VM.UT  = [];
 
-      DC: [],
-      DP: [],
-      DT: [],
+    VM.DC  = [];
+    VM.DP  = [];
+    VM.DT  = [];
 
-      TU: totalUpload,
-      TUC: this.colorByPercent(TUP),
-      TUT: this.formatSize(totalUpload),
-      TUP: TUP,
+    VM.PS  = [];
 
-      TD: totalDownload,
-      TDC: this.colorByPercent(TDP),
-      TDT: this.formatSize(totalDownload),
-      TDP: TDP,
+    VM.TU  = totalUpload;
+    VM.TUC = this.colorByPercent(TUP);
+    VM.TUT = this.formatSize(totalUpload);
+    VM.TUP = TUP;
 
-      K: VMs.K,
-      W: 100,
-      R: this.rangeBySpeed(totalUpload)
-    };
+    VM.TD  = totalDownload;
+    VM.TDC = this.colorByPercent(TDP);
+    VM.TDT = this.formatSize(totalDownload);
+    VM.TDP = TDP;
+
+    VM.W   = 100;
+    VM.R   = this.rangeBySpeed(totalUpload);
+
     var i, c = 0;
-    for (i = VMs.K.length - 1; i > -1 ; i--) {
-      if (!/^[0-9.]+$/.test(VMs.K[i])) {
-        VMs.K.splice(i, 1);
-        VMs.U.splice(i, 1);
-        VMs.D.splice(i, 1);
+    for (i = VM.K.length - 1; i > -1 ; i--) {
+      if (!/^[0-9.]+$/.test(VM.K[i])) {
+        VM.K.splice(i, 1);
+        VM.U.splice(i, 1);
+        VM.D.splice(i, 1);
         continue;
       }
 
-      var uploadPercent = Math.floor(VMs.U[i] / topUpload * 100);
-      var uploadColor = this.colorBySpeed(VMs.U[i]);
+      var uploadPercent = Math.floor(VM.U[i] / topUpload * 100);
+      var uploadColor = this.colorBySpeed(VM.U[i]);
       VM.UP.unshift(uploadPercent || 0);
       VM.UC.unshift(uploadColor);
-      VM.UT.unshift(this.formatSize(VMs.U[i]));
+      VM.UT.unshift(this.formatSize(VM.U[i]));
 
-      var downloadPercent = Math.floor(VMs.D[i] / topDownload * 100);
-      var downloadColor = this.colorBySpeed(VMs.D[i]);
+      var downloadPercent = Math.floor(VM.D[i] / topDownload * 100);
+      var downloadColor = this.colorBySpeed(VM.D[i]);
       VM.DP.unshift(downloadPercent || 0);
       VM.DC.unshift(downloadColor);
-      VM.DT.unshift(this.formatSize(VMs.D[i]));
+      VM.DT.unshift(this.formatSize(VM.D[i]));
+
+      VM.PS.unshift(this.POWERSTATES[VM.S[i]] || this.POWERSTATES.U);
 
       c++;
     }
     VM.W = 80 / (c < 4 ? 4 : c);
-    $scope.allServers = $scope.allServers || {};
-    $scope.allServers[host] = VM;
+
     var now = +new Date;
     if (now - this.lastTimeCountServersByColor > 3000) {
-      this.countServersByColor($scope);
+      this.countServersByColor();
       this.lastTimeCountServersByColor = now;
     }
     if (now - this.topTotalUploadTime > 20000) {
@@ -222,17 +243,20 @@ service('Servers', [function() {
       this.topTotalDownload = 0;
       this.topTotalDownloadTime = now;
     }
-    $scope.$apply();
   };
 }]).
 
 controller('MainController', ['$scope', 'Socket', 'Servers', 'LocalSettings',
   function($scope, Socket, Servers, LocalSettings) {
+  $scope.allServers = Servers.allServers;
+  $scope.colorStats = Servers.colorStats;
+  $scope.rangeStats = Servers.rangeStats;
+
   if (Socket.$events) delete Socket.$events['Update'];
   Socket.on('Update', function(host, data) {
     if (!$scope.live) return;
-    Servers.allServers[host] = angular.fromJson(data);
-    Servers.updateServers($scope, host);
+    Servers.updateServers(host, angular.fromJson(data));
+    $scope.$apply();
     $scope.$broadcast('totalProgressBarChanged');
     $scope.$broadcast('progressBarChanged');
   });
@@ -255,21 +279,15 @@ controller('MainController', ['$scope', 'Socket', 'Servers', 'LocalSettings',
 controller('HostController', ['$scope', '$routeParams', 'Socket', 'Servers',
   function($scope, $routeParams, Socket, Servers) {
   $scope.host = $routeParams.host;
+  $scope.VMs = Servers.allServers[$scope.host];
 
   if (Socket.$events) delete Socket.$events['Update'];
   Socket.on('Update', function(host, data) {
-    if (host !== $scope.host) return;
-    var stats = angular.fromJson(data);
-    stats.UT = [];
-    stats.DT = [];
-    stats.U.forEach(function(item) {
-      stats.UT.push(Servers.formatSize(item));
-    });
-    stats.D.forEach(function(item) {
-      stats.DT.push(Servers.formatSize(item));
-    });
-    $scope.VMs = stats;
-    $scope.$apply();
+    Servers.updateServers(host, angular.fromJson(data));
+    if (host === $scope.host) {
+      $scope.VMs = Servers.allServers[host];
+      $scope.$apply();
+    }
   });
 }]).
 
@@ -277,30 +295,25 @@ controller('VMController', ['$scope', '$routeParams', 'Socket', 'Servers',
   function($scope, $routeParams, Socket, Servers) {
   $scope.host = $routeParams.host;
   $scope.vm = $routeParams.vm;
-  $scope.VM = {
-    UT: 'Loading...',
-    DT: 'Loading...'
-  };
   $scope.command = 'FORCERESTART';
-  $scope.password = '1234567890';
+  $scope.VMs = Servers.allServers[$scope.host];
+  if ($scope.VMs) $scope.index = $scope.VMs.K.indexOf($scope.vm);
 
   if (Socket.$events) {
     delete Socket.$events['Update'];
     delete Socket.$events['CommandStatus'];
   }
   Socket.on('Update', function(host, data) {
-    if (host !== $scope.host) return;
+    Servers.updateServers(host, angular.fromJson(data));
     var stats = angular.fromJson(data);
-    var pos = stats.K.indexOf($scope.vm);
-    if (pos === -1) return;
-    $scope.VM = {
-      K: stats.K[pos],
-      U: stats.U[pos],
-      D: stats.D[pos],
-      UT: Servers.formatSize(stats.U[pos]),
-      DT: Servers.formatSize(stats.D[pos])
-    };
-    $scope.$apply();
+    if (host === $scope.host) {
+      var VMs = Servers.allServers[host];
+      var index = VMs.K.indexOf($scope.vm);
+      if (index === -1) return;
+      $scope.VMs = VMs;
+      $scope.index = index;
+      $scope.$apply();
+    }
   });
   Socket.on('CommandStatus', function(status, host) {
     switch (status) {

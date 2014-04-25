@@ -147,6 +147,7 @@
       <thead>
         <tr>
           <th>IP Address</th>
+          <th>Power State</th>
           <th>Upload</th>
           <th>Download</th>
         </tr>
@@ -156,11 +157,12 @@
           <td>
             <a href="/#/host/{{host}}/vm/{{VM}}" ng-bind="VM"></a>
           </td>
+          <td ng-bind="VMs.PS[$index]"></td>
           <td ng-bind="VMs.UT[$index]"></td>
           <td ng-bind="VMs.DT[$index]"></td>
         </tr>
         <tr ng-hide="VMs">
-          <td colspan="3" class="text-center">
+          <td colspan="4" class="text-center">
             Please wait while the host sends its statictics here...
           </td>
         </tr>
@@ -176,12 +178,16 @@
     <table class="table table-vm">
       <tbody>
         <tr>
+          <td class="attr">Power State</td>
+          <td>{{VMs.PS[index] || 'Loading...'}}</td>
+        </tr>
+        <tr>
           <td class="attr">Upload</td>
-          <td>{{VM.UT}}</td>
+          <td>{{VMs.UT[index] || 'Loading...'}}</td>
         </tr>
         <tr>
           <td class="attr">Download</td>
-          <td>{{VM.DT}}</td>
+          <td>{{VMs.DT[index] || 'Loading...'}}</td>
         </tr>
         <tr>
           <td class="attr">Command</td>
