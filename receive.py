@@ -116,11 +116,15 @@ if __name__ == "__main__":
         "K": map(lambda x: x["IP"] or "127.0.0.1", stats["V"]),
         "U": map(lambda x: S[x["I"]]["U"] if x["I"] in S else 0, stats["V"]),
         "D": map(lambda x: S[x["I"]]["D"] if x["I"] in S else 0, stats["V"]),
-        "S": map(lambda x: x["PS"] or "U", stats["V"])
+        "S": map(lambda x: x["PS"] or "U", stats["V"]),
+        "I": map(lambda x: x["I"] or "0", stats["V"])
       }
 
+      DATAstr = json.dumps(DATA)
+      if verbose: print DATAstr
+
       pipe = REDIS.pipeline()
-      pipe.set(stats["I"], json.dumps(DATA))
+      pipe.set(stats["I"], DATAstr)
       pipe.sadd('keys', stats["I"])
       pipe.publish('update', stats["I"])
       ret = pipe.execute()
