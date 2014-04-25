@@ -71,6 +71,11 @@
             <span ng-bind="colorStats.danger"
               ng-show="colorStats.danger"></span>
           </div>
+          <div class="progress-bar progress-bar-dead"
+            style="width: {{colorStats.deadPercent}}%">
+            <span ng-bind="colorStats.dead"
+              ng-show="colorStats.dead"></span>
+          </div>
         </div>
       </div>
       <div class="col-sm-12">

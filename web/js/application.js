@@ -158,6 +158,7 @@ service('Servers', [function() {
     cS.success = 0;
     cS.warning = 0;
     cS.danger  = 0;
+    cS.dead    = 0;
     rS['11']   = 0;
     rS['10']   = 0;
     rS['9']    = 0;
@@ -172,10 +173,12 @@ service('Servers', [function() {
         rS[VMs.R]++;
       }
     }
-    cS.total = cS.success + cS.warning + cS.danger;
+    cS.total = cS.success + cS.warning + cS.danger + cS.dead;
     cS.successPercent = Math.floor(cS.success / cS.total * 100);
     cS.warningPercent = Math.floor(cS.warning / cS.total * 100);
-    cS.dangerPercent = 100 - cS.successPercent - cS.warningPercent;
+    cS.dangerPercent = Math.floor(cS.danger / cS.total * 100);
+    cS.deadPercent = 100 - cS.successPercent - cS.warningPercent -
+      cS.dangerPercent;
   };
   this.topTotalUpload = 1;
   this.topTotalUploadTime = 0;
