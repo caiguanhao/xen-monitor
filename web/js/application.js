@@ -95,11 +95,13 @@ service('Servers', [function() {
   this.colorBySpeed = function(speed) {
     if (speed > 2000000) return 'success';
     if (speed > 1000000) return 'warning';
+    if (speed < 100000) return 'dead';
     return 'danger';
   };
   this.colorByPercent = function(percent) {
     if (percent > 66) return 'success';
     if (percent > 33) return 'warning';
+    if (percent < 10) return 'dead';
     return 'danger';
   };
   this.rangeBySpeed = function(speed) {

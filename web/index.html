@@ -58,11 +58,13 @@
           </div>
           <div class="progress-bar progress-bar-warning"
             style="width: {{colorStats.warningPercent}}%">
-            <span ng-bind="colorStats.warning"></span>
+            <span ng-bind="colorStats.warning"
+              ng-show="colorStats.warning"></span>
           </div>
           <div class="progress-bar progress-bar-danger"
             style="width: {{colorStats.dangerPercent}}%">
-            <span ng-bind="colorStats.danger"></span>
+            <span ng-bind="colorStats.danger"
+              ng-show="colorStats.danger"></span>
           </div>
         </div>
       </div>
