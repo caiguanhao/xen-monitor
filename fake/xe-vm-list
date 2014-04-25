@@ -1,10 +1,10 @@
-power-state ( RO)    : running
-         dom-id ( RO): 18
+power-state ( RO)    : halted
+         dom-id ( RO): -1
        networks (MRO): 1/ip: 198.156.124.92
 
 
 power-state ( RO)    : halted
-         dom-id ( RO): 6
+         dom-id ( RO): -1
        networks (MRO): 1/ip: 198.156.124.91
 
 

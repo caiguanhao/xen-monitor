@@ -115,12 +115,14 @@ int parseNetDevLine(char *line, char *iface,
   return 0;
 }
 
-int is_unsigned_int(const char *str)
+int is_domid(const char *str)
 {
+  if (*str == '-') ++str;
   if (!*str) return 0;
   for (; *str; ++str)
     if (!isdigit(*str))
       return 0;
+  if (strcmp(str, "0") == 0) return 0;       // we don't need domid = 0
   return 1;
 }
 
@@ -172,7 +174,7 @@ int collect_virtual_machines_info(char *vm, unsigned int *vmlength)
   char ip[16] = {0};
   p = 0;
   do {
-    if (is_unsigned_int(pch)) {
+    if (is_domid(pch)) {
       snprintf(domid, sizeof domid, "%s", pch);
     } else if (is_ip_address(pch)) {
       snprintf(ip, sizeof ip, "%s", pch);
@@ -186,7 +188,8 @@ int collect_virtual_machines_info(char *vm, unsigned int *vmlength)
       powerstate = 4;
     }
     if (strlen(domid) > 0 && strlen(ip) > 0) {
-      p += snprintf(vm + p, 1024 - p, "\"%s\":{\"PS\":\"%c\",\"IP\":\"%s\"},",
+      p += snprintf(vm + p, 1024 - p,
+        "{\"I\":\"%s\",\"PS\":\"%c\",\"IP\":\"%s\"},",
         domid, states[powerstate], ip);
       if (vmlength != NULL) (*vmlength)++;
       powerstate = 0;

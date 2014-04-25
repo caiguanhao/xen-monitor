@@ -109,23 +109,15 @@ if __name__ == "__main__":
       S = {}
       for A in stats["A"]:
         if len(A["U"]) > MAX_NUMBER_LENGTH or len(A["D"]) > MAX_NUMBER_LENGTH:
-          S = {}
-          break
-        if A["I"] in stats["V"]:
-          S[stats["V"][A["I"]]["IP"]] = {
-            "U": int(A["U"]),
-            "D": int(A["D"]),
-            "S": stats["V"][A["I"]]["PS"] or "U"
-          }
+          continue
+        S[A["I"]] = { "U": int(A["U"]), "D": int(A["D"]) }
 
-      if not S: continue
-
-      DATA = { "K": [], "U": [], "D": [], "S": [] }
-      for key in sorted(S):
-        DATA["K"].append(key)
-        DATA["U"].append(S[key]["U"])
-        DATA["D"].append(S[key]["D"])
-        DATA["S"].append(S[key]["S"])
+      DATA = {
+        "K": map(lambda x: x["IP"] or "127.0.0.1", stats["V"]),
+        "U": map(lambda x: S[x["I"]]["U"] if x["I"] in S else 0, stats["V"]),
+        "D": map(lambda x: S[x["I"]]["D"] if x["I"] in S else 0, stats["V"]),
+        "S": map(lambda x: x["PS"] or "U", stats["V"])
+      }
 
       pipe = REDIS.pipeline()
       pipe.set(stats["I"], json.dumps(DATA))

@@ -246,7 +246,7 @@ int main(int argc, char *argv[]) {
       continue;
     }
 
-    p = snprintf(message, msgsize, "{\"T\":%u,\"I\":\"%s\",\"V\":{%s},\"A\":[",
+    p = snprintf(message, msgsize, "{\"T\":%u,\"I\":\"%s\",\"V\":[%s],\"A\":[",
       (unsigned)time(NULL), host_ip_address, vm);
     free(vm);
 
