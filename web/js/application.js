@@ -62,6 +62,35 @@ directive('progressBar', [function() {
   };
 }]).
 
+directive('focus', [function() {
+  return function($scope, elem, attrs) {
+    $scope.$on(attrs.focus, function() {
+      setTimeout(function() {
+        elem[0].focus();
+      }, 0);
+    });
+  }
+}]).
+
+directive('search', [function() {
+  return {
+    scope: {
+      search: '='
+    },
+    link: function($scope, elem, attrs) {
+      $scope.$on('newSearch', function() {
+        var s = $scope.$parent.search;
+        if (!s || $scope.search.indexOf(s) > -1) {
+          elem.removeClass('not-matched');
+        } else {
+          elem.addClass('not-matched');
+        }
+      });
+      $scope.$emit('newSearch');
+    }
+  }
+}]).
+
 factory('Socket', ['$window', 'ASSETS', function($window, ASSETS) {
   var socket = $window.io.connect('/');
   socket.on('CheckAssetsVersion', function(data) {
@@ -314,6 +343,19 @@ controller('MainController', ['$scope', 'Socket', 'Servers', 'LocalSettings',
     $scope.typetext = TYPES[val];
     onShowOrTypeChanged();
   });
+  $scope.$watch('search', function(val) {
+    if (val === undefined) return;
+    $scope.cached.live = false;
+    $scope.range = 'all';
+    $scope.$broadcast('newSearch');
+  });
+  $scope.openSearch = function(val) {
+    $scope.opensearch = !$scope.opensearch;
+    if ($scope.opensearch === false) {
+      $scope.search = null;
+    }
+    $scope.$emit('focusSearch');
+  }
   angular.extend($scope, LocalSettings.getLocalSettings({
     range: 4, show: 0, type: 'U'
   }));
