@@ -1,23 +1,28 @@
-power-state ( RO)    : halted
+name-label ( RW)     : 198.156.124.92
+    power-state ( RO): halted
          dom-id ( RO): -1
        networks (MRO): 1/ip: 198.156.124.92
 
 
-power-state ( RO)    : halted
+name-label ( RW)     : 198.156.124.91
+    power-state ( RO): halted
          dom-id ( RO): -1
        networks (MRO): 1/ip: 198.156.124.91
 
 
-power-state ( RO)    : running
+name-label ( RW)     : 198.156.124.124
+    power-state ( RO): running
          dom-id ( RO): 7
        networks (MRO): 1/ip: 198.156.124.94; 1/ipv6/0: fe80:0000:0000:0000:2003:ffff:253.142.123.175%6
 
 
-power-state ( RO)    : running
+name-label ( RW)     : 198.156.124.90
+    power-state ( RO): running
          dom-id ( RO): 0
        networks (MRO): <not in database>
 
 
-power-state ( RO)    : running
+name-label ( RW)     : 198.156.124.93
+    power-state ( RO): running
          dom-id ( RO): 17
-       networks (MRO): 1/ip: 198.156.124.93
+       networks (MRO): <not in database>

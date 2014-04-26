@@ -122,7 +122,6 @@ int is_domid(const char *str)
   for (; *str; ++str)
     if (!isdigit(*str))
       return 0;
-  if (strcmp(str, "0") == 0) return 0;       // we don't need domid = 0
   return 1;
 }
 
@@ -148,9 +147,6 @@ int collect_virtual_machines_info(char *vm, unsigned int *vmlength)
   char *data = NULL, *tmp = NULL;
 
   while (fgets(line, sizeof(line), xevmlist)) {
-    if (strlen(line) < offset) {
-      continue;
-    }
     if (datasize <= p) {
       datasize += 512;
       tmp = realloc(data, datasize);
@@ -161,11 +157,22 @@ int collect_virtual_machines_info(char *vm, unsigned int *vmlength)
       }
       data = tmp;
     }
+    if (strcmp(line, "\n") == 0) {
+      data[p++] = ' ';
+      data[p++] = '\r';
+      data[p++] = ' ';
+    }
+    if (strlen(line) < offset) {
+      continue;
+    }
+    if (strncmp(line, "name-label", 10) == 0) {
+      data[p++] = '"';
+    }
     for (i = offset; i < strlen(line); i++) {
-      data[p] = line[i];
-      p++;
+      data[p++] = line[i];
     }
   }
+  data[p++] = '\r';
   data[p] = 0;
 
   if (pclose(xevmlist) != 0) return 0;
@@ -176,12 +183,15 @@ int collect_virtual_machines_info(char *vm, unsigned int *vmlength)
   int powerstate = 0;
   char domid[10] = {0};
   char ip[16] = {0};
+  char name[100] = {0};
   p = 0;
   do {
     if (is_domid(pch)) {
       snprintf(domid, sizeof domid, "%s", pch);
     } else if (is_ip_address(pch)) {
       snprintf(ip, sizeof ip, "%s", pch);
+    } else if (strncmp(pch, "\"", 1) == 0) {
+      snprintf(name, sizeof name, "%s", ++pch);
     } else if (strcmp(pch, "running") == 0) {
       powerstate = 1;
     } else if (strcmp(pch, "halted") == 0) {
@@ -191,14 +201,20 @@ int collect_virtual_machines_info(char *vm, unsigned int *vmlength)
     } else if (strcmp(pch, "suspended") == 0) {
       powerstate = 4;
     }
-    if (strlen(domid) > 0 && strlen(ip) > 0) {
-      p += snprintf(vm + p, 1024 - p,
-        "{\"I\":\"%s\",\"PS\":\"%c\",\"IP\":\"%s\"},",
-        domid, states[powerstate], ip);
-      if (vmlength != NULL) (*vmlength)++;
-      powerstate = 0;
-      bzero(domid, sizeof domid);
-      bzero(ip, sizeof ip);
+    if (strcmp(pch, "\r") == 0) {
+      // if the VM has not installed XenServer Tools, then no IP address is
+      // found, so use its name label as its IP
+      if (strlen(domid) > 0 && (strlen(ip) > 0 || strlen(name) > 0) &&
+        strcmp(domid, "0") != 0) {
+        p += snprintf(vm + p, 1024 - p,
+          "{\"I\":\"%s\",\"PS\":\"%c\",\"IP\":\"%s\"},",
+          domid, states[powerstate], strlen(ip) ? ip : name);
+        if (vmlength != NULL) (*vmlength)++;
+        powerstate = 0;
+        bzero(domid, sizeof domid);
+        bzero(ip, sizeof ip);
+        bzero(name, sizeof name);
+      }
     }
   } while ((pch = strtok(NULL, delim)));
 
