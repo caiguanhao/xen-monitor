@@ -130,4 +130,4 @@ if __name__ == "__main__":
       ret = pipe.execute()
       if verbose: print "Executed %u Redis commands" % len(ret)
     except Exception, e:
-      sys.stderr.write("Error: %s\nData:%s\n" % (e, data))
+      sys.stderr.write("Error: %s for client %s\n" % (e, address[0]))
