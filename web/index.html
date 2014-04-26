@@ -153,8 +153,8 @@
         </div>
       </div>
       <div class="col-sm-12 stats range-{{VMs.R}}"
-        ng-repeat="(host, VMs) in allServers">
-        <div class="progress stat" search="host+','+VMs.K">
+        ng-repeat="(host, VMs) in allServers" search="host+','+VMs.K">
+        <div class="progress stat">
           <a href="/#/host/{{host}}" class="vm-progress" style="width: 20%">
             <div total-progress-bar="VMs" ip="host"></div>
           </a>
