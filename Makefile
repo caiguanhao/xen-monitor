@@ -11,7 +11,8 @@ install: all
 	cp -f listen /usr/bin/listen
 
 install-receive:
-	cp -f receive.py /usr/bin/receive
+	cp -f receive.py /usr/bin/receive.py
+	cp -f receive /usr/bin/receive
 
 uninstall: clean
 	rm -f /usr/bin/send

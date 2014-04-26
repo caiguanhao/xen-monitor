@@ -1,6 +1,32 @@
 #!/bin/bash
 
-until receive -b 0.0.0.0; do
+RECEIVEPY=receive.py
+ARGS="$@"
+
+command -v $RECEIVEPY >/dev/null 2>&1 || {
+  RECEIVEPY="./$RECEIVEPY"
+  if [[ ! -f "${RECEIVEPY}2" ]]; then
+    echo "File $RECEIVEPY does not exist."
+    exit 1
+  fi
+}
+
+if [[ $ARGS == "" ]]; then
+  ARGS="-b 0.0.0.0"
+fi
+
+for argument in "$@"; do
+  case "$argument" in
+  -D|--daemon)
+    echo "Daemon is not allowed. You can do that with \`receive.py -D\`."
+    exit 1
+    ;;
+  esac
+done
+
+until echo "Running \`$RECEIVEPY $ARGS\`..." && $RECEIVEPY $ARGS; do
   echo "receive crashed with exit code $?. Respawning..." >&2
   sleep 3
 done
+
+exit 0
