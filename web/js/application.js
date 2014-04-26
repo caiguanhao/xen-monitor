@@ -107,6 +107,9 @@ service('LocalSettings', ['$window', function($window) {
       delete $window.localStorage[lskey];
     }
   };
+  this.cached = {
+    live: true
+  };
 }]).
 
 service('Servers', [function() {
@@ -151,34 +154,39 @@ service('Servers', [function() {
   this.allServers = {};
   this.colorStats = {};
   this.rangeStats = {};
+  this.totalStats = {};
   this.lastTimeCountServersByColor = 0;
   this.countServersByColor = function() {
     var cS = this.colorStats;
     var rS = this.rangeStats;
-    cS.success = 0;
-    cS.warning = 0;
-    cS.danger  = 0;
-    cS.dead    = 0;
-    rS['11']   = 0;
-    rS['10']   = 0;
-    rS['9']    = 0;
-    rS['8']    = 0;
-    rS['7']    = 0;
-    rS['4']    = 0;
-    rS['0']    = 0;
+    var tS = this.totalStats;
+    cS.success = 0; cS.warning = 0; cS.danger = 0; cS.dead = 0;
+    rS['11']   = 0; rS['10']   = 0; rS['9']   = 0; rS['8'] = 0;
+    rS['7']    = 0; rS['4']    = 0; rS['0']   = 0;
+    tS.HC      = 0; tS.VMC     = 0; tS.U      = 0; tS.D    = 0;
     for (var host in this.allServers) {
       var VMs = this.allServers[host]
       for (var i = 0; i < VMs.UC.length; i++) {
         cS[VMs.UC[i]]++;
         rS[VMs.R]++;
+        tS.VMC++;
       }
+      tS.U += VMs.TU;
+      tS.D += VMs.TD;
+      tS.HC++;
     }
     cS.total = cS.success + cS.warning + cS.danger + cS.dead;
-    cS.successPercent = Math.floor(cS.success / cS.total * 100);
-    cS.warningPercent = Math.floor(cS.warning / cS.total * 100);
-    cS.dangerPercent = Math.floor(cS.danger / cS.total * 100);
+    cS.successPercent = +(cS.success / cS.total * 100).toFixed(2);
+    cS.warningPercent = +(cS.warning / cS.total * 100).toFixed(2);
+    cS.dangerPercent = +(cS.danger / cS.total * 100).toFixed(2);
     cS.deadPercent = 100 - cS.successPercent - cS.warningPercent -
       cS.dangerPercent;
+    tS.UT = this.formatSize(tS.U);
+    tS.UHA = this.formatSize(tS.U / tS.HC);
+    tS.UVMA = this.formatSize(tS.U / tS.VMC);
+    tS.DT = this.formatSize(tS.D);
+    tS.DHA = this.formatSize(tS.D / tS.HC);
+    tS.DVMA = this.formatSize(tS.D / tS.VMC);
   };
   this.topTotalUpload = 1;
   this.topTotalUploadTime = 0;
@@ -281,16 +289,17 @@ controller('MainController', ['$scope', 'Socket', 'Servers', 'LocalSettings',
   $scope.allServers = Servers.allServers;
   $scope.colorStats = Servers.colorStats;
   $scope.rangeStats = Servers.rangeStats;
+  $scope.totalStats = Servers.totalStats;
+  $scope.cached = LocalSettings.cached;
 
   if (Socket.$events) delete Socket.$events['Update'];
   Socket.on('Update', function(host, data) {
-    if (!$scope.live) return;
+    if (!$scope.cached.live) return;
     Servers.updateServers(host, angular.fromJson(data));
     $scope.$apply();
     $scope.$broadcast('totalProgressBarChanged');
     $scope.$broadcast('progressBarChanged');
   });
-  $scope.live = true;
   $scope.$watch('range', function() {
     LocalSettings.saveLocalSettings($scope);
   });
@@ -300,7 +309,11 @@ controller('MainController', ['$scope', 'Socket', 'Servers', 'LocalSettings',
     $scope.$broadcast('progressBarChanged');
   };
   $scope.$watch('show', onShowOrTypeChanged);
-  $scope.$watch('type', onShowOrTypeChanged);
+  var TYPES = { D: 'download', U: 'upload' };
+  $scope.$watch('type', function(val) {
+    $scope.typetext = TYPES[val];
+    onShowOrTypeChanged();
+  });
   angular.extend($scope, LocalSettings.getLocalSettings({
     range: 4, show: 0, type: 'U'
   }));

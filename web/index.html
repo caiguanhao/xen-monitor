@@ -79,52 +79,60 @@
         </div>
       </div>
       <div class="col-sm-12">
-        <div class="form-inline form-group">
+        <div class="form-inline">
           <div class="form-group">
             <div class="btn-toolbar" role="toolbar">
               <div class="btn-group btn-group-sm">
-                <button class="btn btn-default" ng-click="live=true"
-                  ng-class="{active:live}">
+                <button class="btn btn-default" ng-click="cached.live=true"
+                  ng-class="{active:cached.live}">
                   <span class="glyphicon glyphicon-play"></span>
                   Live</button>
-                <button class="btn btn-default" ng-click="live=false"
-                  ng-class="{active:!live}">
+                <button class="btn btn-default" ng-click="cached.live=false"
+                  ng-class="{active:!cached.live}">
                   <span class="glyphicon glyphicon-pause"></span>
                   Paused</button>
               </div>
               <div class="btn-group btn-group-sm">
                 <button class="btn btn-default" ng-click="show=0"
-                  ng-class="{active:show===0}">IP Address</button>
+                  ng-class="{active:show===0}">
+                  <span class="glyphicon glyphicon-globe"></span>
+                  IP Address</button>
                 <button class="btn btn-default" ng-click="show=1"
-                  ng-class="{active:show===1}">Speed</button>
+                  ng-class="{active:show===1}">
+                  <span class="glyphicon glyphicon-signal"></span>
+                  Speed</button>
               </div>
               <div class="btn-group btn-group-sm">
                 <button class="btn btn-default" ng-click="type='U'"
-                  ng-class="{active:type==='U'}">Upload</button>
+                  ng-class="{active:type==='U'}">
+                  <span class="glyphicon glyphicon-cloud-upload"></span>
+                  Upload</button>
                 <button class="btn btn-default" ng-click="type='D'"
-                  ng-class="{active:type==='D'}">Download</button>
+                  ng-class="{active:type==='D'}">
+                  <span class="glyphicon glyphicon-cloud-download"></span>
+                  </button>
               </div>
               <div class="btn-group btn-group-sm">
                 <button class="btn btn-default" ng-click="range='all'"
                   ng-class="{active:range==='all'}">
                   <span class="glyphicon glyphicon-asterisk"></span></button>
                 <button class="btn btn-default" ng-click="range=0"
-                  ng-class="{active:range===0}">0-4M
+                  ng-class="{active:range===0}">0-4
                   <span class="badge" ng-bind="rangeStats[0]"></span></button>
                 <button class="btn btn-default" ng-click="range=4"
-                  ng-class="{active:range===4}">4M
+                  ng-class="{active:range===4}">4
                   <span class="badge" ng-bind="rangeStats[4]"></span></button>
                 <button class="btn btn-default" ng-click="range=7"
-                  ng-class="{active:range===7}">7M
+                  ng-class="{active:range===7}">7
                   <span class="badge" ng-bind="rangeStats[7]"></span></button>
                 <button class="btn btn-default" ng-click="range=8"
-                  ng-class="{active:range===8}">8M
+                  ng-class="{active:range===8}">8
                   <span class="badge" ng-bind="rangeStats[8]"></span></button>
                 <button class="btn btn-default" ng-click="range=9"
-                  ng-class="{active:range===9}">9M
+                  ng-class="{active:range===9}">9
                   <span class="badge" ng-bind="rangeStats[9]"></span></button>
                 <button class="btn btn-default" ng-click="range=10"
-                  ng-class="{active:range===10}">10M
+                  ng-class="{active:range===10}">10
                   <span class="badge" ng-bind="rangeStats[10]"></span></button>
                 <button class="btn btn-default" ng-click="range=11"
                   ng-class="{active:range===11}">11M+
@@ -145,6 +153,18 @@
             <div progress-bar="VMs" index="$index" ip="VM"></div>
           </a>
         </div>
+      </div>
+      <div class="col-sm-3 col-sm-offset-1 stat-text">
+        <h4 ng-bind="totalStats[type+'T']"></h4>
+        <small>total {{typetext}}</small>
+      </div>
+      <div class="col-sm-4 stat-text">
+        <h4 ng-bind="totalStats[type+'HA']"></h4>
+        <small>{{typetext}} per host</small>
+      </div>
+      <div class="col-sm-3 stat-text">
+        <h4 ng-bind="totalStats[type+'VMA']"></h4>
+        <small>{{typetext}} per VM</small>
       </div>
     </div>
   </script>
