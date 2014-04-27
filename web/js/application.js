@@ -18,6 +18,19 @@ config(['$routeProvider', '$locationProvider', '$compileProvider',
   $locationProvider.html5Mode(false);
 }]).
 
+run(['$interval', '$rootScope', function($interval, $rootScope) {
+  $interval(function() {
+    $rootScope.$broadcast('anotherSecond');
+  }, 1000);
+}]).
+
+filter('cmdreplace', [function() {
+  return function(src, text) {
+    if (typeof src !== 'string') return src;
+    return src.replace(/{}/g, text);
+  };
+}]).
+
 directive('body', [function() {
   return {
     restrict: 'E',
@@ -60,6 +73,44 @@ directive('progressBar', [function() {
       $scope.$emit('progressBarChanged');
     }
   };
+}]).
+
+directive('freezeProgressBar', [function() {
+  return {
+    scope: {
+      freeze: '=freezeProgressBar'
+    },
+    link: function($scope, elem, attrs) {
+      var f = $scope.freeze;
+      if (f.pBarWidth) elem.css('width', f.pBarWidth + '%');
+      $scope.$on('anotherSecond', function() {
+        if (!f.wait) return;
+        var elapsed = Math.round((+new Date - f.time) / 1000);
+        var onemore = (f.wait + 1) / f.wait * 100; // delay one more second
+        if (f.pBarWidth !== onemore) {
+          f.pBarWidth = Math.min(elapsed / f.wait * 100, onemore);
+        }
+        elem.css('width', f.pBarWidth + '%');
+        f.elapsed = +elapsed.toFixed(0);
+        var actual = $scope.$parent.VMs[f.expectOnKey][$scope.$parent.index];
+        if (f.pBarWidth === onemore) {
+          if (actual === f.original) {
+            f.message = 'It seems command {} was not executed successfully.'
+            f.messageColor = 'danger';
+          }
+          f.frozen = false;
+          f.elapsed = 0;
+          f.wait = 0;
+        }
+        if (actual !== f.original) {
+          elem.css('width', '100%');
+          f.pBarWidth = onemore;
+          f.message = 'Command {} was executed successfully.'
+          f.messageColor = 'success';
+        }
+      });
+    }
+  }
 }]).
 
 directive('focus', [function() {
@@ -152,7 +203,8 @@ service('Servers', [function() {
   this.COMMANDS = {
     C: [ 'FORCERESTART', 'RESTART', 'FORCESHUTDOWN', 'SHUTDOWN', 'START' ],
     T: [ 'Force Restart', 'Restart', 'Force Shutdown', 'Shutdown', 'Start' ],
-    W: [ 30, 60, 10, 35, 30 ] // wait n seconds
+    W: [ 30, 60, 10, 35, 30 ], // wait n seconds
+    E: [ 'I', 'I', 'PS', 'PS', 'PS' ] // expect key to change
   };
   this.colorBySpeed = function(speed) {
     if (speed > 2048000) return 'success';
@@ -179,7 +231,7 @@ service('Servers', [function() {
     if (size > 1048576) return (size / 1048576).toFixed(2) + ' MB/s';
     return (size / 1024).toFixed(2) + ' KB/s';
   };
-  this.freezeTimes = {};
+  this.freezeVMs = {};
   this.allServers = {};
   this.colorStats = {};
   this.rangeStats = {};
@@ -385,6 +437,8 @@ controller('VMController', ['$scope', '$routeParams', 'Socket', 'Servers',
   $scope.VMs = Servers.allServers[$scope.host];
   $scope.index = -1;
   if ($scope.VMs) $scope.index = $scope.VMs.K.indexOf($scope.vm);
+  Servers.freezeVMs[$scope.vm] = Servers.freezeVMs[$scope.vm] || {};
+  $scope.freeze = Servers.freezeVMs[$scope.vm];
 
   if (Socket.$events) {
     delete Socket.$events['Update'];
@@ -402,24 +456,18 @@ controller('VMController', ['$scope', '$routeParams', 'Socket', 'Servers',
       $scope.$apply();
     }
   });
-  Socket.on('CommandFailed', function(status, host) {
-    $scope.message = 'Cannot connect to the host {}.'.replace(/{}/g, host);
+  Socket.on('CommandFailed', function(host) {
+    var newfreeze = {
+      message: 'Cannot connect to the host {}.'.replace(/{}/g, host),
+      messageColor: 'danger'
+    };
+    Servers.freezeVMs[$scope.vm] = newfreeze;
+    $scope.freeze = newfreeze;
     $scope.$apply();
   });
 
   $scope.btnExecuteDisabled = function() {
     return !$scope.password || $scope.password.length < 10;
-  };
-  $scope.commandInputDisabled = function() {
-    if ($scope.index > -1) {
-      var freeze_time = Servers.freezeTimes[$scope.vm];
-      if (freeze_time && +new Date < freeze_time) {
-        return true;
-      } else {
-        $scope.message = null;
-      }
-    }
-    return false;
   };
   $scope.execute = function() {
     if ($scope.index < 0) return alert('Not ready yet.');
@@ -429,12 +477,22 @@ controller('VMController', ['$scope', '$routeParams', 'Socket', 'Servers',
     if (!confirm('Are you sure you want to execute this command?')) return;
     var cmdindex = $scope.command;
     var command = Servers.COMMANDS.C[cmdindex];
+    var commandText = Servers.COMMANDS.T[cmdindex];
     Socket.emit('ExecuteCommand', $scope.password, command,
       $scope.host, $scope.vm);
-    $scope.message = 'Command has been sent. Please wait a moment.'
     $scope.password = null;
-    Servers.freezeTimes[$scope.vm] = (+new Date) +
-      Servers.COMMANDS.W[cmdindex] * 1000;
+    $scope.freeze.time = (+new Date);
+    $scope.freeze.wait = Servers.COMMANDS.W[cmdindex];
+    $scope.freeze.elapsed = 0;
+    $scope.freeze.frozen = true;
+    $scope.freeze.pBarWidth = 0;
+    $scope.freeze.commandText = commandText;
+    $scope.freeze.message = 'Command {} has been sent. Please wait a moment.';
+    $scope.freeze.messageColor = 'info';
+    var expectOnKey = Servers.COMMANDS.E[cmdindex];
+    var orignal = $scope.VMs[expectOnKey][$scope.index];
+    $scope.freeze.expectOnKey = expectOnKey;
+    $scope.freeze.original = orignal;
   };
 }]).
 
