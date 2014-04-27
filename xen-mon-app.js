@@ -114,6 +114,7 @@ io.sockets.on('connection', function (socket) {
       fs.writeFileSync('./lists.txt', lists);
       LISTS = lists;
       socket.emit('UpdateListsStatus', 0);
+      io.sockets.emit('CheckAssetsVersion', null, LISTS);
     } catch(e) {
       socket.emit('UpdateListsStatus', 1);
     }
