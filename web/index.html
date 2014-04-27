@@ -131,7 +131,7 @@
                     <li ng-repeat="K in lists.K"><a href ng-bind="K"
                       ng-click="cached.search=lists.V[$index]"></a></li>
                     <li class="divider"></li>
-                    <li><a href ng-click="searchList=false">Edit</a></li>
+                    <li><a href="/#/edit-lists">Edit</a></li>
                   </ul>
                 </div>
               </div>
@@ -289,6 +289,34 @@
         </tr>
       </tbody>
     </table>
+  </script>
+  <script type="text/ng-template" id="edit-lists">
+    <div class="row">
+      <div class="col-sm-6">
+        <h3>Edit Lists</h3>
+        <div class="form-group">
+          <textarea class="form-control text-edit" rows="15"
+            ng-model="rawLists" placeholder="Lists"></textarea>
+        </div>
+        <div class="form-group">
+          <input type="password" ng-model="password" class="form-control"
+            placeholder="Password">
+        </div>
+        <div class="form-group">
+          <button ng-click="update()" type="button"
+            ng-disabled="updateDisabled||!password||password.length<5"
+            class="btn btn-default"><span class="{{updateTextColor}}"
+            ng-bind="updateText"></span></button>
+        </div>
+      </div>
+      <div class="col-sm-6">
+        <h3>Preview</h3>
+        <div ng-repeat="K in lists.K">
+          <h4 ng-bind="K"></h4>
+          <p ng-bind="lists.V[$index]"></p>
+        </div>
+      </div>
+    </div>
   </script>
 </head>
 

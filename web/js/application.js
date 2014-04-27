@@ -14,6 +14,10 @@ config(['$routeProvider', '$locationProvider', '$compileProvider',
   when('/host/:host/vm/:vm', {
     templateUrl: 'vm',
     controller: 'VMController'
+  }).
+  when('/edit-lists', {
+    templateUrl: 'edit-lists',
+    controller: 'EditListsController'
   });
   $locationProvider.html5Mode(false);
 }]).
@@ -204,22 +208,26 @@ service('LocalSettings', ['$window', function($window) {
       delete $window.localStorage[lskey];
     }
   };
+  this.rawLists = '';
   this.lists = {};
   this.parseListsCallback = null;
   this.parseLists = function(lists) {
-    if (typeof lists !== 'string' || !lists) return;
-    var matches = lists.split(/:$/m);
-    var mi = matches.map(function(t) { return t.match(/\n(.*)$/); });
-    var loop = 0;
+    if (typeof lists !== 'string') return;
     this.lists = {
-      K: [ matches[0].trim() || '(noname)' ],
+      K: [],
       V: []
     };
-    for (var i = 1; i < matches.length; i++) {
-      var k = mi[i][1].trim();
-      if (i < matches.length - 1) this.lists.K.push(k || '(noname)');
-      var v = matches[i].slice(0, mi[i].index);
-      this.lists.V.push(v.replace(/[\t\s\r\n]+/g, ' ').trim());
+    this.rawLists = lists;
+    var matches = lists.split(/:$/m);
+    var mi = matches.map(function(t) { return t.match(/\n(.*)$/); });
+    if (matches.length > 1) {
+      this.lists.K.push(matches[0].trim() || '(noname)');
+      for (var i = 1; i < matches.length - 1; i++) {
+        this.lists.K.push(mi[i][1].trim() || '(noname)');
+        var v = matches[i].slice(0, (mi[i]||{}).index || undefined);
+        this.lists.V.push(v.replace(/[\t\s\r\n]+/g, ' ').trim());
+      }
+      this.lists.V.push(matches[i]);
     }
     if (this.parseListsCallback) this.parseListsCallback();
   };
@@ -538,6 +546,49 @@ controller('VMController', ['$scope', '$routeParams', 'Socket', 'Servers',
     $scope.freeze.expectOnKey = expectOnKey;
     $scope.freeze.original = orignal;
   };
+}]).
+
+controller('EditListsController', ['$scope', 'LocalSettings', 'Socket',
+  '$timeout',
+  function($scope, LocalSettings, Socket, $timeout) {
+  LocalSettings.parseListsCallback = function() {
+    $scope.lists = LocalSettings.lists;
+    $scope.rawLists = LocalSettings.rawLists;
+  };
+  LocalSettings.parseListsCallback();
+  $scope.$watch('rawLists', function(val) {
+    LocalSettings.parseLists(val);
+  });
+  $scope.updateText = 'Update';
+  $scope.update = function() {
+    if (!Socket.socket.connected) {
+      return alert('It seems you\'re not connected! Aborted!');
+    }
+    if (typeof $scope.password !== 'string' || $scope.password.length < 5) {
+      return alert('Please input your password.');
+    }
+    $scope.updateDisabled = true;
+    $scope.updateText = 'Updating...';
+    Socket.emit('UpdateLists', $scope.password, $scope.rawLists);
+    $scope.password = null;
+  };
+  if (Socket.$events) delete Socket.$events['UpdateListsStatus'];
+  Socket.on('UpdateListsStatus', function(code) {
+    switch (code) {
+    case 0:
+      $scope.updateText = 'Updated!';
+      $scope.updateTextColor = 'text-success';
+      break;
+    default:
+      $scope.updateText = 'Failed to update!';
+      $scope.updateTextColor = 'text-danger';
+    }
+    $timeout(function(){
+      $scope.updateText = 'Update';
+      $scope.updateTextColor = null;
+      $scope.updateDisabled = false;
+    }, 4000);
+  });
 }]).
 
 run([function() {

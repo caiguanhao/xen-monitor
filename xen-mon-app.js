@@ -67,14 +67,19 @@ try {
   assetsHashes = require('./assets.json');
 } catch(e) {}
 
-io.sockets.on('connection', function (socket) {
-  var lists = '';
-  try {
-    var fs = require('fs');
-    lists = fs.readFileSync('./lists.txt').toString();
-  } catch(e) {}
+var fs = require('fs');
+var LISTS = '';
+try {
+  LISTS = fs.readFileSync('./lists.txt').toString();
+} catch(e) {}
 
-  socket.emit('CheckAssetsVersion', assetsHashes, lists);
+var PASSWORD = null;
+try {
+  PASSWORD = fs.readFileSync('./password.txt').toString().trim();
+} catch(e) {}
+
+io.sockets.on('connection', function (socket) {
+  socket.emit('CheckAssetsVersion', assetsHashes, LISTS);
 
   socket.on('ExecuteCommand', function(password, command, host, vm) {
     if (!validateCommand(password, command, host, vm)) {
@@ -92,5 +97,25 @@ io.sockets.on('connection', function (socket) {
     cmdsocket.setTimeout(5000, function() {
       cmdsocket.destroy();
     });
+  });
+
+  socket.on('UpdateLists', function(password, lists) {
+    try {
+      if (typeof PASSWORD !== 'string') throw 'password is not set';
+      if (typeof password !== 'string' || !password || password.length > 100) {
+        throw 'invalid password';
+      }
+      if (password !== PASSWORD) {
+        throw 'invalid password';
+      }
+      if (typeof lists !== 'string' || !lists || lists.length > 10000) {
+        throw 'invalid lists';
+      }
+      fs.writeFileSync('./lists.txt', lists);
+      LISTS = lists;
+      socket.emit('UpdateListsStatus', 0);
+    } catch(e) {
+      socket.emit('UpdateListsStatus', 1);
+    }
   });
 });
