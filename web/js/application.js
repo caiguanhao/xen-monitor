@@ -143,7 +143,13 @@ directive('search', [function() {
 }]).
 
 factory('Socket', ['$window', 'ASSETS', function($window, ASSETS) {
-  var socket = $window.io.connect('/');
+  var socket = $window.io.connect('/', {
+    'force new connection': true,
+    'reconnect': true,
+    'reconnection delay': 1000,
+    'reconnection limit': 5000,
+    'max reconnection attempts': 10000
+  });
   socket.on('CheckAssetsVersion', function(data) {
     if (typeof data !== 'object' || typeof ASSETS !== 'object') {
       return;
@@ -153,11 +159,10 @@ factory('Socket', ['$window', 'ASSETS', function($window, ASSETS) {
     var assetsHasChanged = !angular.equals(data, ASSETS);
     if (assetsHasChanged) {
       // prevent reload loop
-      if ($window.localStorage['XenMonApp.Reloaded'] !== "1") {
-        $window.localStorage['XenMonApp.Reloaded'] = "1";
+      var r = $window.localStorage['XenMonApp.LTRELOAD'];
+      $window.localStorage['XenMonApp.LTRELOAD'] = new Date;
+      if (r && (new Date() - new Date(r)) > 5000) {
         $window.location.reload();
-      } else {
-        delete $window.localStorage['XenMonApp.Reloaded'];
       }
     }
   });
