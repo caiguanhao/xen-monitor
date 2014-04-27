@@ -208,6 +208,17 @@ service('LocalSettings', ['$window', function($window) {
       delete $window.localStorage[lskey];
     }
   };
+  this.getSearch = function($scope) {
+    $scope.cached.search = $window.localStorage[lskey + '.Search'];
+    if ($scope.cached.search) $scope.cached.opensearch = true;
+  };
+  this.saveSearch = function($scope) {
+    if (typeof $scope.cached.search === 'string') {
+      $window.localStorage[lskey + '.Search'] = $scope.cached.search;
+    } else {
+      delete $window.localStorage[lskey + '.Search'];
+    }
+  };
   this.rawLists = '';
   this.lists = {};
   this.parseListsCallback = null;
@@ -448,10 +459,12 @@ controller('MainController', ['$scope', 'Socket', 'Servers', 'LocalSettings',
     $scope.typetext = TYPES[val];
     onShowOrTypeChanged();
   });
+  LocalSettings.getSearch($scope);
   $scope.$watch('cached.search', function(val) {
     if (val === undefined) return;
     $scope.range = 'all';
     $scope.$broadcast('newSearch');
+    LocalSettings.saveSearch($scope);
   });
   $scope.openSearch = function(val) {
     $scope.cached.opensearch = !$scope.cached.opensearch;
