@@ -9,4 +9,4 @@ assets.json
 install/all
 install/done
 install/undone
-install/*.txt
+*.txt

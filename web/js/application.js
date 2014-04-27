@@ -131,7 +131,17 @@ directive('search', [function() {
     link: function($scope, elem, attrs) {
       $scope.$on('newSearch', function() {
         var s = $scope.$parent.cached.search;
-        if (!s || $scope.search.indexOf(s) > -1) {
+        var match = false;
+        if (s) {
+          var ss = s.split(/\s+/);
+          for (var i = 0; i < ss.length; i++) {
+            if ($scope.search.indexOf(ss[i]) > -1) {
+              match = true;
+              break;
+            }
+          }
+        }
+        if (!s || match) {
           elem.removeClass('not-matched');
         } else {
           elem.addClass('not-matched');
@@ -142,7 +152,8 @@ directive('search', [function() {
   }
 }]).
 
-factory('Socket', ['$window', 'ASSETS', function($window, ASSETS) {
+factory('Socket', ['$window', 'ASSETS', 'LocalSettings',
+  function($window, ASSETS, LocalSettings) {
   var socket = $window.io.connect('/', {
     'force new connection': true,
     'reconnect': true,
@@ -150,7 +161,8 @@ factory('Socket', ['$window', 'ASSETS', function($window, ASSETS) {
     'reconnection limit': 5000,
     'max reconnection attempts': 10000
   });
-  socket.on('CheckAssetsVersion', function(data) {
+  socket.on('CheckAssetsVersion', function(data, lists) {
+    LocalSettings.parseLists(lists);
     if (typeof data !== 'object' || typeof ASSETS !== 'object') {
       return;
     }
@@ -191,6 +203,25 @@ service('LocalSettings', ['$window', function($window) {
     } catch(e) {
       delete $window.localStorage[lskey];
     }
+  };
+  this.lists = {};
+  this.parseListsCallback = null;
+  this.parseLists = function(lists) {
+    if (typeof lists !== 'string' || !lists) return;
+    var matches = lists.split(/:$/m);
+    var mi = matches.map(function(t) { return t.match(/\n(.*)$/); });
+    var loop = 0;
+    this.lists = {
+      K: [ matches[0].trim() || '(noname)' ],
+      V: []
+    };
+    for (var i = 1; i < matches.length; i++) {
+      var k = mi[i][1].trim();
+      if (i < matches.length - 1) this.lists.K.push(k || '(noname)');
+      var v = matches[i].slice(0, mi[i].index);
+      this.lists.V.push(v.replace(/[\t\s\r\n]+/g, ' ').trim());
+    }
+    if (this.parseListsCallback) this.parseListsCallback();
   };
   this.cached = {
     live: true
@@ -377,6 +408,10 @@ controller('MainController', ['$scope', 'Socket', 'Servers', 'LocalSettings',
   $scope.colorStats = Servers.colorStats;
   $scope.rangeStats = Servers.rangeStats;
   $scope.totalStats = Servers.totalStats;
+  LocalSettings.parseListsCallback = function() {
+    $scope.lists = LocalSettings.lists;
+  };
+  LocalSettings.parseListsCallback();
   $scope.cached = LocalSettings.cached;
   $timeout(function() {
     $scope.$broadcast('newSearch');
@@ -412,9 +447,7 @@ controller('MainController', ['$scope', 'Socket', 'Servers', 'LocalSettings',
   });
   $scope.openSearch = function(val) {
     $scope.cached.opensearch = !$scope.cached.opensearch;
-    if ($scope.cached.opensearch === false) {
-      $scope.cached.search = null;
-    } else {
+    if ($scope.cached.opensearch === true) {
       $scope.cached.live = false;
     }
     $scope.$emit('focusSearch');

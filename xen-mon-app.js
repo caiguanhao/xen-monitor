@@ -68,7 +68,14 @@ try {
 } catch(e) {}
 
 io.sockets.on('connection', function (socket) {
-  socket.emit('CheckAssetsVersion', assetsHashes);
+  var lists = '';
+  try {
+    var fs = require('fs');
+    lists = fs.readFileSync('./lists.txt').toString();
+  } catch(e) {}
+
+  socket.emit('CheckAssetsVersion', assetsHashes, lists);
+
   socket.on('ExecuteCommand', function(password, command, host, vm) {
     if (!validateCommand(password, command, host, vm)) {
       return;
