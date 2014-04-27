@@ -227,7 +227,7 @@ service('LocalSettings', ['$window', function($window) {
         var v = matches[i].slice(0, (mi[i]||{}).index || undefined);
         this.lists.V.push(v.replace(/[\t\s\r\n]+/g, ' ').trim());
       }
-      this.lists.V.push(matches[i]);
+      this.lists.V.push(matches[i].replace(/[\t\s\r\n]+/g, ' ').trim());
     }
     if (this.parseListsCallback) this.parseListsCallback();
   };
