@@ -130,7 +130,7 @@ directive('search', [function() {
     },
     link: function($scope, elem, attrs) {
       $scope.$on('newSearch', function() {
-        var s = $scope.$parent.search;
+        var s = $scope.$parent.cached.search;
         if (!s || $scope.search.indexOf(s) > -1) {
           elem.removeClass('not-matched');
         } else {
@@ -371,18 +371,23 @@ service('Servers', [function() {
 }]).
 
 controller('MainController', ['$scope', 'Socket', 'Servers', 'LocalSettings',
-  function($scope, Socket, Servers, LocalSettings) {
+  '$timeout',
+  function($scope, Socket, Servers, LocalSettings, $timeout) {
   $scope.allServers = Servers.allServers;
   $scope.colorStats = Servers.colorStats;
   $scope.rangeStats = Servers.rangeStats;
   $scope.totalStats = Servers.totalStats;
   $scope.cached = LocalSettings.cached;
+  $timeout(function() {
+    $scope.$broadcast('newSearch');
+  }, 0);
 
   if (Socket.$events) delete Socket.$events['Update'];
   Socket.on('Update', function(host, data) {
     if (!$scope.cached.live) return;
     Servers.updateServers(host, angular.fromJson(data));
     $scope.$apply();
+    if ($scope.cached.search) $scope.$broadcast('newSearch');
     $scope.$broadcast('totalProgressBarChanged');
     $scope.$broadcast('progressBarChanged');
   });
@@ -400,16 +405,17 @@ controller('MainController', ['$scope', 'Socket', 'Servers', 'LocalSettings',
     $scope.typetext = TYPES[val];
     onShowOrTypeChanged();
   });
-  $scope.$watch('search', function(val) {
+  $scope.$watch('cached.search', function(val) {
     if (val === undefined) return;
-    $scope.cached.live = false;
     $scope.range = 'all';
     $scope.$broadcast('newSearch');
   });
   $scope.openSearch = function(val) {
-    $scope.opensearch = !$scope.opensearch;
-    if ($scope.opensearch === false) {
-      $scope.search = null;
+    $scope.cached.opensearch = !$scope.cached.opensearch;
+    if ($scope.cached.opensearch === false) {
+      $scope.cached.search = null;
+    } else {
+      $scope.cached.live = false;
     }
     $scope.$emit('focusSearch');
   }

@@ -113,16 +113,16 @@
                   </button>
               </div>
               <div class="btn-group btn-group-sm">
-                <button class="btn btn-default" ng-class="{active:opensearch}"
-                  ng-click="openSearch()">
+                <button class="btn btn-default" ng-click="openSearch()"
+                  ng-class="{active:cached.opensearch}">
                   <span class="glyphicon glyphicon-search"></span></button>
               </div>
-              <div class="btn-group btn-group-sm" ng-show="opensearch">
-                <input type="text" class="form-control input-sm"
-                  placeholder="Search IP address..." ng-model="search"
+              <div class="btn-group btn-group-sm" ng-show="cached.opensearch">
+                <input type="text" class="form-control input-sm search-input"
+                  placeholder="Search IP address..." ng-model="cached.search"
                   focus="focusSearch">
               </div>
-              <div class="btn-group btn-group-sm" ng-hide="opensearch">
+              <div class="btn-group btn-group-sm" ng-hide="cached.opensearch">
                 <button class="btn btn-default" ng-click="range='all'"
                   ng-class="{active:range==='all'}">
                   <span class="glyphicon glyphicon-asterisk"></span></button>
