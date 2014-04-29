@@ -58,8 +58,8 @@
         <div class="progress">
           <div class="progress-bar progress-bar-success"
             style="width: {{colorStats.successPercent}}%">
-            <span ng-bind="colorStats.success + ' / ' +
-              colorStats.total" ng-show="colorStats.success"></span>
+            <span ng-bind="colorStats.success"
+              ng-show="colorStats.success"></span>
           </div>
           <div class="progress-bar progress-bar-warning"
             style="width: {{colorStats.warningPercent}}%">
@@ -131,13 +131,17 @@
                   ng-class="{open:searchList}">
                   <button type="button" class="btn btn-default dropdown-toggle"
                     ng-click="searchList=!!!searchList">
+                    <span class="glyphicon glyphicon-th-list"></span>
+                    <span ng-bind="lists.K.length||0"></span>
                     Lists <span class="caret"></span></button>
                   <ul class="dropdown-menu pull-right lists-dropdown"
                     ng-click="searchList=false">
                     <li ng-repeat="K in lists.K"><a href ng-bind="K"
                       ng-click="cached.search=lists.V[$index]"></a></li>
                     <li class="divider"></li>
-                    <li><a href="/#/edit-lists">Edit</a></li>
+                    <li><a href="/#/edit-lists">
+                      <span class="glyphicon glyphicon-edit"></span>
+                      Edit</a></li>
                   </ul>
                 </div>
               </div>
@@ -183,17 +187,22 @@
           </a>
         </div>
       </div>
-      <div class="col-sm-3 col-sm-offset-1 stat-text">
+      <div class="col-xs-6 col-sm-2 col-sm-offset-2 stat-text">
         <h4 ng-bind="totalStats[type+'T']"></h4>
         <small>total {{typetext}}</small>
       </div>
-      <div class="col-sm-4 stat-text">
+      <div class="col-xs-6 col-sm-2 stat-text">
         <h4 ng-bind="totalStats[type+'HA']"></h4>
         <small>{{typetext}} per host</small>
       </div>
-      <div class="col-sm-3 stat-text">
+      <div class="col-xs-6 col-sm-2 stat-text">
         <h4 ng-bind="totalStats[type+'VMA']"></h4>
         <small>{{typetext}} per VM</small>
+      </div>
+      <div class="col-xs-6 col-sm-2 stat-text">
+        <h4 ng-bind="totalStats.HC+' / '+totalStats.VMC"
+          ng-show="totalStats.HC"></h4>
+        <small>servers / VMs</small>
       </div>
     </div>
   </script>
