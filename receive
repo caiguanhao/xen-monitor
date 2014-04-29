@@ -1,15 +1,20 @@
 #!/bin/bash
 
+RECEIVEJS=./receive.js
 RECEIVEPY=receive.py
 ARGS="$@"
 
-command -v $RECEIVEPY >/dev/null 2>&1 || {
-  RECEIVEPY="./$RECEIVEPY"
-  if [[ ! -f "${RECEIVEPY}2" ]]; then
-    echo "File $RECEIVEPY does not exist."
-    exit 1
-  fi
-}
+RECEIVE=$RECEIVEJS
+if [[ ! -f "${RECEIVE}" ]]; then
+  RECEIVE=$RECEIVEPY
+  command -v $RECEIVE >/dev/null 2>&1 || {
+    RECEIVE="./$RECEIVE"
+    if [[ ! -f "${RECEIVE}" ]]; then
+      echo "File $RECEIVE does not exist."
+      exit 1
+    fi
+  }
+fi
 
 if [[ $ARGS == "" ]]; then
   ARGS="-b 0.0.0.0"
@@ -24,8 +29,8 @@ for argument in "$@"; do
   esac
 done
 
-until echo "Running \`$RECEIVEPY $ARGS\`..." && $RECEIVEPY $ARGS; do
-  echo "receive crashed with exit code $?. Respawning..." >&2
+until echo "Running \`$RECEIVE $ARGS\`..." && $RECEIVE $ARGS; do
+  echo "receive crashed with exit code $?. Respawning in 3 seconds..." >&2
   sleep 3
 done
 

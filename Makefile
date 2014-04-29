@@ -1,10 +1,10 @@
 all: clean send listen
 
 send: clean
-	gcc -o send send.c netstat.c
+	gcc ${GCCARGS} -o send send.c netstat.c
 
 listen: clean
-	gcc -o listen listen.c
+	gcc ${GCCARGS} -o listen listen.c
 
 install: all
 	cp -f send /usr/bin/send
@@ -32,7 +32,7 @@ fake-daemon: send
 	./send -x fake/xe-vm-list -d fake/proc/net/dev -D -o out.log -e err.log ${ARGS}
 
 receive: redis-bg
-	./receive.py ${ARGS}
+	./receive ${ARGS}
 
 redis:
 	redis-server
