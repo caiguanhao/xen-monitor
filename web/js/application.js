@@ -18,8 +18,13 @@ config(['$routeProvider', '$locationProvider', '$compileProvider',
   when('/edit-lists', {
     templateUrl: 'edit-lists',
     controller: 'EditListsController'
+  }).
+  when('/rdp', {
+    templateUrl: 'rdp'
   });
   $locationProvider.html5Mode(false);
+  var whiteList = /^\s*(https?|ftp|mailto|tel|file|xen-monitor-rdp):/;
+  $compileProvider.aHrefSanitizationWhitelist(whiteList);
 }]).
 
 run(['$interval', '$rootScope', function($interval, $rootScope) {
