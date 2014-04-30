@@ -122,6 +122,19 @@ directive('freezeProgressBar', [function() {
   }
 }]).
 
+directive('rdp', [function() {
+  return function($scope, elem, attrs) {
+    $scope.$on('useRDP', function() {
+      if ($scope.rdp) {
+        elem.attr('href', attrs.rdp);
+      } else {
+        elem.attr('href', attrs.page);
+      }
+    });
+    $scope.$emit('useRDP');
+  };
+}]).
+
 directive('focus', [function() {
   return function($scope, elem, attrs) {
     $scope.$on(attrs.focus, function() {
@@ -200,12 +213,14 @@ service('LocalSettings', ['$window', function($window) {
       if (_LS.type !== undefined) LS.type = _LS.type;
       if (_LS.show !== undefined) LS.show = _LS.show;
       if (_LS.range !== undefined) LS.range = _LS.range;
+      if (_LS.rdp !== undefined) LS.rdp = _LS.rdp;
     } catch(e) {}
     return LS;
   };
   this.saveLocalSettings = function($scope) {
     var LS = {
-      type: $scope.type, show: $scope.show, range: $scope.range
+      type: $scope.type, show: $scope.show, range: $scope.range,
+      rdp: $scope.rdp
     };
     try {
       $window.localStorage[lskey] = angular.toJson(LS);
@@ -460,6 +475,10 @@ controller('MainController', ['$scope', 'Socket', 'Servers', 'LocalSettings',
   $scope.$watch('type', function(val) {
     $scope.typetext = TYPES[val];
     onShowOrTypeChanged();
+  });
+  $scope.$watch('rdp', function(val) {
+    $scope.$broadcast('useRDP');
+    LocalSettings.saveLocalSettings($scope);
   });
   LocalSettings.getSearch($scope);
   $scope.$watch('cached.search', function(val) {
