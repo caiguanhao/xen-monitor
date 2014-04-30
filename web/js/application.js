@@ -274,6 +274,7 @@ service('Servers', [function() {
     return 'danger';
   };
   this.rangeBySpeed = function(speed) {
+    if (speed > 12582912) return 12;
     if (speed > 11534336) return 11;
     if (speed > 10485760) return 10;
     if (speed > 9437184) return 9;
@@ -297,8 +298,8 @@ service('Servers', [function() {
     var rS = this.rangeStats;
     var tS = this.totalStats;
     cS.success = 0; cS.warning = 0; cS.danger = 0; cS.dead = 0;
-    rS['11']   = 0; rS['10']   = 0; rS['9']   = 0; rS['8'] = 0;
-    rS['7']    = 0; rS['4']    = 0; rS['0']   = 0;
+    rS['12']   = 0; rS['11']   = 0; rS['10']  = 0; rS['9'] = 0;
+    rS['8']    = 0; rS['7']    = 0; rS['4']   = 0; rS['0'] = 0;
     tS.HC      = 0; tS.VMC     = 0; tS.U      = 0; tS.D    = 0;
     for (var host in this.allServers) {
       var VMs = this.allServers[host]

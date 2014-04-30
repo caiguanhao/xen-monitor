@@ -150,7 +150,7 @@
                   ng-class="{active:range==='all'}">
                   <span class="glyphicon glyphicon-asterisk"></span></button>
                 <button class="btn btn-default" ng-click="range=0"
-                  ng-class="{active:range===0}">0-4
+                  ng-class="{active:range===0}">0
                   <span class="badge" ng-bind="rangeStats[0]"></span></button>
                 <button class="btn btn-default" ng-click="range=4"
                   ng-class="{active:range===4}">4
@@ -168,8 +168,11 @@
                   ng-class="{active:range===10}">10
                   <span class="badge" ng-bind="rangeStats[10]"></span></button>
                 <button class="btn btn-default" ng-click="range=11"
-                  ng-class="{active:range===11}">11M+
+                  ng-class="{active:range===11}">11
                   <span class="badge" ng-bind="rangeStats[11]"></span></button>
+                <button class="btn btn-default" ng-click="range=12"
+                  ng-class="{active:range===12}">12M+
+                  <span class="badge" ng-bind="rangeStats[12]"></span></button>
               </div>
             </div>
           </div>
