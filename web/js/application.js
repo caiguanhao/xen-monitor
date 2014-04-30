@@ -328,31 +328,34 @@ service('Servers', [function() {
   this.topTotalUploadTime = 0;
   this.topTotalDownload = 1;
   this.topTotalDownloadTime = 0;
-  var MAXSPEED = 15728640; // 15M
-  this.sum = function(p, c) {
-    return p + (c > MAXSPEED ? MAXSPEED : c); // ignore insanely large number
-  };
+  var MAXSPEED = 13421772; // 12.8M
   this.updateServers = function(host, data) {
     this.allServers[host] = data;
     var VM = this.allServers[host];
     if (!VM) return;
 
-    var topUpload = Math.max.apply(Math, VM.U);
-    if (topUpload > MAXSPEED) topUpload = MAXSPEED;
-    var topDownload = Math.max.apply(Math, VM.D);
-    if (topDownload > MAXSPEED) topDownload = MAXSPEED;
+    var length = VM.K.length;
+    var MAXSPEEDperVM = MAXSPEED / length;
 
-    var totalUpload = VM.U.reduce(this.sum, 0);
+    var i, totalUpload = 0, totalDownload = 0;
+    for (i = 0; i < length; i++) {
+      VM.U[i] = VM.U[i] > MAXSPEEDperVM ? MAXSPEEDperVM : VM.U[i];
+      VM.D[i] = VM.D[i] > MAXSPEEDperVM ? MAXSPEEDperVM : VM.D[i];
+      totalUpload += VM.U[i];
+      totalDownload += VM.D[i];
+    }
+
     if (totalUpload > this.topTotalUpload) {
       this.topTotalUpload = totalUpload;
     }
-    var TUP = Math.floor(totalUpload / this.topTotalUpload * 100);
-
-    var totalDownload = VM.D.reduce(this.sum, 0);
     if (totalDownload > this.topTotalDownload) {
       this.topTotalDownload = totalDownload;
     }
+    var TUP = Math.floor(totalUpload / this.topTotalUpload * 100);
     var TDP = Math.floor(totalDownload / this.topTotalDownload * 100);
+
+    var topUpload = Math.max.apply(Math, VM.U);
+    var topDownload = Math.max.apply(Math, VM.D);
 
     VM.UC  = [];
     VM.UP  = [];
@@ -378,14 +381,7 @@ service('Servers', [function() {
     VM.R   = this.rangeBySpeed(totalUpload);
 
     var i, c = 0;
-    for (i = VM.K.length - 1; i > -1 ; i--) {
-      if (!/^[0-9.]+$/.test(VM.K[i])) {
-        VM.K.splice(i, 1);
-        VM.U.splice(i, 1);
-        VM.D.splice(i, 1);
-        continue;
-      }
-
+    for (i = length - 1; i > -1 ; i--) {
       var uploadPercent = Math.floor(VM.U[i] / topUpload * 100);
       var uploadColor = this.colorBySpeed(VM.U[i]);
       VM.UP.unshift(uploadPercent || 0);
