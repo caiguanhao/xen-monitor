@@ -270,6 +270,8 @@ int main(int argc, char *argv[]) {
         after.domid, rrate, trate);
     }
     p += snprintf(message + p, msgsize - p, "]}");
+    free(samples->before->networks);
+    free(samples->after->networks);
     free(samples->before);
     free(samples->after);
     free(samples);
@@ -278,5 +280,6 @@ int main(int argc, char *argv[]) {
     }
     send_stats_to_server(message);
   }
+  free(host_ip_address);
   return 0;
 }

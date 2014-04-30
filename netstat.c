@@ -30,7 +30,6 @@ int parseNetDevLine(char *line, char *iface,
 {
   /* Temporary/helper variables */
   int ret;
-  char *tmp;
   int i = 0, x = 0, col = 0;
   regex_t r;
   regmatch_t matches[19];
@@ -65,18 +64,17 @@ int parseNetDevLine(char *line, char *iface,
     return ret;
   }
 
-  tmp = (char *)malloc( sizeof(char) );
-  if (regexec (&r, line, num, matches, REG_EXTENDED) == 0){
+  if (regexec (&r, line, num, matches, REG_EXTENDED) == 0) {
     for (i = 1; i < num; i++) {
       /* The expression matches are empty sometimes so we need to check it
          first */
       if (matches[i].rm_eo - matches[i].rm_so > 0) {
         /* Col variable contains current id of non-empty match */
         col++;
-        tmp = (char *)realloc(tmp, (matches[i].rm_eo -
-              matches[i].rm_so + 1) * sizeof(char));
-        for (x = matches[i].rm_so; x < matches[i].rm_eo; x++)
-          tmp[x - matches[i].rm_so] = line[x];
+        char *tmp = malloc(matches[i].rm_eo - matches[i].rm_so + 1);
+        for (x = 0; x < matches[i].rm_eo - matches[i].rm_so; x++)
+          tmp[x] = line[matches[i].rm_so + x];
+        tmp[x] = '\0';
 
         /* We populate all the fields from /proc/net/dev line */
         if (i > 1) {
@@ -103,13 +101,11 @@ int parseNetDevLine(char *line, char *iface,
         } else {
           if (iface != NULL) strcpy(iface, tmp);
         }
-
-        memset(tmp, 0, matches[i].rm_eo - matches[i].rm_so);
+        free(tmp);
       }
     }
   }
 
-  free(tmp);
   regfree(&r);
 
   return 0;
@@ -172,10 +168,13 @@ int collect_virtual_machines_info(char *vm, unsigned int *vmlength)
       data[p++] = line[i];
     }
   }
-  data[p++] = '\r';
-  data[p] = 0;
 
   if (pclose(xevmlist) != 0) return 0;
+
+  if (p == 0) return 0;
+
+  data[p++] = '\r';
+  data[p] = 0;
 
   const char *delim = " ;\n";
   const char states[] = "URHPS";
@@ -310,17 +309,17 @@ void get_host_ip(char *host_ip_address)
   hipaddr = popen("xe host-param-get uuid=$(xe pool-param-get uuid=`"
     "xe pool-list --minimal 2>/dev/null` param-name=master 2>/dev/null) "
     "param-name=address 2>/dev/null", "r");
+  unsigned int x = 0;
   if (hipaddr != NULL) {
     char line[512];
-    int x = 0;
     if (fgets(line, sizeof(line), hipaddr)) {
       for (x = 0; x < MIN(strlen(line), vmip_length); x++) {
         if (isspace(line[x])) break;
         host_ip_address[x] = line[x];
       }
-      host_ip_address[x] = '\0';
     }
   }
+  host_ip_address[x] = '\0';
   pclose(hipaddr);
   if (strlen(host_ip_address) == 0) {
     snprintf(host_ip_address, vmip_length, "127.0.0.1");

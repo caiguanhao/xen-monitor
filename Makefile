@@ -28,6 +28,10 @@ fake-listen: listen
 fake: send
 	./send -x fake/xe-vm-list -d fake/proc/net/dev ${ARGS}
 
+memcheck:
+	make GCCARGS="-g"
+	valgrind --tool=memcheck --leak-check=full ./send -x fake/xe-vm-list -d fake/proc/net/dev
+
 fake-daemon: send
 	./send -x fake/xe-vm-list -d fake/proc/net/dev -D -o out.log -e err.log ${ARGS}
 
