@@ -47,6 +47,22 @@ directive('body', [function() {
   };
 }]).
 
+directive('navbarLink', ['$location', function($location) {
+  return function($scope, elem, attrs) {
+    $scope.$on('$routeChangeSuccess', function(event, current, previous) {
+      var links = elem.find('a');
+      if (links.length === 0) return;
+      var href = links[0].getAttribute('href').replace(/^\/#!?/, '');
+      var url = $location.url();
+      if (url.substr(0, href.length) === href) {
+        elem.addClass('active');
+      } else {
+        elem.removeClass('active');
+      }
+    });
+  };
+}]).
+
 directive('totalProgressBar', [function() {
   return {
     scope: {

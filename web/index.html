@@ -35,7 +35,7 @@
             </div>
             <div class="collapse navbar-collapse" id="navbar">
               <ul class="nav navbar-nav">
-                <li><a href="/#/rdp">RDP</a></li>
+                <li navbar-link><a href="/#/rdp">RDP</a></li>
               </ul>
             </div>
           </div>
@@ -230,6 +230,7 @@
           <th>Power State</th>
           <th>Upload</th>
           <th>Download</th>
+          <th>RDP</th>
         </tr>
       </thead>
       <tbody>
@@ -241,14 +242,21 @@
           <td ng-bind="VMs.PS[$index]"></td>
           <td ng-bind="VMs.UT[$index]"></td>
           <td ng-bind="VMs.DT[$index]"></td>
+          <td>
+            <a href="xen-monitor-rdp://{{VM}}"><span
+              class="glyphicon glyphicon-new-window"></span> RDP</a>
+          </td>
         </tr>
         <tr ng-hide="VMs">
-          <td colspan="5" class="text-center">
+          <td colspan="6" class="text-center">
             Please wait while the host sends its statictics here...
           </td>
         </tr>
       </tbody>
     </table>
+    <a class="btn btn-default" href="xen-monitor-rdp://{{VMs.K+''}}"
+      ng-show="VMs.K"><span class="glyphicon glyphicon-new-window"></span>
+      Open All VMs via RDP</a>
   </script>
   <script type="text/ng-template" id="vm">
     <ol class="breadcrumb">
@@ -273,6 +281,13 @@
         <tr>
           <td class="attr">Download</td>
           <td>{{VMs.DT[index] || 'Loading...'}}</td>
+        </tr>
+        <tr>
+          <td class="attr">RDP</td>
+          <td>
+            <span class="glyphicon glyphicon-new-window"></span>
+            <a href="xen-monitor-rdp://{{vm}}">Open this VM via RDP</a>
+          </td>
         </tr>
         <tr>
           <td class="attr">Command</td>
@@ -352,13 +367,13 @@
           <div class="col-sm-6 form-group">
             <label>在此位置寻找RDP文件：</label>
             <input class="form-control" ng-model="searchpath"
-              ng-init="searchpath='%USERPROFILE%\\xen-monitor-rdp.vbs'"
+              ng-init="searchpath='%USERPROFILE%\\桌面\\RDP'"
               placeholder="寻找路径">
           </div>
           <div class="col-sm-6 form-group">
             <label>脚本存放位置：</label>
             <input class="form-control" ng-model="scriptpath"
-              ng-init="scriptpath='%USERPROFILE%\\桌面\\RDP'"
+              ng-init="scriptpath='%USERPROFILE%\\xen-monitor-rdp.vbs'"
               placeholder="脚本路径">
           </div>
           <div class="col-sm-12">
