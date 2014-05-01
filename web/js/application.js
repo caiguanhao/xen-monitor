@@ -300,7 +300,7 @@ service('Servers', [function() {
   this.COMMANDS = {
     C: [ 'FORCERESTART', 'RESTART', 'FORCESHUTDOWN', 'SHUTDOWN', 'START' ],
     T: [ 'Force Restart', 'Restart', 'Force Shutdown', 'Shutdown', 'Start' ],
-    W: [ 30, 60, 10, 35, 30 ], // wait n seconds
+    W: [ 35, 60, 15, 35, 30 ], // wait n seconds
     E: [ 'I', 'I', 'PS', 'PS', 'PS' ] // expect key to change
   };
   this.colorBySpeed = function(speed) {
@@ -328,6 +328,16 @@ service('Servers', [function() {
   this.formatSize = function(size) {
     if (size > 1048576) return (size / 1048576).toFixed(2) + ' MB/s';
     return (size / 1024).toFixed(2) + ' KB/s';
+  };
+  this.freeze = function(object, cmdindex) {
+    object.time = (+new Date);
+    object.wait = this.COMMANDS.W[cmdindex];
+    object.elapsed = 0;
+    object.frozen = true;
+    object.pBarWidth = 0;
+    object.commandText = this.COMMANDS.T[cmdindex];
+    object.message = 'Command {} has been sent. Please wait a moment.';
+    object.messageColor = 'info';
   };
   this.freezeVMs = {};
   this.freezeHosts = {};
@@ -586,18 +596,14 @@ controller('HostController', ['$scope', '$routeParams', 'Socket', 'Servers',
     if (!confirm('Are you sure you want to execute this command?')) return;
     var cmdindex = $scope.command;
     var command = Servers.COMMANDS.C[cmdindex];
-    var commandText = Servers.COMMANDS.T[cmdindex];
     Socket.emit('ExecuteCommand', $scope.password, command,
       $scope.host, $scope.checkedVMs);
     $scope.password = null;
-    $scope.freeze.time = (+new Date);
-    $scope.freeze.wait = Servers.COMMANDS.W[cmdindex];
-    $scope.freeze.elapsed = 0;
-    $scope.freeze.frozen = true;
-    $scope.freeze.pBarWidth = 0;
-    $scope.freeze.commandText = commandText;
-    $scope.freeze.message = 'Command {} has been sent. Please wait a moment.';
-    $scope.freeze.messageColor = 'info';
+    Servers.freeze($scope.freeze, cmdindex);
+    $scope.checkedVMs.forEach(function(vm) {
+      Servers.freezeVMs[vm] = Servers.freezeVMs[vm] || {};
+      Servers.freeze(Servers.freezeVMs[vm], cmdindex);
+    });
   };
 }]).
 
@@ -650,18 +656,10 @@ controller('VMController', ['$scope', '$routeParams', 'Socket', 'Servers',
     if (!confirm('Are you sure you want to execute this command?')) return;
     var cmdindex = $scope.command;
     var command = Servers.COMMANDS.C[cmdindex];
-    var commandText = Servers.COMMANDS.T[cmdindex];
     Socket.emit('ExecuteCommand', $scope.password, command,
       $scope.host, $scope.vm);
     $scope.password = null;
-    $scope.freeze.time = (+new Date);
-    $scope.freeze.wait = Servers.COMMANDS.W[cmdindex];
-    $scope.freeze.elapsed = 0;
-    $scope.freeze.frozen = true;
-    $scope.freeze.pBarWidth = 0;
-    $scope.freeze.commandText = commandText;
-    $scope.freeze.message = 'Command {} has been sent. Please wait a moment.';
-    $scope.freeze.messageColor = 'info';
+    Servers.freeze($scope.freeze, cmdindex);
     var expectOnKey = Servers.COMMANDS.E[cmdindex];
     var orignal = $scope.VMs[expectOnKey][$scope.index];
     $scope.freeze.expectOnKey = expectOnKey;
