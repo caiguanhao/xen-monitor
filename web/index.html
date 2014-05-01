@@ -423,6 +423,7 @@ echo   For Each File In Folder.Files
 echo     If File.Name = VM ^& ".rdp" Then
 echo       SHELL.run^("mstsc.exe """ ^& FSOBJ.GetAbsolutePathName^(File.Path^) ^& """"^)
 echo       Run = True
+echo       Exit For
 echo     End If
 echo   Next
 echo   For Each SubFolder In Folder.SubFolders
@@ -434,7 +435,7 @@ echo REGEX.Pattern = "^xen-monitor-rdp://(.+?)/?$"
 echo For Each VM in Split^(REGEX.Replace^(Wscript.Arguments^(0^), "$1"^), ","^)
 echo   FindAndRun FOLDER, VM
 echo Next
-echo If Run = False Then MsgBox "No RDP found.", vbExclamation, "Error") > "{{scriptpath}}"
+echo If Run = False Then MsgBox "No RDP found.", 48, "Error") > "{{scriptpath}}"
 exit</pre>
       </div>
     </div>
