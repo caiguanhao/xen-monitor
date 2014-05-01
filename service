@@ -1,0 +1,14 @@
+#!/bin/bash
+
+set -e
+
+export NODE_ENV=production
+grunt production
+CMD="node xen-mon-app.js"
+
+until echo "Running \`$CMD\`..." && $CMD; do
+  echo "\`$CMD\` crashed with exit code $?. Respawning in 3 seconds..." >&2
+  sleep 3
+done
+
+exit 0

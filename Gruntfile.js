@@ -117,9 +117,7 @@ module.exports = function(grunt) {
     'concat',
     'clean:templates',
     'hash',
-    'compress',
-    'express',
-    'watch'
+    'compress'
   ]);
 
   grunt.registerTask('_production', 'Update configs for production mode.',
