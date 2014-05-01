@@ -58,7 +58,13 @@ function validateCommand(password, command, host, vm) {
   if (!command || command.length < 5 || command.length > 20) return false;
   if (!checkCommand(command)) return false;
   if (!checkIPAddress(host)) return false;
-  if (!checkIPAddress(vm)) return false;
+  if (vm instanceof Array) {
+    for (var i = vm.length - 1; i > -1; i--) {
+      if (!checkIPAddress(vm[i])) return false;
+    }
+  } else {
+    if (!checkIPAddress(vm)) return false;
+  }
   return true;
 }
 
@@ -87,6 +93,7 @@ io.sockets.on('connection', function (socket) {
     }
     var cmdsocket = new net.Socket();
     cmdsocket.connect(3333, host, function() {
+      vm = vm instanceof Array ? vm.join(' ') : vm;
       cmdsocket.end(password + ' ' + command + ' ' + vm);
     });
     cmdsocket.on('end', function() {});

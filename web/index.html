@@ -222,9 +222,11 @@
       <li><a href="/#/">All servers</a></li>
       <li class="active" ng-bind="host"></li>
     </ol>
-    <table class="table">
+    <table class="table table-striped">
       <thead>
         <tr>
+          <th><input type="checkbox" ng-model="checkedall"
+            ng-hide="checkedVMs===null"></th>
           <th>Domain ID</th>
           <th>IP Address</th>
           <th>Power State</th>
@@ -235,6 +237,9 @@
       </thead>
       <tbody>
         <tr ng-repeat="VM in VMs.K">
+          <td>
+            <input type="checkbox" ng-model="checked[$index]">
+          </td>
           <td ng-bind="VMs.I[$index]"></td>
           <td>
             <a href="/#/host/{{host}}/vm/{{VM}}" ng-bind="VM"></a>
@@ -248,15 +253,39 @@
           </td>
         </tr>
         <tr ng-hide="VMs">
-          <td colspan="6" class="text-center">
+          <td colspan="7" class="text-center">
             Please wait while the host sends its statictics here...
           </td>
         </tr>
       </tbody>
     </table>
-    <a class="btn btn-default" href="xen-monitor-rdp://{{VMs.K+''}}"
-      ng-show="VMs.K"><span class="glyphicon glyphicon-new-window"></span>
-      Open All VMs via RDP</a>
+    <div class="alert alert-{{freeze.messageColor}} cmd-alert"
+      ng-show="freeze.message"
+      ng-bind="freeze.message|cmdreplace:freeze.commandText"></div>
+    <div class="progress pbar-cmd progress-striped active"
+      ng-show="freeze.frozen">
+      <div class="progress-bar" freeze-progress-bar="freeze">
+        <span ng-show="freeze.elapsed"
+          ng-bind="freeze.elapsed+' / '+freeze.wait"></span>
+      </div>
+    </div>
+    <form class="form-inline" ng-submit="execute()"
+      ng-show="checked&&!freeze.frozen">
+      <a class="btn btn-sm btn-default openrdp"
+        ng-class="{disabled:!checkedVMs.length}"
+        href="xen-monitor-rdp://{{checkedVMs+''}}">
+        <span class="glyphicon glyphicon-new-window"></span>
+        Open Selected VMs via RDP</a>
+      <select class="form-control input-sm" ng-model="command">
+        <option ng-repeat="cmd in commands.C"
+          value="{{$index}}">{{commands.T[$index]}}
+          ({{commands.W[$index]}}s)</option>
+      </select>
+      <input type="password" class="form-control input-sm"
+        placeholder="Password" ng-model="password">
+      <button type="submit" ng-disabled="btnExecuteDisabled()"
+        class="btn btn-sm btn-default">Execute</button>
+    </form>
   </script>
   <script type="text/ng-template" id="vm">
     <ol class="breadcrumb">

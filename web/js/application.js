@@ -117,17 +117,23 @@ directive('freezeProgressBar', [function() {
         }
         elem.css('width', f.pBarWidth + '%');
         f.elapsed = +elapsed.toFixed(0);
-        var actual = $scope.$parent.VMs[f.expectOnKey][$scope.$parent.index];
+        var actual;
+        if (f.expectOnKey) {
+          actual = $scope.$parent.VMs[f.expectOnKey][$scope.$parent.index];
+        }
         if (f.pBarWidth === onemore) {
-          if (actual === f.original) {
+          if (actual !== undefined && actual === f.original) {
             f.message = 'It seems command {} was not executed successfully.'
             f.messageColor = 'danger';
+          } else if (actual === undefined) {
+            f.message = null;
+            f.messageColor = null;
           }
           f.frozen = false;
           f.elapsed = 0;
           f.wait = 0;
         }
-        if (actual !== f.original) {
+        if (actual !== undefined && actual !== f.original) {
           elem.css('width', '100%');
           f.pBarWidth = onemore;
           f.message = 'Command {} was executed successfully.'
@@ -324,6 +330,8 @@ service('Servers', [function() {
     return (size / 1024).toFixed(2) + ' KB/s';
   };
   this.freezeVMs = {};
+  this.freezeHosts = {};
+  this.checkedVMs = {};
   this.allServers = {};
   this.colorStats = {};
   this.rangeStats = {};
@@ -519,15 +527,78 @@ controller('HostController', ['$scope', '$routeParams', 'Socket', 'Servers',
   function($scope, $routeParams, Socket, Servers) {
   $scope.host = $routeParams.host;
   $scope.VMs = Servers.allServers[$scope.host];
+  Servers.freezeHosts[$scope.host] = Servers.freezeHosts[$scope.host] || {};
+  $scope.freeze = Servers.freezeHosts[$scope.host];
+  Servers.checkedVMs[$scope.host] = Servers.checkedVMs[$scope.host] || [];
+  $scope.checked = Servers.checkedVMs[$scope.host];
+  $scope.checkedVMs = null;
+  $scope.commands = Servers.COMMANDS;
+  $scope.command = 0;
 
   if (Socket.$events) delete Socket.$events['Update'];
   Socket.on('Update', function(host, data) {
     Servers.updateServers(host, angular.fromJson(data));
     if (host === $scope.host) {
       $scope.VMs = Servers.allServers[host];
+      if (!$scope.checkedVMs) {
+        $scope.checked = $scope.VMs.K.map(function() { return true; });
+      }
       $scope.$apply();
     }
   });
+  if (Socket.$events) delete Socket.$events['CommandFailed'];
+  Socket.on('CommandFailed', function(host) {
+    var newfreeze = {
+      message: 'Cannot connect to the host {}.'.replace(/{}/g, host),
+      messageColor: 'danger'
+    };
+    Servers.freezeHosts[$scope.host] = newfreeze;
+    $scope.freeze = newfreeze;
+    $scope.$apply();
+  });
+  $scope.$watchCollection('checked', function(val) {
+    if (!$scope.VMs) return;
+    if ($scope.checked.toString().indexOf('false') === -1) { // all true
+      $scope.checkedall = true;
+    } else if ($scope.checked.toString().indexOf('true') === -1) { // all false
+      $scope.checkedall = false;
+    }
+    $scope.checkedVMs = $scope.VMs.K.filter(function(val, index) {
+      return $scope.checked[index];
+    });
+  });
+  $scope.$watch('checkedall', function(val) {
+    if (!$scope.VMs) return;
+    $scope.checked = $scope.VMs.K.map(function() { return val; });
+  });
+  $scope.btnExecuteDisabled = function() {
+    if (!$scope.checked) return true;
+    if ($scope.checked.toString().indexOf('true') === -1) { // all false
+      return true;
+    }
+    return !$scope.password || $scope.password.length < 10;
+  };
+  $scope.execute = function() {
+    if (!$scope.checked) return alert('Not ready yet.');
+    if (!Socket.socket.connected) {
+      return alert('It seems you\'re not connected! Aborted!');
+    }
+    if (!confirm('Are you sure you want to execute this command?')) return;
+    var cmdindex = $scope.command;
+    var command = Servers.COMMANDS.C[cmdindex];
+    var commandText = Servers.COMMANDS.T[cmdindex];
+    Socket.emit('ExecuteCommand', $scope.password, command,
+      $scope.host, $scope.checkedVMs);
+    $scope.password = null;
+    $scope.freeze.time = (+new Date);
+    $scope.freeze.wait = Servers.COMMANDS.W[cmdindex];
+    $scope.freeze.elapsed = 0;
+    $scope.freeze.frozen = true;
+    $scope.freeze.pBarWidth = 0;
+    $scope.freeze.commandText = commandText;
+    $scope.freeze.message = 'Command {} has been sent. Please wait a moment.';
+    $scope.freeze.messageColor = 'info';
+  };
 }]).
 
 controller('VMController', ['$scope', '$routeParams', 'Socket', 'Servers',
@@ -544,7 +615,7 @@ controller('VMController', ['$scope', '$routeParams', 'Socket', 'Servers',
 
   if (Socket.$events) {
     delete Socket.$events['Update'];
-    delete Socket.$events['CommandStatus'];
+    delete Socket.$events['CommandFailed'];
   }
   Socket.on('Update', function(host, data) {
     Servers.updateServers(host, angular.fromJson(data));
