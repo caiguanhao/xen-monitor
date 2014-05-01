@@ -406,10 +406,10 @@
               placeholder="脚本路径">
           </div>
           <div class="col-sm-12">
-            <label>复制下列命令并粘贴到命令提示符：</label>
+            <label>点击全选下列命令，复制并粘贴到命令提示符：</label>
           </div>
         </div>
-        <pre>
+        <pre click-to-select-all spellcheck="false">
 reg add "HKCR\xen-monitor-rdp" /v "URL Protocol" /t REG_SZ /d "" /f
 reg add "HKCR\xen-monitor-rdp" /ve /t REG_SZ /d "URL:Xen Monitor RDP Protocol" /f
 reg add "HKCR\xen-monitor-rdp\shell\open\command" /ve /t REG_SZ /d "wscript.exe \"{{scriptpath}}\" %1" /f
@@ -417,10 +417,12 @@ reg add "HKCR\xen-monitor-rdp\shell\open\command" /ve /t REG_SZ /d "wscript.exe 
 echo Set REGEX = CreateObject^("VBScript.RegExp"^)
 echo Set FSOBJ = CreateObject^("Scripting.FileSystemObject"^)
 echo Set FOLDER = FSOBJ.GetFolder^("{{searchpath}}"^)
+echo Run = False
 echo Sub FindAndRun^(Folder, VM^)
 echo   For Each File In Folder.Files
 echo     If File.Name = VM ^& ".rdp" Then
 echo       SHELL.run^("mstsc.exe """ ^& FSOBJ.GetAbsolutePathName^(File.Path^) ^& """"^)
+echo       Run = True
 echo     End If
 echo   Next
 echo   For Each SubFolder In Folder.SubFolders
@@ -431,7 +433,8 @@ echo If Wscript.Arguments.Count = 0 Then WScript.Quit 1
 echo REGEX.Pattern = "^xen-monitor-rdp://(.+?)/?$"
 echo For Each VM in Split^(REGEX.Replace^(Wscript.Arguments^(0^), "$1"^), ","^)
 echo   FindAndRun FOLDER, VM
-echo Next) > "{{scriptpath}}"
+echo Next
+echo If Run = False Then MsgBox "No RDP found.", vbExclamation, "Error") > "{{scriptpath}}"
 exit</pre>
       </div>
     </div>

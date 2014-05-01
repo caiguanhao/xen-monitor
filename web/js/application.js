@@ -157,6 +157,16 @@ directive('rdp', [function() {
   };
 }]).
 
+directive('clickToSelectAll', [function() {
+  return function($scope, elem, attrs) {
+    elem.on('click', function() {
+      elem.attr('contenteditable', true);
+      document.execCommand('selectAll', false, null);
+      elem.attr('contenteditable', false);
+    });
+  };
+}]).
+
 directive('focus', [function() {
   return function($scope, elem, attrs) {
     $scope.$on(attrs.focus, function() {
