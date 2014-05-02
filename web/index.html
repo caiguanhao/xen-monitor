@@ -409,19 +409,47 @@
             <label>点击全选下列命令，复制并粘贴到命令提示符：</label>
           </div>
         </div>
-        <pre click-to-select-all spellcheck="false">
+        <pre class="rdpcode" click-to-select-all spellcheck="false">
+chcp 936 >nul
 reg add "HKCR\xen-monitor-rdp" /v "URL Protocol" /t REG_SZ /d "" /f
 reg add "HKCR\xen-monitor-rdp" /ve /t REG_SZ /d "URL:Xen Monitor RDP Protocol" /f
 reg add "HKCR\xen-monitor-rdp\shell\open\command" /ve /t REG_SZ /d "wscript.exe \"{{scriptpath}}\" %1" /f
 (echo Set SHELL = CreateObject^("WScript.Shell"^)
 echo Set REGEX = CreateObject^("VBScript.RegExp"^)
 echo Set FSOBJ = CreateObject^("Scripting.FileSystemObject"^)
-echo Set FOLDER = FSOBJ.GetFolder^("{{searchpath}}"^)
+echo Set Service = GetObject^("winmgmts:"^)
+echo SearchPath = "{{searchpath}}"
+echo Running = Array^(^)
+echo XP = False
+echo For Each Process in Service.InstancesOf^("Win32_Process"^)
+echo   If Process.Name = "mstsc.exe" Then
+echo     If CInt^(Split^(Process.WindowsVersion, "."^)^(0^)^) ^< 6 Then XP = True
+echo     ReDim Preserve Running^(UBound^(Running^) + 2^)
+echo     Running^(UBound^(Running^) - 1^) = Process.ProcessId
+echo     Running^(UBound^(Running^)^) = Process.CommandLine
+echo   End If
+echo Next
 echo Run = False
+echo Opened = False
 echo Sub FindAndRun^(Folder, VM^)
 echo   For Each File In Folder.Files
 echo     If File.Name = VM ^& ".rdp" Then
-echo       SHELL.run^("mstsc.exe """ ^& FSOBJ.GetAbsolutePathName^(File.Path^) ^& """"^)
+echo       Open = False
+echo       Path = """" ^& FSOBJ.GetAbsolutePathName^(File.Path^) ^& """"
+echo       For i = 0 To UBound^(Running^) Step 2
+echo         If InStr^(Running^(i + 1^), Path^) Then
+echo           If Not Opened And XP Then
+echo             SHELL.AppActivate^(Running^(i^)^)
+echo             SHELL.SendKeys "%{TAB}%{TAB}"
+echo           ElseIf Not Opened Then
+echo             If SHELL.AppActivate^(Running^(i^)^) = 0 Then SHELL.SendKeys "% r"
+echo           End If
+echo           Open = True
+echo           Opened = True
+echo           Exit For
+echo         End If
+echo       Next
+echo       If Open = False Then SHELL.run^("mstsc.exe " ^& Path^)
 echo       Run = True
 echo       Exit For
 echo     End If
@@ -432,10 +460,12 @@ echo   Next
 echo End Sub
 echo If Wscript.Arguments.Count = 0 Then WScript.Quit 1
 echo REGEX.Pattern = "^xen-monitor-rdp://(.+?)/?$"
-echo For Each VM in Split^(REGEX.Replace^(Wscript.Arguments^(0^), "$1"^), ","^)
-echo   FindAndRun FOLDER, VM
-echo Next
-echo If Run = False Then MsgBox "No RDP found.", 48, "Error") > "{{scriptpath}}"
+echo If FSOBJ.FolderExists^(SearchPath^) Then
+echo   For Each VM in Split^(REGEX.Replace^(Wscript.Arguments^(0^), "$1"^), ","^)
+echo     FindAndRun FSOBJ.GetFolder^(SearchPath^), VM
+echo   Next
+echo End If
+echo If Run = False Then MsgBox "No matching RDP found in " ^& SearchPath ^& ".", 48, "Error") > "{{scriptpath}}"
 exit</pre>
       </div>
     </div>
