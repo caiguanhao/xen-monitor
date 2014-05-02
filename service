@@ -2,8 +2,21 @@
 
 set -e
 
+waiting() {
+  while : ; do
+    echo -n "."
+    sleep 1
+  done
+}
+
 export NODE_ENV=production
-grunt production
+echo -n "Compiling assets for production"
+waiting &
+waitingpid=$!
+grunt production > /dev/null
+kill -9 $waitingpid
+echo " Done."
+
 CMD="node xen-mon-app.js"
 
 until echo "Running \`$CMD\`..." && $CMD; do
