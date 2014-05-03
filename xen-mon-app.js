@@ -37,10 +37,8 @@ subscribe.on('message', function(channel, message) {
   }
 });
 
-var IP = /^(([01]?\d\d?|2[0-4]\d|25[0-5])\.){3}([01]?\d\d?|2[0-4]\d|25[0-5])$/;
-
 function checkIPAddress(ipaddr) {
-  if (!ipaddr || !IP.test(ipaddr)) return false;
+  if (!ipaddr || !net.isIPv4(ipaddr)) return false;
   // block all reserved http://en.wikipedia.org/wiki/Reserved_IP_addresses
   if (/^(0|10|127|192\.168)\./.test(ipaddr)) return false;
   // 224.0.0.0 - 255.255.255.255:
