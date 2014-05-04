@@ -62,21 +62,24 @@
             <span ng-bind="colorStats.success"
               ng-show="colorStats.success"></span>
           </div>
-          <div class="progress-bar progress-bar-warning"
+          <a href class="progress-bar progress-bar-warning"
+            ng-click="cached.opensearch=true;cached.search='warning';"
             style="width: {{colorStats.warningPercent}}%">
             <span ng-bind="colorStats.warning"
               ng-show="colorStats.warning"></span>
-          </div>
-          <div class="progress-bar progress-bar-danger"
+          </a>
+          <a href class="progress-bar progress-bar-danger"
+            ng-click="cached.opensearch=true;cached.search='warning danger';"
             style="width: {{colorStats.dangerPercent}}%">
             <span ng-bind="colorStats.danger"
               ng-show="colorStats.danger"></span>
-          </div>
-          <div class="progress-bar progress-bar-dead-auto"
+          </a>
+          <a href class="progress-bar progress-bar-dead-auto"
+            ng-click="cached.opensearch=true;cached.search='warning danger dead';"
             style="width: {{colorStats.deadPercent}}%">
             <span ng-bind="colorStats.dead"
               ng-show="colorStats.dead"></span>
-          </div>
+          </a>
         </div>
       </div>
       <div class="col-sm-12">
@@ -142,9 +145,16 @@
                     Lists <span class="caret"></span></button>
                   <ul class="dropdown-menu pull-right lists-dropdown"
                     ng-click="searchList=false">
+                    <li><a href ng-click="cached.search='warning'">
+                      <span class="text-warning">Warning</span></a></li>
+                    <li><a href ng-click="cached.search='danger'">
+                      <span class="text-danger">Danger</span></a></li>
+                    <li><a href ng-click="cached.search='dead'">
+                      <span class="text-dead">Dead</span></a></li>
+                    <li class="divider"></li>
                     <li ng-repeat="K in lists.K"><a href ng-bind="K"
                       ng-click="cached.search=lists.V[$index]"></a></li>
-                    <li class="divider"></li>
+                    <li class="divider" ng-show="lists.K"></li>
                     <li><a href="/#/edit-lists">
                       <span class="glyphicon glyphicon-edit"></span>
                       Edit</a></li>
@@ -185,7 +195,7 @@
         </div>
       </div>
       <div class="col-sm-12 stats range-{{VMs.R}}"
-        ng-repeat="(host, VMs) in allServers" search="host+','+VMs.K">
+        ng-repeat="(host, VMs) in allServers" search="host+','+VMs.K+VMs.SC">
         <div class="progress stat">
           <a rdp="xen-monitor-rdp://{{VMs.K+''}}" page="/#/host/{{host}}"
             class="vm-progress" style="width: 20%">

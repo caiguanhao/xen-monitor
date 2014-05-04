@@ -334,6 +334,14 @@ service('Servers', [function() {
     default:  return 'dead';
     }
   };
+  this.colorTypes = function(colors, color) {
+    var cT = [];
+    colors = colors.toString() + ',' + color;
+    if (colors.indexOf('warning') > -1) cT.push('warning');
+    if (colors.indexOf('danger') > -1) cT.push('danger');
+    if (colors.indexOf('dead') > -1) cT.push('dead');
+    return cT;
+  };
   this.rangeBySpeed = function(speed) {
     if (speed > 12582912) return 12;
     if (speed > 11534336) return 11;
@@ -435,6 +443,8 @@ service('Servers', [function() {
     VM.UP  = [];
     VM.UT  = [];
 
+    VM.SC  = '';
+
     VM.DC  = [];
     VM.DP  = [];
     VM.DT  = [];
@@ -475,6 +485,7 @@ service('Servers', [function() {
 
       c++;
     }
+    VM.SC = this.colorTypes(VM.UC, VM.TUC);
     VM.W = 80 / (c < 4 ? 4 : c);
 
     var now = +new Date;
