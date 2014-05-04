@@ -120,14 +120,14 @@
               </div>
               <div class="btn-group btn-group-sm">
                 <button class="btn btn-default" ng-click="openSearch()"
-                  ng-class="{active:cached.opensearch}">
-                  <span class="glyphicon glyphicon-search"
-                    ng-class="{'text-success':cached.search}"></span></button>
+                  ng-class="{active:cached.opensearch,
+                  'btn-success':cached.search}">
+                  <span class="glyphicon glyphicon-search"></span></button>
               </div>
               <div class="input-group search-input" ng-show="cached.opensearch">
                 <div class="input-group-btn btn-group-sm">
                   <button type="button" class="btn btn-default"
-                    ng-click="cached.search=null">
+                    ng-click="cached.search=null;openSearch();">
                     <span class="glyphicon glyphicon-remove"></span></button>
                 </div>
                 <input type="text" class="form-control input-sm search-input"
