@@ -63,8 +63,15 @@ var server = net.createServer(function(sock) {
         }
         S[A.I] = { U: +A.U, D: +A.D };
       }
+      stats.V.sort(function(a, b) {
+        a.IP = a.IP || '127.0.0.1';
+        b.IP = b.IP || '127.0.0.1';
+        var ipa = a.IP.split('.');
+        var ipb = b.IP.split('.');
+        return +ipa[3] > +ipb[3] ? 1 : -1;
+      });
       var DATA = {
-        K: stats.V.map(function(x) { return x.IP || '127.0.0.1'; }),
+        K: stats.V.map(function(x) { return x.IP; }),
         U: stats.V.map(function(x) { return S[x.I] ? S[x.I].U : 0; }),
         D: stats.V.map(function(x) { return S[x.I] ? S[x.I].D : 0; }),
         S: stats.V.map(function(x) { return x.PS || 'U'; }),
