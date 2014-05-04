@@ -325,6 +325,15 @@ service('Servers', [function() {
     if (percent < 10) return 'dead';
     return 'danger';
   };
+  this.colorByPowerState = function(powerState) {
+    switch (powerState) {
+    case 'R': return 'success';
+    case 'H': return 'danger';
+    case 'P': return 'danger';
+    case 'S': return 'danger';
+    default:  return 'dead';
+    }
+  };
   this.rangeBySpeed = function(speed) {
     if (speed > 12582912) return 12;
     if (speed > 11534336) return 11;
@@ -431,6 +440,7 @@ service('Servers', [function() {
     VM.DT  = [];
 
     VM.PS  = [];
+    VM.PSC  = [];
 
     VM.TU  = totalUpload;
     VM.TUC = this.colorByPercent(TUP);
@@ -459,7 +469,9 @@ service('Servers', [function() {
       VM.DC.unshift(downloadColor);
       VM.DT.unshift(this.formatSize(VM.D[i]));
 
-      VM.PS.unshift(this.POWERSTATES[VM.S[i]] || this.POWERSTATES.U);
+      var PS = this.POWERSTATES[VM.S[i]] ? VM.S[i] : 'U';
+      VM.PS.unshift(this.POWERSTATES[PS]);
+      VM.PSC.unshift(this.colorByPowerState(PS));
 
       c++;
     }

@@ -244,9 +244,12 @@
           <td>
             <a href="/#/host/{{host}}/vm/{{VM}}" ng-bind="VM"></a>
           </td>
-          <td ng-bind="VMs.PS[$index]"></td>
-          <td ng-bind="VMs.UT[$index]"></td>
-          <td ng-bind="VMs.DT[$index]"></td>
+          <td><span class="text-{{VMs.PSC[$index]}}"
+            ng-bind="VMs.PS[$index]"></span></td>
+          <td><span class="text-{{VMs.UC[$index]}}"
+            ng-bind="VMs.UT[$index]"></span></td>
+          <td><span class="text-{{VMs.DC[$index]}}"
+            ng-bind="VMs.DT[$index]"></span></td>
           <td>
             <a href="xen-monitor-rdp://{{VM}}"><span
               class="glyphicon glyphicon-new-window"></span> RDP</a>
@@ -258,6 +261,25 @@
           </td>
         </tr>
       </tbody>
+      <tfoot ng-show="VMs">
+        <tr>
+          <td colspan="4">
+            <a class="btn btn-xs btn-default"
+              ng-class="{disabled:!checkedVMs.length}"
+              href="xen-monitor-rdp://{{checkedVMs+''}}">
+              <span class="glyphicon glyphicon-new-window"></span>
+              Open Selected VMs via RDP</a>
+          </td>
+          <td><span class="text-{{VMs.TUC}}"
+            ng-bind="VMs.TUT"></span></td>
+          <td><span class="text-{{VMs.TDC}}"
+            ng-bind="VMs.TDT"></span></td>
+          <td>
+            <a href="xen-monitor-rdp://{{VMs.K+''}}"><span
+              class="glyphicon glyphicon-new-window"></span> Open All</a>
+          </td>
+        </tr>
+      </tfoot>
     </table>
     <div class="alert alert-{{freeze.messageColor}} cmd-alert"
       ng-show="freeze.message"
@@ -271,11 +293,6 @@
     </div>
     <form class="form-inline" ng-submit="execute()"
       ng-show="checked&&!freeze.frozen">
-      <a class="btn btn-sm btn-default openrdp"
-        ng-class="{disabled:!checkedVMs.length}"
-        href="xen-monitor-rdp://{{checkedVMs+''}}">
-        <span class="glyphicon glyphicon-new-window"></span>
-        Open Selected VMs via RDP</a>
       <select class="form-control input-sm" ng-model="command">
         <option ng-repeat="cmd in commands.C"
           value="{{$index}}">{{commands.T[$index]}}
@@ -301,15 +318,18 @@
         </tr>
         <tr>
           <td class="attr">Power State</td>
-          <td>{{VMs.PS[index] || 'Loading...'}}</td>
+          <td class="text-{{VMs.PSC[index]}}">{{VMs.PS[index] ||
+            'Loading...'}}</td>
         </tr>
         <tr>
           <td class="attr">Upload</td>
-          <td>{{VMs.UT[index] || 'Loading...'}}</td>
+          <td class="text-{{VMs.UC[index]}}">{{VMs.UT[index] ||
+            'Loading...'}}</td>
         </tr>
         <tr>
           <td class="attr">Download</td>
-          <td>{{VMs.DT[index] || 'Loading...'}}</td>
+          <td class="text-{{VMs.DC[index]}}">{{VMs.DT[index] ||
+            'Loading...'}}</td>
         </tr>
         <tr>
           <td class="attr">RDP</td>
