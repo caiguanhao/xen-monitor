@@ -588,30 +588,43 @@ controller('MainController', ['$scope', 'Socket', 'Servers', 'LocalSettings',
   $scope.commands = Servers.COMMANDS;
   $scope.command = 0;
   $scope.clearChecked = function() {
-    $scope.checked = {
-      count: 0,
+    $scope.cached.checked = {
+      list: [],
       items: {}
     };
   };
-  $scope.clearChecked();
+  if (!$scope.cached.checked) $scope.clearChecked();
   $scope.mselect = function(host, vm) {
     if (vm instanceof Array) {
-      if ($scope.checked.items[host]) {
-        $scope.checked.count -= $scope.checked.items[host].length;
-        delete $scope.checked.items[host];
+      if ($scope.cached.checked.items[host]) {
+        $scope.cached.checked.items[host].forEach(function(item) {
+          var index = $scope.cached.checked.list.indexOf(item);
+          if (index > -1) {
+            $scope.cached.checked.list.splice(index, 1);
+          }
+        });
+        delete $scope.cached.checked.items[host];
       } else {
-        $scope.checked.items[host] = angular.copy(vm);
-        $scope.checked.count += $scope.checked.items[host].length;
+        $scope.cached.checked.items[host] = angular.copy(vm);
+        $scope.cached.checked.items[host].forEach(function(item) {
+          if ($scope.cached.checked.list.indexOf(item) === -1) {
+            $scope.cached.checked.list.push(item);
+          }
+        });
       }
     } else {
-      $scope.checked.items[host] = $scope.checked.items[host] || [];
-      var index = $scope.checked.items[host].indexOf(vm);
+      $scope.cached.checked.items[host] = $scope.cached.checked.items[host] || [];
+      var index = $scope.cached.checked.items[host].indexOf(vm);
       if (index === -1) {
-        $scope.checked.items[host].push(vm);
-        $scope.checked.count++;
+        $scope.cached.checked.items[host].push(vm);
       } else {
-        $scope.checked.items[host].splice(index, 1);
-        $scope.checked.count--;
+        $scope.cached.checked.items[host].splice(index, 1);
+      }
+      index = $scope.cached.checked.list.indexOf(vm);
+      if (index === -1) {
+        $scope.cached.checked.list.push(vm);
+      } else {
+        $scope.cached.checked.list.splice(index, 1);
       }
     }
     $scope.$apply();
@@ -620,7 +633,7 @@ controller('MainController', ['$scope', 'Socket', 'Servers', 'LocalSettings',
     return !$scope.password || $scope.password.length < 10;
   };
   $scope.execute = function() {
-    if (!$scope.checked) return alert('Not ready yet.');
+    if (!$scope.cached.checked) return alert('Not ready yet.');
     if (!Socket.socket.connected) {
       return alert('It seems you\'re not connected! Aborted!');
     }
@@ -628,7 +641,7 @@ controller('MainController', ['$scope', 'Socket', 'Servers', 'LocalSettings',
     var cmdindex = $scope.command;
     var command = Servers.COMMANDS.C[cmdindex];
     Socket.emit('ExecuteCommandMultiple', $scope.password, command,
-      $scope.checked.items);
+      $scope.cached.checked.items);
     $scope.password = null;
   };
   angular.extend($scope, LocalSettings.getLocalSettings({

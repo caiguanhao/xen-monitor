@@ -199,6 +199,11 @@
       </div>
       <div class="col-sm-12" ng-show="mclick==='check'">
         <form class="form-inline toolbar" ng-submit="execute()">
+          <a class="btn btn-sm btn-default"
+            ng-class="{disabled:!cached.checked.list.length}"
+            href="xen-monitor-rdp://{{cached.checked.list+''}}">
+            <span class="glyphicon glyphicon-new-window"></span>
+            Open {{cached.checked.list.length}} VMs via RDP</a>
           <select class="form-control input-sm" ng-model="command">
             <option ng-repeat="cmd in commands.C"
               value="{{$index}}">{{commands.T[$index]}}
@@ -208,8 +213,8 @@
             placeholder="Password" ng-model="password">
           <button type="submit" ng-disabled="btnExecuteDisabled()"
             class="btn btn-sm btn-default">Execute Commands for
-            {{checked.count}} VMs</button>
-          <button type="button" ng-disabled="checked.count===0"
+            {{cached.checked.list.length}} VMs</button>
+          <button type="button" ng-disabled="cached.checked.list.length===0"
             ng-click="clearChecked()"
             class="btn btn-sm btn-default">Clear Selection</button>
         </form>
@@ -224,7 +229,7 @@
           </a>
           <a rdp="xen-monitor-rdp://{{VM}}" default="/#/host/{{host}}/vm/{{VM}}"
             mlink check="mselect(host, VM)" class="vm-progress"
-            ng-class="{checked:checked.items[host].indexOf(VM)>-1}"
+            ng-class="{checked:cached.checked.items[host].indexOf(VM)>-1}"
             ng-repeat="VM in VMs.K" style="width: {{VMs.W}}%">
             <div progress-bar="VMs" index="$index" ip="VM"></div>
           </a>
