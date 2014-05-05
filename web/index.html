@@ -56,7 +56,7 @@
   <script type="text/ng-template" id="main">
     <div class="row show-range-{{range}}">
       <div class="col-sm-12">
-        <div class="progress">
+        <div class="progress toolbar">
           <div class="progress-bar progress-bar-success"
             style="width: {{colorStats.successPercent}}%">
             <span ng-bind="colorStats.success"
@@ -85,8 +85,8 @@
       <div class="col-sm-12">
         <div class="form-inline">
           <div class="form-group">
-            <div class="btn-toolbar" role="toolbar">
-              <div class="btn-group btn-group-sm">
+            <div class="btn-toolbar">
+              <div class="btn-group btn-group-sm toolbar">
                 <button class="btn btn-default" ng-click="cached.live=true"
                   ng-class="{active:cached.live}"><span class="text-success">
                   <span class="glyphicon glyphicon-play"></span>
@@ -96,7 +96,7 @@
                   <span class="glyphicon glyphicon-pause"></span>
                   Paused</span></button>
               </div>
-              <div class="btn-group btn-group-sm">
+              <div class="btn-group btn-group-sm toolbar">
                 <button class="btn btn-default" ng-click="show=0"
                   ng-class="{active:show===0}">
                   <span class="glyphicon glyphicon-globe"></span>
@@ -106,7 +106,7 @@
                   <span class="glyphicon glyphicon-signal"></span>
                   Speed</button>
               </div>
-              <div class="btn-group btn-group-sm">
+              <div class="btn-group btn-group-sm toolbar">
                 <button class="btn btn-default" ng-click="type='U'"
                   ng-class="{active:type==='U'}">
                   <span class="glyphicon glyphicon-cloud-upload"></span>
@@ -116,12 +116,15 @@
                   <span class="glyphicon glyphicon-cloud-download"></span>
                   </button>
               </div>
-              <div class="btn-group btn-group-sm">
-                <button class="btn btn-default" ng-click="rdp=!rdp"
-                  ng-class="{active:rdp}">
+              <div class="btn-group btn-group-sm toolbar">
+                <button class="btn btn-default" ng-click="openMClickCheck()"
+                  ng-class="{active:mclick==='check'}">
+                  <span class="glyphicon glyphicon-check"></span></button>
+                <button class="btn btn-default" ng-click="openMClickRDP()"
+                  ng-class="{active:mclick==='rdp'}">
                   <span class="glyphicon glyphicon-new-window"></span></button>
               </div>
-              <div class="btn-group btn-group-sm">
+              <div class="btn-group btn-group-sm toolbar">
                 <button class="btn btn-default" ng-click="openSearch()"
                   ng-class="{active:cached.opensearch,
                   'btn-success':cached.search}">
@@ -161,7 +164,7 @@
                   </ul>
                 </div>
               </div>
-              <div class="btn-group btn-group-sm" ng-hide="cached.opensearch">
+              <div class="btn-group btn-group-sm toolbar" ng-hide="cached.opensearch">
                 <button class="btn btn-default" ng-click="range='all'"
                   ng-class="{active:range==='all'}">
                   <span class="glyphicon glyphicon-asterisk"></span></button>
@@ -194,15 +197,34 @@
           </div>
         </div>
       </div>
-      <div class="col-sm-12 stats range-{{VMs.R}}"
+      <div class="col-sm-12" ng-show="mclick==='check'">
+        <form class="form-inline toolbar" ng-submit="execute()">
+          <select class="form-control input-sm" ng-model="command">
+            <option ng-repeat="cmd in commands.C"
+              value="{{$index}}">{{commands.T[$index]}}
+              ({{commands.W[$index]}}s)</option>
+          </select>
+          <input type="password" class="form-control input-sm"
+            placeholder="Password" ng-model="password">
+          <button type="submit" ng-disabled="btnExecuteDisabled()"
+            class="btn btn-sm btn-default">Execute Commands for
+            {{checked.count}} VMs</button>
+          <button type="button" ng-disabled="checked.count===0"
+            ng-click="clearChecked()"
+            class="btn btn-sm btn-default">Clear Selection</button>
+        </form>
+      </div>
+      <div class="col-sm-12 stats range-{{VMs.R}} mclick-{{mclick}}"
         ng-repeat="(host, VMs) in allServers" search="host+','+VMs.K+VMs.SC">
         <div class="progress stat">
-          <a rdp="xen-monitor-rdp://{{VMs.K+''}}" page="/#/host/{{host}}"
-            class="vm-progress" style="width: 20%">
+          <a rdp="xen-monitor-rdp://{{VMs.K+''}}" default="/#/host/{{host}}"
+            mlink check="mselect(host, VMs.K)" class="vm-progress checked"
+            style="width: 20%">
             <div total-progress-bar="VMs" ip="host"></div>
           </a>
-          <a rdp="xen-monitor-rdp://{{VM}}" page="/#/host/{{host}}/vm/{{VM}}"
-            class="vm-progress"
+          <a rdp="xen-monitor-rdp://{{VM}}" default="/#/host/{{host}}/vm/{{VM}}"
+            mlink check="mselect(host, VM)" class="vm-progress"
+            ng-class="{checked:checked.items[host].indexOf(VM)>-1}"
             ng-repeat="VM in VMs.K" style="width: {{VMs.W}}%">
             <div progress-bar="VMs" index="$index" ip="VM"></div>
           </a>

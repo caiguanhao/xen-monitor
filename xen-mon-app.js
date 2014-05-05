@@ -8,6 +8,7 @@ var server = require('http').createServer(app)
 var io = require('socket.io').listen(server);
 var ENVIRONMENT = process.env.NODE_ENV || 'development';
 var net = require('net');
+var Q = require('q');
 
 console.log('Entering ' + ENVIRONMENT + ' mode.');
 
@@ -102,6 +103,42 @@ io.sockets.on('connection', function (socket) {
     cmdsocket.setTimeout(5000, function() {
       cmdsocket.destroy();
     });
+  });
+
+  socket.on('ExecuteCommandMultiple', function(password, command, multiple) {
+    if (!password || password.length < 10 || password.length > 250) return;
+    if (!command || command.length < 5 || command.length > 20) return;
+    if (!checkCommand(command)) return;
+    if (typeof multiple !== 'object') return;
+    for (var host in multiple) {
+      if (!checkIPAddress(host)) return;
+      if (!(multiple[host] instanceof Array)) return;
+      for (var i = 0; i < multiple[host].length; i++) {
+        if (!checkIPAddress(multiple[host][i])) return;
+      }
+    }
+    Object.keys(multiple).reduce(function(prev, cur) {
+      return prev.then(function() {
+        var deferred = Q.defer();
+        var cmdsocket = new net.Socket();
+        cmdsocket.connect(3333, cur, function() {
+          var vms = multiple[cur].join(' ');
+          cmdsocket.end(password + ' ' + command + ' ' + vms);
+        });
+        cmdsocket.on('end', function() {
+          deferred.resolve();
+        });
+        cmdsocket.on('error', function() {
+          cmdsocket.destroy();
+          deferred.resolve();
+        });
+        cmdsocket.setTimeout(5000, function() {
+          cmdsocket.destroy();
+          deferred.resolve();
+        });
+        return deferred.promise();
+      });
+    }, Q());
   });
 
   socket.on('UpdateLists', function(password, lists) {

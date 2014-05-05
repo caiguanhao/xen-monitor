@@ -107,6 +107,7 @@ directive('freezeProgressBar', [function() {
     },
     link: function($scope, elem, attrs) {
       var f = $scope.freeze;
+      if (!f) return;
       if (f.pBarWidth) elem.css('width', f.pBarWidth + '%');
       $scope.$on('anotherSecond', function() {
         if (!f.wait) return;
@@ -144,16 +145,24 @@ directive('freezeProgressBar', [function() {
   }
 }]).
 
-directive('rdp', [function() {
+directive('mlink', ['$parse', function($parse) {
   return function($scope, elem, attrs) {
-    $scope.$on('useRDP', function() {
-      if ($scope.rdp) {
+    $scope.$on('changeMLink', function() {
+      elem.unbind('click');
+      var type = $scope.mclick
+      if (type === 'rdp') {
         elem.attr('href', attrs.rdp);
+      } else if (type === 'check') {
+        elem.attr('href', '');
+        elem.bind('click', function(e) {
+          e.preventDefault();
+          $parse(attrs.check)($scope);
+        });
       } else {
-        elem.attr('href', attrs.page);
+        elem.attr('href', attrs.default);
       }
     });
-    $scope.$emit('useRDP');
+    $scope.$emit('changeMLink');
   };
 }]).
 
@@ -245,14 +254,14 @@ service('LocalSettings', ['$window', function($window) {
       if (_LS.type !== undefined) LS.type = _LS.type;
       if (_LS.show !== undefined) LS.show = _LS.show;
       if (_LS.range !== undefined) LS.range = _LS.range;
-      if (_LS.rdp !== undefined) LS.rdp = _LS.rdp;
+      if (_LS.mclick !== undefined) LS.mclick = _LS.mclick;
     } catch(e) {}
     return LS;
   };
   this.saveLocalSettings = function($scope) {
     var LS = {
       type: $scope.type, show: $scope.show, range: $scope.range,
-      rdp: $scope.rdp
+      mclick: $scope.mclick
     };
     try {
       $window.localStorage[lskey] = angular.toJson(LS);
@@ -543,8 +552,8 @@ controller('MainController', ['$scope', 'Socket', 'Servers', 'LocalSettings',
     $scope.typetext = TYPES[val];
     onShowOrTypeChanged();
   });
-  $scope.$watch('rdp', function(val) {
-    $scope.$broadcast('useRDP');
+  $scope.$watch('mclick', function(val) {
+    $scope.$broadcast('changeMLink', val);
     LocalSettings.saveLocalSettings($scope);
   });
   LocalSettings.getSearch($scope);
@@ -560,9 +569,70 @@ controller('MainController', ['$scope', 'Socket', 'Servers', 'LocalSettings',
       $scope.cached.live = false;
     }
     $scope.$emit('focusSearch');
-  }
+  };
+  $scope.openMClickCheck = function() {
+    if ($scope.mclick === 'check') {
+      $scope.mclick = null;
+    } else {
+      $scope.cached.live = false;
+      $scope.mclick = 'check';
+    }
+  };
+  $scope.openMClickRDP = function() {
+    if ($scope.mclick === 'rdp') {
+      $scope.mclick = null;
+    } else {
+      $scope.mclick = 'rdp';
+    }
+  };
+  $scope.commands = Servers.COMMANDS;
+  $scope.command = 0;
+  $scope.clearChecked = function() {
+    $scope.checked = {
+      count: 0,
+      items: {}
+    };
+  };
+  $scope.clearChecked();
+  $scope.mselect = function(host, vm) {
+    if (vm instanceof Array) {
+      if ($scope.checked.items[host]) {
+        $scope.checked.count -= $scope.checked.items[host].length;
+        delete $scope.checked.items[host];
+      } else {
+        $scope.checked.items[host] = angular.copy(vm);
+        $scope.checked.count += $scope.checked.items[host].length;
+      }
+    } else {
+      $scope.checked.items[host] = $scope.checked.items[host] || [];
+      var index = $scope.checked.items[host].indexOf(vm);
+      if (index === -1) {
+        $scope.checked.items[host].push(vm);
+        $scope.checked.count++;
+      } else {
+        $scope.checked.items[host].splice(index, 1);
+        $scope.checked.count--;
+      }
+    }
+    $scope.$apply();
+  };
+  $scope.btnExecuteDisabled = function() {
+    return !$scope.password || $scope.password.length < 10;
+  };
+  $scope.execute = function() {
+    if (!$scope.checked) return alert('Not ready yet.');
+    if (!Socket.socket.connected) {
+      return alert('It seems you\'re not connected! Aborted!');
+    }
+    if (!confirm('Are you sure you want to execute this command?')) return;
+    var cmdindex = $scope.command;
+    var command = Servers.COMMANDS.C[cmdindex];
+    Socket.emit('ExecuteCommandMultiple', $scope.password, command,
+      $scope.checked.items);
+    $scope.password = null;
+  };
   angular.extend($scope, LocalSettings.getLocalSettings({
-    range: 4, show: 0, type: 'U'
+    range: 4, show: 0, type: 'U', mclick: null
   }));
 }]).
 

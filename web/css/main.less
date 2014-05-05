@@ -4,7 +4,7 @@ body {
 }
 
 body {
-  padding-top: 70px;
+  padding-top: 60px;
   font-family: Helvetica,Arial,sans-serif;
 }
 
@@ -58,17 +58,17 @@ footer {
   display: none;
   font-size: 12px;
   .progress {
-    margin-bottom: 3px;
-    height: 17px;
+    margin-bottom: 1px;
+    height: 20px;
   }
   .progress-bar {
     font-size: 11px;
-    line-height: 17px;
+    line-height: 20px;
   }
 }
 
-.btn-group {
-  margin-bottom: 10px;
+.toolbar {
+  margin-bottom: 5px;
 }
 
 .btn .badge {
@@ -145,6 +145,10 @@ a.progress-bar {
   }
 }
 
+.stats .progress-bar-danger {
+  color: #000;
+}
+
 .progress-bar-dead, .progress-bar-dead-auto {
   background-image: -webkit-linear-gradient(top, #505050 0%, #333333 100%);
   background-image:         linear-gradient(to bottom, #505050 0%, #333333 100%);
@@ -154,6 +158,15 @@ a.progress-bar {
 
 .progress-bar-dead {
   width: 100% !important;
+}
+
+.mclick-check {
+  .vm-progress {
+    opacity: 0.3;
+  }
+  .vm-progress.checked {
+    opacity: 1.0;
+  }
 }
 
 .stat-text {
