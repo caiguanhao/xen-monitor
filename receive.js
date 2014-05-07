@@ -1,17 +1,24 @@
 #!/usr/bin/env node
 
-var args = process.argv.slice(2);
+var argv = require('minimist')(process.argv.slice(2));
 
-var VERBOSE = false;
-
-for (var i = 0; i < args.length; i++) {
-  switch (args[i]) {
-  case '-v':
-  case '--verbose':
-    VERBOSE = true;
-    break;
-  }
+if (argv.help || argv.h) {
+  var n = console.log;
+  n('Usage: receive.js [OPTION]');
+  n('  -h, --help         Show help and exit');
+  n('  -v, --verbose      Show more information');
+  n('');
+  n('  -d, --db <number>  Use nth Redis database, default is 0');
+  n('  -p, --port <port>  Bind to this port, default is ' + DEFAULT_PORT);
+  process.exit(0);
 }
+
+var DEFAULT_PORT = 8124;
+var VERBOSE = !!(argv.verbose || argv.v);
+var PORT = (+argv.port || +argv.p || DEFAULT_PORT);
+var DBNUM = (+argv.db || +argv.d || 0);
+
+console.log('Listening on port ' + PORT + '.');
 
 var net = require('net');
 var fs = require('fs');
@@ -34,12 +41,15 @@ try {
 
 var redis = require('redis');
 var client = redis.createClient();
+client.select(DBNUM, function() {
+  console.log('Use Redis database ' + DBNUM + '.');
+});
 
 var MAX_NUMBER_LENGTH = 9;
 
 var server = net.createServer(function(sock) {
   if (WHITELIST.indexOf(sock.remoteAddress) === -1) {
-    console.log('Blocked client ' + sock.remoteAddress);
+    if (VERBOSE) console.log('Blocked client ' + sock.remoteAddress);
     sock.destroy();
     sock.end();
     return;
@@ -91,4 +101,4 @@ var server = net.createServer(function(sock) {
   });
 });
 
-server.listen(8124);
+server.listen(PORT);
