@@ -1,18 +1,37 @@
+var argv = require('minimist')(process.argv.slice(2));
 var express = require('express');
 var app = express();
 var redis = require('redis');
 var client = redis.createClient();
 var subscribe = redis.createClient();
-var PORT = 23456;
+var DEFAULT_PORT = 23456;
 var server = require('http').createServer(app)
 var io = require('socket.io').listen(server);
 var ENVIRONMENT = process.env.NODE_ENV || 'development';
 var net = require('net');
 var Q = require('q');
 
-console.log('Entering ' + ENVIRONMENT + ' mode.');
+if (argv.help || argv.h) {
+  var n = console.log;
+  n('Usage: node xen-mon-app.js [OPTION]');
+  n('  -h, --help         Show help and exit');
+  n('');
+  n('  -d, --db <number>  Use nth Redis database, default is 0');
+  n('  -p, --port <port>  Bind to this port, default is ' + DEFAULT_PORT);
+  process.exit(0);
+}
 
+var DEFAULT_PORT = 8124;
+var PORT = (+argv.port || +argv.p || DEFAULT_PORT);
+var DBNUM = (+argv.db || +argv.d || 0);
+
+client.select(DBNUM);
+subscribe.select(DBNUM);
 server.listen(PORT);
+
+console.log('Entering ' + ENVIRONMENT + ' mode.');
+console.log('Selected Redis database ' + DBNUM + '.');
+console.log('Listening on port ' + PORT + '.');
 
 io.set('log level', 0);
 

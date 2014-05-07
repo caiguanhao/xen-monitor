@@ -1,6 +1,12 @@
 #!/bin/bash
 
-set -e
+command -v grunt >/dev/null 2>&1 || {
+  echo "You need to install grunt first:"
+  echo "  npm -g i grunt-cli"
+  exit 1
+}
+
+ARGS="$@"
 
 waiting() {
   while : ; do
@@ -13,14 +19,14 @@ export NODE_ENV=production
 echo -n "Compiling assets for production"
 waiting &
 waitingpid=$!
-grunt production > /dev/null
+grunt production >/dev/null
 kill -9 $waitingpid
 echo " Done."
 
 CMD="node xen-mon-app.js"
 
-until echo "Running \`$CMD\`..." && $CMD; do
-  echo "\`$CMD\` crashed with exit code $?. Respawning in 3 seconds..." >&2
+until echo "Running \`$CMD $ARGS\`..." && $CMD $ARGS; do
+  echo "$CMD $ARGS crashed with exit code $?. Respawning in 3 seconds..." >&2
   sleep 3
 done
 
