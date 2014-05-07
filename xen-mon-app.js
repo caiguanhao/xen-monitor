@@ -21,7 +21,6 @@ if (argv.help || argv.h) {
   process.exit(0);
 }
 
-var DEFAULT_PORT = 8124;
 var PORT = (+argv.port || +argv.p || DEFAULT_PORT);
 var DBNUM = (+argv.db || +argv.d || 0);
 
