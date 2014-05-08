@@ -426,12 +426,11 @@ service('Servers', [function() {
     if (!VM) return;
 
     var length = VM.K.length;
-    var MAXSPEEDperVM = MAXSPEED / length;
 
     var i, totalUpload = 0, totalDownload = 0;
     for (i = 0; i < length; i++) {
-      VM.U[i] = VM.U[i] > MAXSPEEDperVM ? MAXSPEEDperVM : VM.U[i];
-      VM.D[i] = VM.D[i] > MAXSPEEDperVM ? MAXSPEEDperVM : VM.D[i];
+      VM.U[i] = VM.U[i] > MAXSPEED ? MAXSPEED : VM.U[i];
+      VM.D[i] = VM.D[i] > MAXSPEED ? MAXSPEED : VM.D[i];
       totalUpload += VM.U[i];
       totalDownload += VM.D[i];
     }
