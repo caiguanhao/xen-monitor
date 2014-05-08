@@ -31,20 +31,20 @@
                   <span ng-bind="colorStats.success"
                     ng-show="colorStats.success"></span>
                 </a>
-                <a href class="progress-bar progress-bar-warning"
+                <a href="/#/" class="progress-bar progress-bar-warning"
                   ng-click="cached.opensearch=true;cached.search='warning';"
                   style="width: {{colorStats.warningPercent}}%">
                   <span ng-bind="colorStats.warning"
                     ng-show="colorStats.warning"></span>
                 </a>
-                <a href class="progress-bar progress-bar-danger"
+                <a href="/#/" class="progress-bar progress-bar-danger"
                   ng-click="cached.opensearch=true;
                   cached.search='warning danger';"
                   style="width: {{colorStats.dangerPercent}}%">
                   <span ng-bind="colorStats.danger"
                     ng-show="colorStats.danger"></span>
                 </a>
-                <a href class="progress-bar progress-bar-dead-auto"
+                <a href="/#/" class="progress-bar progress-bar-dead-auto"
                   ng-click="cached.opensearch=true;
                   cached.search='warning danger dead';"
                   style="width: {{colorStats.deadPercent}}%">
@@ -64,11 +64,10 @@
         |
         <a href="/#/rdp">RDP</a>
         |
-        &copy; 2014
-        <a href="http://cgh.io/" target="_blank">cgh.io</a>
+        &copy; 2014 <a href="http://cgh.io/" target="_blank">CGH.io</a>
         |
         <a href="https://github.com/caiguanhao/xen-monitor"
-          target="_blank">View source code</a>
+          target="_blank">Source</a>
       </div>
     </footer>
   </script>
@@ -456,9 +455,12 @@
     </div>
   </script>
   <script type="text/ng-template" id="rdp">
+    <ol class="breadcrumb">
+      <li><a href="/#/">All servers</a></li>
+      <li class="active">一键启动RDP</li>
+    </ol>
     <div class="row">
       <div class="col-sm-8 col-sm-offset-2">
-        <h3>一键启动RDP</h3>
         <div class="row">
           <div class="col-sm-6 form-group">
             <label>在此位置寻找RDP文件：</label>
