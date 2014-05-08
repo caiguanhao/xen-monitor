@@ -4,7 +4,7 @@ body {
 }
 
 body {
-  padding-top: 60px;
+  padding-top: 50px;
   font-family: Helvetica,Arial,sans-serif;
 }
 
@@ -23,6 +23,10 @@ a {
   height: auto;
   margin: 0 auto -@footerHeight;
   padding: 0 0 @footerHeight;
+}
+
+.navbar {
+  min-height: 42px;
 }
 
 footer {
@@ -69,6 +73,10 @@ footer {
 
 .toolbar {
   margin-bottom: 5px;
+}
+
+.toolbar-group {
+  margin-bottom: 0;
 }
 
 .btn .badge {
@@ -195,7 +203,7 @@ a.progress-bar {
 
 .search-input {
   width: 300px !important;
-  margin-bottom: 10px;
+  margin-bottom: 5px;
 }
 
 .lists-dropdown {
@@ -212,4 +220,21 @@ a.progress-bar {
 .rdpcode {
   font-size: 12px;
   max-height: 333px;
+}
+
+.select-range {
+  display: none;
+  margin-left: 5px;
+  margin-right: 5px;
+  margin-bottom: 5px;
+}
+
+@media (max-width: 767px) {
+  .select-range {
+    display: inline-block !important;
+  }
+}
+
+.head-progress {
+  margin-top: 10px;
 }
