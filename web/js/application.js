@@ -1,4 +1,4 @@
-var XenMonApp = angular.module('xen-mon-app', [ 'ngRoute' ]).
+var XenMonApp = angular.module('xen-mon-app', [ 'ngRoute', 'cfp.hotkeys' ]).
 
 config(['$routeProvider', '$locationProvider', '$compileProvider', 'PRODUCTION',
   function($routeProvider, $locationProvider, $compileProvider, PRODUCTION) {
@@ -355,8 +355,6 @@ service('Servers', [function() {
     if (speed > 12582912) return 12;
     if (speed > 11534336) return 11;
     if (speed > 10485760) return 10;
-    if (speed > 9437184) return 9;
-    if (speed > 8388608) return 8;
     if (speed > 7340032) return 7;
     if (speed > 4194304) return 4;
     return 0;
@@ -388,8 +386,8 @@ service('Servers', [function() {
     var rS = this.rangeStats;
     var tS = this.totalStats;
     cS.success = 0; cS.warning = 0; cS.danger = 0; cS.dead = 0;
-    rS['12']   = 0; rS['11']   = 0; rS['10']  = 0; rS['9'] = 0;
-    rS['8']    = 0; rS['7']    = 0; rS['4']   = 0; rS['0'] = 0;
+    rS['12']   = 0; rS['11']   = 0; rS['10']  = 0;
+    rS['7']    = 0; rS['4']    = 0; rS['0']   = 0;
     tS.HC      = 0; tS.VMC     = 0; tS.U      = 0; tS.D    = 0;
     for (var host in this.allServers) {
       var VMs = this.allServers[host]
@@ -512,9 +510,73 @@ service('Servers', [function() {
   };
 }]).
 
+service('MainControllerHotKeys', ['hotkeys', function(hotkeys) {
+  this.apply = function($scope) {
+    hotkeys.add({
+      combo: 'p', description: 'Live / Pause',
+      callback: function() { $scope.cached.live = !$scope.cached.live; }
+    });
+    hotkeys.add({
+      combo: 'i', description: 'Show IP address / Speed text',
+      callback: function() { $scope.show = $scope.show === 0 ? 1 : 0; }
+    });
+    hotkeys.add({
+      combo: 'u', description: 'Show Upload / Download speed',
+      callback: function() { $scope.type = $scope.type === 'D' ? 'U' : 'D'; }
+    });
+    hotkeys.add({
+      combo: 'u', description: 'Show Upload / Download speed',
+      callback: function() { $scope.type = $scope.type === 'D' ? 'U' : 'D'; }
+    });
+    hotkeys.add({
+      combo: 'm', description: 'Enable / Disable multiple selections',
+      callback: function() {
+        $scope.mclick = $scope.mclick === 'check' ? null : 'check';
+      }
+    });
+    hotkeys.add({
+      combo: 'r', description: 'Enable / Disable RDP links',
+      callback: function() {
+        $scope.mclick = $scope.mclick === 'rdp' ? null : 'rdp';
+      }
+    });
+    hotkeys.add({
+      combo: 's', description: 'Enable / Disable search',
+      callback: function() {
+        $scope.cached.opensearch = !$scope.cached.opensearch;
+      }
+    });
+    hotkeys.add({
+      combo: '`', description: 'Show all VMs',
+      callback: function() { $scope.range = 'all'; }
+    });
+    var ranges = [
+      [ '1',  0, '0-4M' ],
+      [ '2',  4, '4-7M' ],
+      [ '3',  7, '7-10M' ],
+      [ '4', 10, '10-11M' ],
+      [ '5', 11, '11-12M' ],
+      [ '6', 12, '12M+' ]
+    ];
+    ranges.forEach(function(range) {
+      hotkeys.add({
+        combo: range[0], description: 'Show VMs with ' + range[2] + ' upload speed',
+        callback: function() { $scope.range = range[1]; }
+      });
+    });
+  };
+}]).
+
+controller('NavBarController', ['$scope', 'Servers', 'LocalSettings',
+  function($scope, Servers, LocalSettings) {
+  $scope.colorStats = Servers.colorStats;
+  $scope.cached = LocalSettings.cached;
+}]).
+
 controller('MainController', ['$scope', 'Socket', 'Servers', 'LocalSettings',
-  '$timeout',
-  function($scope, Socket, Servers, LocalSettings, $timeout) {
+  '$timeout', 'MainControllerHotKeys',
+  function($scope, Socket, Servers, LocalSettings, $timeout,
+    MainControllerHotKeys) {
   $scope.allServers = Servers.allServers;
   $scope.colorStats = Servers.colorStats;
   $scope.rangeStats = Servers.rangeStats;
@@ -527,6 +589,8 @@ controller('MainController', ['$scope', 'Socket', 'Servers', 'LocalSettings',
   $timeout(function() {
     $scope.$broadcast('newSearch');
   }, 0);
+
+  MainControllerHotKeys.apply($scope);
 
   if (Socket.$events) delete Socket.$events['Update'];
   Socket.on('Update', function(host, data) {

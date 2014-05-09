@@ -10,6 +10,7 @@
   <!--[if gt IE 9]><!-->
   <script src="/js/vendor/angular.js"></script>
   <script src="/js/vendor/angular-route.js"></script>
+  <script src="/js/vendor/hotkeys.js"></script>
   <script src="/js/application.js"></script>
   <script src="/socket.io/socket.io.js"></script>
   <script>
@@ -24,7 +25,7 @@
       <header>
         <nav class="navbar navbar-default navbar-fixed-top">
           <div class="container">
-            <div ng-controller="MainController">
+            <div ng-controller="NavBarController">
               <div class="progress toolbar head-progress">
                 <a href="/#/" class="progress-bar progress-bar-success"
                   style="width: {{colorStats.successPercent}}%">
@@ -169,12 +170,6 @@
                 <button class="btn btn-default" ng-click="range=7"
                   ng-class="{active:range===7}">7
                   <span class="badge" ng-bind="rangeStats[7]"></span></button>
-                <button class="btn btn-default" ng-click="range=8"
-                  ng-class="{active:range===8}">8
-                  <span class="badge" ng-bind="rangeStats[8]"></span></button>
-                <button class="btn btn-default" ng-click="range=9"
-                  ng-class="{active:range===9}">9
-                  <span class="badge" ng-bind="rangeStats[9]"></span></button>
                 <button class="btn btn-default" ng-click="range=10"
                   ng-class="{active:range===10}">10
                   <span class="badge" ng-bind="rangeStats[10]"></span></button>
@@ -191,8 +186,6 @@
                   <option value="0" ng-bind="'0 ('+rangeStats[0]+')'"></option>
                   <option value="4" ng-bind="'4 ('+rangeStats[4]+')'"></option>
                   <option value="7" ng-bind="'7 ('+rangeStats[7]+')'"></option>
-                  <option value="8" ng-bind="'8 ('+rangeStats[8]+')'"></option>
-                  <option value="9" ng-bind="'9 ('+rangeStats[9]+')'"></option>
                   <option value="10"
                                   ng-bind="'10 ('+rangeStats[10]+')'"></option>
                   <option value="11"
