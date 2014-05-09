@@ -1,7 +1,7 @@
 var XenMonApp = angular.module('xen-mon-app', [ 'ngRoute' ]).
 
-config(['$routeProvider', '$locationProvider', '$compileProvider',
-  function($routeProvider, $locationProvider, $compileProvider) {
+config(['$routeProvider', '$locationProvider', '$compileProvider', 'PRODUCTION',
+  function($routeProvider, $locationProvider, $compileProvider, PRODUCTION) {
   $routeProvider.
   when('/', {
     templateUrl: 'main',
@@ -22,7 +22,7 @@ config(['$routeProvider', '$locationProvider', '$compileProvider',
   when('/rdp', {
     templateUrl: 'rdp'
   });
-  $locationProvider.html5Mode(false);
+  $locationProvider.html5Mode(!!PRODUCTION);
   var whiteList = /^\s*(https?|ftp|mailto|tel|file|xen-monitor-rdp):/;
   $compileProvider.aHrefSanitizationWhitelist(whiteList);
 }]).
