@@ -58,38 +58,38 @@ Web
 
 ![xen monitor](https://cloud.githubusercontent.com/assets/1284703/2809618/3ef12fe2-cd79-11e3-9f30-d668345a7503.png)
 
-Nginx
------
+Deploy
+------
+
+Here are some steps help you deploy a new app in your Ubuntu server.
 
 ```
-upstream XenMonitorApp {
-  server 127.0.0.1:23456;
-}
-
-server {
-  server_name <SERVER_NAME>;
-  listen 80;
-  client_max_body_size 1m;
-  keepalive_timeout 5;
-  root /srv/xen-monitor/public;
-  gzip_static on;
-  error_page 500 502 503 504 /500.html;
-  location = /500.html {
-    root /srv/xen-monitor/public;
-  }
-  try_files $uri/index.html $uri.html $uri @app;
-  location @app {
-    proxy_intercept_errors on;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header Host $http_host;
-    proxy_redirect off;
-    proxy_pass http://XenMonitorApp;
-    proxy_http_version 1.1;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection "upgrade";
-  }
-}
+sudo apt-get install build-essential git redis-server nginx curl
 ```
+
+Install nvm, node.js and npm:
+
+```
+curl https://raw.githubusercontent.com/creationix/nvm/v0.7.0/install.sh | sh
+nvm install 0.10
+nvm alias default 0.10
+nvm use default
+```
+
+NPM install:
+
+```
+npm -g i grunt-cli
+git clone https://github.com/caiguanhao/xen-monitor.git /srv/xen-monitor
+cd /srv/xen-monitor
+npm install
+sudo make install-receive
+```
+
+Then, you can start a `screen` with two sessions running `./service` and
+`receive`.
+
+Run `./nginx.sh` to generate a nginx config for your app.
 
 Developers
 ----------
