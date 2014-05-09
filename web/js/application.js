@@ -401,11 +401,11 @@ service('Servers', [function() {
       tS.HC++;
     }
     cS.total = cS.success + cS.warning + cS.danger + cS.dead;
-    cS.successPercent = +(cS.success / cS.total * 100).toFixed(2);
-    cS.warningPercent = +(cS.warning / cS.total * 100).toFixed(2);
-    cS.dangerPercent = +(cS.danger / cS.total * 100).toFixed(2);
-    cS.deadPercent = 100 - cS.successPercent - cS.warningPercent -
-      cS.dangerPercent;
+    cS.successPercent = cS.success / cS.total * 100;
+    cS.warningPercent = cS.warning / cS.total * 100;
+    cS.dangerPercent = cS.danger / cS.total * 100;
+    cS.deadPercent = Math.max(0, 100 - cS.successPercent - cS.warningPercent -
+      cS.dangerPercent);
     tS.UT = this.formatSize(tS.U);
     tS.UHA = this.formatSize(tS.U / tS.HC);
     tS.UVMA = this.formatSize(tS.U / tS.VMC);
