@@ -131,6 +131,10 @@ io.sockets.on('connection', function (socket) {
     for (var host in multiple) {
       if (!checkIPAddress(host)) return;
       if (!(multiple[host] instanceof Array)) return;
+      if (multiple[host].length === 0) {
+        delete multiple[host];
+        continue;
+      }
       for (var i = 0; i < multiple[host].length; i++) {
         if (!checkIPAddress(multiple[host][i])) return;
       }
@@ -154,7 +158,7 @@ io.sockets.on('connection', function (socket) {
           cmdsocket.destroy();
           deferred.resolve();
         });
-        return deferred.promise();
+        return deferred.promise;
       });
     }, Q());
   });
