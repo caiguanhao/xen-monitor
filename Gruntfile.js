@@ -9,7 +9,7 @@ module.exports = function(grunt) {
       }
     },
     clean: {
-      templates: 'public/js/templates.js',
+      generated: [ 'public/js/templates.js', 'public/js/hotkeys.js' ],
       public: 'public/*'
     },
     less: {
@@ -38,7 +38,8 @@ module.exports = function(grunt) {
           'public/js/application.js': [
             'web/js/application.js',
             'public/js/templates.js'
-          ]
+          ],
+          'public/js/hotkeys.js': 'web/js/vendor/hotkeys.js'
         }
       }
     },
@@ -50,7 +51,8 @@ module.exports = function(grunt) {
             'web/js/vendor/angular-route.min.js'
           ],
           'public/js/vendors.js': [
-            'node_modules/socket.io/node_modules/socket.io-client/dist/socket.io.min.js'
+            'node_modules/socket.io/node_modules/socket.io-client/dist/socket.io.min.js',
+            'public/js/hotkeys.js'
           ]
         }
       }
@@ -115,7 +117,7 @@ module.exports = function(grunt) {
     'copy',
     'uglify',
     'concat',
-    'clean:templates',
+    'clean:generated',
     'hash',
     'compress'
   ]);
