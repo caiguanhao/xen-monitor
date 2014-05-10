@@ -511,7 +511,9 @@ service('Servers', [function() {
 }]).
 
 service('MainControllerHotKeys', ['hotkeys', function(hotkeys) {
+  this.applied = false;
   this.apply = function($scope) {
+    if (this.applied) return;
     hotkeys.add({
       combo: 'p', description: 'Live / Pause',
       callback: function() { $scope.cached.live = !$scope.cached.live; }
@@ -551,12 +553,12 @@ service('MainControllerHotKeys', ['hotkeys', function(hotkeys) {
       callback: function() { $scope.range = 'all'; }
     });
     var ranges = [
-      [ '1',  0, '0-4M' ],
-      [ '2',  4, '4-7M' ],
-      [ '3',  7, '7-10M' ],
+      [ '1',  0, '0-4M'   ],
+      [ '2',  4, '4-7M'   ],
+      [ '3',  7, '7-10M'  ],
       [ '4', 10, '10-11M' ],
       [ '5', 11, '11-12M' ],
-      [ '6', 12, '12M+' ]
+      [ '6', 12, '12M+'   ]
     ];
     ranges.forEach(function(range) {
       hotkeys.add({
@@ -564,6 +566,7 @@ service('MainControllerHotKeys', ['hotkeys', function(hotkeys) {
         callback: function() { $scope.range = range[1]; }
       });
     });
+    this.applied = true;
   };
 }]).
 
