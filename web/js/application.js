@@ -511,9 +511,24 @@ service('Servers', [function() {
 }]).
 
 service('MainControllerHotKeys', ['hotkeys', function(hotkeys) {
-  this.applied = false;
+  this.ranges = [
+    [ '1',  0, '0-4M'   ],
+    [ '2',  4, '4-7M'   ],
+    [ '3',  7, '7-10M'  ],
+    [ '4', 10, '10-11M' ],
+    [ '5', 11, '11-12M' ],
+    [ '6', 12, '12M+'   ]
+  ];
+  this.unapply = function() {
+    [ 'p', 'i', 'u', 'm', 'r', 's', '`' ].forEach(function(key) {
+      hotkeys.del(key);
+    });
+    this.ranges.forEach(function(range) {
+      hotkeys.del(range[0]);
+    });
+  };
   this.apply = function($scope) {
-    if (this.applied) return;
+    this.unapply();
     hotkeys.add({
       combo: 'p', description: 'Live / Pause',
       callback: function() { $scope.cached.live = !$scope.cached.live; }
@@ -521,10 +536,6 @@ service('MainControllerHotKeys', ['hotkeys', function(hotkeys) {
     hotkeys.add({
       combo: 'i', description: 'Show IP address / Speed text',
       callback: function() { $scope.show = $scope.show === 0 ? 1 : 0; }
-    });
-    hotkeys.add({
-      combo: 'u', description: 'Show Upload / Download speed',
-      callback: function() { $scope.type = $scope.type === 'D' ? 'U' : 'D'; }
     });
     hotkeys.add({
       combo: 'u', description: 'Show Upload / Download speed',
@@ -552,21 +563,12 @@ service('MainControllerHotKeys', ['hotkeys', function(hotkeys) {
       combo: '`', description: 'Show all VMs',
       callback: function() { $scope.range = 'all'; }
     });
-    var ranges = [
-      [ '1',  0, '0-4M'   ],
-      [ '2',  4, '4-7M'   ],
-      [ '3',  7, '7-10M'  ],
-      [ '4', 10, '10-11M' ],
-      [ '5', 11, '11-12M' ],
-      [ '6', 12, '12M+'   ]
-    ];
-    ranges.forEach(function(range) {
+    this.ranges.forEach(function(range) {
       hotkeys.add({
         combo: range[0], description: 'Show VMs with ' + range[2] + ' upload speed',
         callback: function() { $scope.range = range[1]; }
       });
     });
-    this.applied = true;
   };
 }]).
 
