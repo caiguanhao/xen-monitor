@@ -56,7 +56,7 @@ Usage: listen [OPTION]
 Web
 ---
 
-![xen monitor](https://cloud.githubusercontent.com/assets/1284703/2809618/3ef12fe2-cd79-11e3-9f30-d668345a7503.png)
+![xen monitor 2](https://cloud.githubusercontent.com/assets/1284703/2959122/e0ff3868-daaf-11e3-9ee0-055671086b43.png)
 
 Deploy
 ------
