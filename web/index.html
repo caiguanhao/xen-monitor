@@ -511,7 +511,7 @@ echo           Opened = True
 echo           Exit For
 echo         End If
 echo       Next
-echo       If Open = False Then SHELL.run^("mstsc.exe " ^& Path^)
+echo       If Open = False Then SHELL.run^("mstsc.exe /admin " ^& Path^)
 echo       Run = True
 echo       Exit For
 echo     End If
