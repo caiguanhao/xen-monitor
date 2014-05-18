@@ -71,7 +71,7 @@ var server = net.createServer(function(sock) {
         if (A.D.length > MAX_NUMBER_LENGTH) {
           throw 'unexpected large number: ' + A.D;
         }
-        S[A.I] = { U: +A.U, D: +A.D };
+        S[A.I] = { U: +A.U, D: +A.D, E: A.E || '' };
       }
       stats.V.sort(function(a, b) {
         a.IP = a.IP || '127.0.0.1';
@@ -84,6 +84,7 @@ var server = net.createServer(function(sock) {
         K: stats.V.map(function(x) { return x.IP; }),
         U: stats.V.map(function(x) { return S[x.I] ? S[x.I].U : 0; }),
         D: stats.V.map(function(x) { return S[x.I] ? S[x.I].D : 0; }),
+        E: stats.V.map(function(x) { return S[x.I] ? S[x.I].E : ''; }),
         S: stats.V.map(function(x) { return x.PS || 'U'; }),
         I: stats.V.map(function(x) { return x.I || '0'; })
       };

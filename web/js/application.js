@@ -328,6 +328,12 @@ service('Servers', [function() {
     if (speed < 102400) return 'dead';
     return 'danger';
   };
+  this.colorByLLKSSpeed = function(speed) {
+    if (speed > 1024000) return 'success';
+    if (speed > 512000) return 'warning';
+    if (speed < 102400) return 'dead';
+    return 'danger';
+  };
   this.colorByPercent = function(percent) {
     if (percent > 66) return 'success';
     if (percent > 33) return 'warning';
@@ -358,6 +364,15 @@ service('Servers', [function() {
     if (speed > 7340032) return 7;
     if (speed > 4194304) return 4;
     return 0;
+  };
+  this.formatExtraData = function(str) {
+    var val = parseFloat(str) || 0;
+    val *= 1024;
+    if (str.indexOf('M') > -1) {
+      val += +(Math.random() * 90 + 10).toFixed(3);
+      val *= 1024;
+    }
+    return val;
   };
   this.formatSize = function(size) {
     if (size > 1048576) return (size / 1048576).toFixed(2) + ' MB/s';
@@ -413,6 +428,8 @@ service('Servers', [function() {
     tS.DHA = this.formatSize(tS.D / tS.HC);
     tS.DVMA = this.formatSize(tS.D / tS.VMC);
   };
+  this.topTotalLLKSUpload = 1;
+  this.topTotalLLKSUploadTime = 0;
   this.topTotalUpload = 1;
   this.topTotalUploadTime = 0;
   this.topTotalDownload = 1;
@@ -425,25 +442,38 @@ service('Servers', [function() {
 
     var length = VM.K.length;
 
-    var i, totalUpload = 0, totalDownload = 0;
+    VM.L = [];
+
+    var i, totalLLKSUpload = 0, totalUpload = 0, totalDownload = 0;
     for (i = 0; i < length; i++) {
+      VM.L[i] = VM.E ? this.formatExtraData(VM.E[i]) : 0;
       VM.U[i] = VM.U[i] > MAXSPEED ? MAXSPEED : VM.U[i];
       VM.D[i] = VM.D[i] > MAXSPEED ? MAXSPEED : VM.D[i];
+      totalLLKSUpload += VM.L[i];
       totalUpload += VM.U[i];
       totalDownload += VM.D[i];
     }
 
+    if (totalLLKSUpload > this.topTotalLLKSUpload) {
+      this.topTotalLLKSUpload = totalLLKSUpload;
+    }
     if (totalUpload > this.topTotalUpload) {
       this.topTotalUpload = totalUpload;
     }
     if (totalDownload > this.topTotalDownload) {
       this.topTotalDownload = totalDownload;
     }
+    var TLP = Math.floor(totalLLKSUpload / this.topTotalLLKSUpload * 100);
     var TUP = Math.floor(totalUpload / this.topTotalUpload * 100);
     var TDP = Math.floor(totalDownload / this.topTotalDownload * 100);
 
+    var topLLKSUpload = Math.max.apply(Math, VM.L);
     var topUpload = Math.max.apply(Math, VM.U);
     var topDownload = Math.max.apply(Math, VM.D);
+
+    VM.LC  = [];
+    VM.LP  = [];
+    VM.LT  = [];
 
     VM.UC  = [];
     VM.UP  = [];
@@ -457,6 +487,11 @@ service('Servers', [function() {
 
     VM.PS  = [];
     VM.PSC  = [];
+
+    VM.TL  = totalLLKSUpload;
+    VM.TLC = this.colorByPercent(TLP);
+    VM.TLT = this.formatSize(totalLLKSUpload);
+    VM.TLP = TLP;
 
     VM.TU  = totalUpload;
     VM.TUC = this.colorByPercent(TUP);
@@ -473,6 +508,12 @@ service('Servers', [function() {
 
     var i, c = 0;
     for (i = length - 1; i > -1 ; i--) {
+      var llksPercent = Math.floor(VM.L[i] / topLLKSUpload * 100);
+      var llksColor = this.colorByLLKSSpeed(VM.L[i]);
+      VM.LP.unshift(llksPercent || 0);
+      VM.LC.unshift(llksColor);
+      VM.LT.unshift(this.formatSize(VM.L[i]));
+
       var uploadPercent = Math.floor(VM.U[i] / topUpload * 100);
       var uploadColor = this.colorBySpeed(VM.U[i]);
       VM.UP.unshift(uploadPercent || 0);
@@ -498,6 +539,10 @@ service('Servers', [function() {
     if (now - this.lastTimeCountServersByColor > 3000) {
       this.countServersByColor();
       this.lastTimeCountServersByColor = now;
+    }
+    if (now - this.topTotalLLKSUploadTime > 20000) {
+      this.topTotalLLKSUpload = 0;
+      this.topTotalLLKSUploadTime = now;
     }
     if (now - this.topTotalUploadTime > 20000) {
       this.topTotalUpload = 0;

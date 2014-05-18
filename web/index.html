@@ -269,6 +269,7 @@
           <th>Domain ID</th>
           <th>IP Address</th>
           <th>Power State</th>
+          <th>LLKS</th>
           <th>Upload</th>
           <th>Download</th>
           <th>RDP</th>
@@ -285,6 +286,8 @@
           </td>
           <td><span class="text-{{VMs.PSC[$index]}}"
             ng-bind="VMs.PS[$index]"></span></td>
+          <td><span class="text-{{VMs.LC[$index]}}"
+            ng-bind="VMs.LT[$index]"></span></td>
           <td><span class="text-{{VMs.UC[$index]}}"
             ng-bind="VMs.UT[$index]"></span></td>
           <td><span class="text-{{VMs.DC[$index]}}"
@@ -295,7 +298,7 @@
           </td>
         </tr>
         <tr ng-hide="VMs">
-          <td colspan="7" class="text-center">
+          <td colspan="8" class="text-center">
             Please wait while the host sends its statictics here...
           </td>
         </tr>
@@ -309,6 +312,8 @@
               <span class="glyphicon glyphicon-new-window"></span>
               Open Selected VMs via RDP</a>
           </td>
+          <td><span class="text-{{VMs.TLC}}"
+            ng-bind="VMs.TLT"></span></td>
           <td><span class="text-{{VMs.TUC}}"
             ng-bind="VMs.TUT"></span></td>
           <td><span class="text-{{VMs.TDC}}"
@@ -358,6 +363,11 @@
         <tr>
           <td class="attr">Power State</td>
           <td class="text-{{VMs.PSC[index]}}">{{VMs.PS[index] ||
+            'Loading...'}}</td>
+        </tr>
+        <tr>
+          <td class="attr">LLKS</td>
+          <td class="text-{{VMs.LC[index]}}">{{VMs.LT[index] ||
             'Loading...'}}</td>
         </tr>
         <tr>
