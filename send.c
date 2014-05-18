@@ -17,7 +17,7 @@
 char ip_address[16] = DEFAULT_IP_ADDRESS;
 int port = DEFAULT_PORT;
 int is_disconnected = 1;
-char run_if_negative_one[256];
+char run_if_null[256];
 
 static int verbose_flag;
 static int daemon_flag;
@@ -34,7 +34,7 @@ static void help(const char *program) {
     "  -D, --daemon                run as a daemon\n"
     "  -o, --stdout        <file>  write stdout to file\n"
     "  -e, --stderr        <file>  write stderr to file\n"
-    "  -1, --run-if--1     <file>  execute this file if extra data is -1\n"
+    "  -n, --run-if-null   <file>  execute this file if extra data is NULL\n"
     "  -s, --sample-period <secs>  sample period, default: %u second(s)\n"
     "  -i, --ip-address    <addr>  send to this IP address, default: %s\n"
     "  -p, --port          <port>  send to this port, default: %u\n"
@@ -121,12 +121,12 @@ int main(int argc, char *argv[]) {
       { "daemon",        no_argument      , 0, 'D' },
       { "stdout",        required_argument, 0, 'o' },
       { "stderr",        required_argument, 0, 'e' },
-      { "run-if--1",     required_argument, 0, '1' },
+      { "run-if-null",   required_argument, 0, 'n' },
       { "xe-vm-list",    required_argument, 0, 'x' },
       { "proc-net-dev",  required_argument, 0, 'd' },
       { 0,               0,                 0,  0  }
     };
-    c = getopt_long(argc, argv, "hvs:i:p:Do:e:1:x:d:", opts, &option_index);
+    c = getopt_long(argc, argv, "hvs:i:p:Do:e:n:x:d:", opts, &option_index);
     if (c == -1) break;
     switch (c) {
     case 'v':
@@ -173,10 +173,10 @@ int main(int argc, char *argv[]) {
       stderr_to_file = 1;
       break;
     }
-    case '1': {
+    case 'n': {
       char path[256];
       realpath(optarg, path);
-      snprintf(run_if_negative_one, sizeof run_if_negative_one, "%s", path);
+      snprintf(run_if_null, sizeof run_if_null, "%s", path);
       break;
     }
     case '?':
@@ -203,8 +203,8 @@ int main(int argc, char *argv[]) {
 
   printf("%s has %u virtual machine(s).\n", host_ip_address, vmlength);
 
-  if (strlen(run_if_negative_one) > 0) {
-    printf("%s will be executed if extra data is -1.\n", run_if_negative_one);
+  if (strlen(run_if_null) > 0) {
+    printf("%s will be executed if extra data is NULL.\n", run_if_null);
   }
 
   if (daemon_flag) {
@@ -283,8 +283,11 @@ int main(int argc, char *argv[]) {
       p += snprintf(message + p, msgsize - p,
         "{\"I\":\"%u\",\"U\":\"%llu\",\"D\":\"%llu\",\"E\":\"%s\"}",
         after.domid, rrate, trate, extradata);
-      if (strlen(run_if_negative_one) > 0 && strcmp(extradata, "-1") == 0) {
-        system(run_if_negative_one);
+      if (strlen(run_if_null) > 0 && strcmp(extradata, "NULL") == 0) {
+        char command[260];
+        sprintf(command, "%s %u", run_if_null, after.domid);
+        if (verbose_flag) printf("executed %s\n", command);
+        system(command);
       }
       free(extradata);
     }

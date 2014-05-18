@@ -330,7 +330,7 @@ void get_extra_data_of_vm(unsigned int domid, char *extra_data, unsigned int ext
 {
   bzero(extra_data, extra_data_size);
   FILE *ed;
-  char command[60];
+  char command[200];
   sprintf(command, "xenstore-read /local/domain/%u/extradata 2>/dev/null", domid);
   ed = popen(command, "r");
   if (ed != NULL) {
@@ -339,6 +339,8 @@ void get_extra_data_of_vm(unsigned int domid, char *extra_data, unsigned int ext
     if (l > 0) extra_data[l - 1] = '\0'; // remove newline
   }
   pclose(ed);
-  sprintf(command, "xenstore-write /local/domain/%u/extradata \"\" 2>/dev/null", domid);
+  sprintf(command, "xenstore-write /local/domain/%u/extradata \"\" 2>/dev/null "
+    "&& xenstore-chmod -r /local/domain/%u/extradata b%u 2>/dev/null",
+    domid, domid, domid);
   system(command);
 }
