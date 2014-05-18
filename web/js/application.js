@@ -367,6 +367,7 @@ service('Servers', [function() {
   };
   this.formatExtraData = function(str) {
     var val = parseFloat(str) || 0;
+    if (val <= 0) return 0;
     val *= 1024;
     if (str.indexOf('M') > -1) {
       val += +(Math.random() * 90 + 10).toFixed(3);
