@@ -339,4 +339,6 @@ void get_extra_data_of_vm(unsigned int domid, char *extra_data, unsigned int ext
     if (l > 0) extra_data[l - 1] = '\0'; // remove newline
   }
   pclose(ed);
+  sprintf(command, "xenstore-write /local/domain/%u/extradata \"\" 2>/dev/null", domid);
+  system(command);
 }
