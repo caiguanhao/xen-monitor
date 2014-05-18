@@ -326,14 +326,17 @@ void get_host_ip(char *host_ip_address)
   }
 }
 
-void get_extra_data_of_vm(unsigned int domid, char *extra_data)
+void get_extra_data_of_vm(unsigned int domid, char *extra_data, unsigned int extra_data_size)
 {
+  bzero(extra_data, extra_data_size);
   FILE *ed;
   char command[60];
   sprintf(command, "xenstore-read /local/domain/%u/extradata 2>/dev/null", domid);
   ed = popen(command, "r");
   if (ed != NULL) {
-    fgets(extra_data, sizeof(extra_data), ed);
+    fgets(extra_data, extra_data_size, ed);
+    unsigned int l = strlen(extra_data);
+    if (l > 0) extra_data[l - 1] = '\0'; // remove newline
   }
   pclose(ed);
 }

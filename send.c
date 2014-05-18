@@ -266,7 +266,7 @@ int main(int argc, char *argv[]) {
         p += snprintf(message + p, msgsize - p, ",");
       }
       char *extradata = malloc(50);
-      get_extra_data_of_vm(after.domid, extradata);
+      get_extra_data_of_vm(after.domid, extradata, 50);
       p += snprintf(message + p, msgsize - p,
         "{\"I\":\"%u\",\"U\":\"%llu\",\"D\":\"%llu\",\"E\":\"%s\"}",
         after.domid, rrate, trate, extradata);

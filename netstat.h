@@ -44,6 +44,6 @@ struct stat_network {
 int collect_virtual_machines_info(char *vm, unsigned int *vmlength);
 int collect_networks_infomation(stat_networks *networks);
 void get_host_ip(char *host_ip_address);
-void get_extra_data_of_vm(unsigned int domid, char *extra_data);
+void get_extra_data_of_vm(unsigned int domid, char *extra_data, unsigned int extra_data_size);
 
 #endif
