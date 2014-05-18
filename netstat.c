@@ -325,3 +325,15 @@ void get_host_ip(char *host_ip_address)
     snprintf(host_ip_address, vmip_length, "127.0.0.1");
   }
 }
+
+void get_extra_data_of_vm(unsigned int domid, char *extra_data)
+{
+  FILE *ed;
+  char command[60];
+  sprintf(command, "xenstore-read /local/domain/%u/extradata 2>/dev/null", domid);
+  ed = popen(command, "r");
+  if (ed != NULL) {
+    fgets(extra_data, sizeof(extra_data), ed);
+  }
+  pclose(ed);
+}

@@ -265,9 +265,12 @@ int main(int argc, char *argv[]) {
       if (i > 0) {
         p += snprintf(message + p, msgsize - p, ",");
       }
+      char *extradata = malloc(50);
+      get_extra_data_of_vm(after.domid, extradata);
       p += snprintf(message + p, msgsize - p,
-        "{\"I\":\"%u\",\"U\":\"%llu\",\"D\":\"%llu\"}",
-        after.domid, rrate, trate);
+        "{\"I\":\"%u\",\"U\":\"%llu\",\"D\":\"%llu\",\"E\":\"%s\"}",
+        after.domid, rrate, trate, extradata);
+      free(extradata);
     }
     p += snprintf(message + p, msgsize - p, "]}");
     free(samples->before->networks);
