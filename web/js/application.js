@@ -583,8 +583,12 @@ service('MainControllerHotKeys', ['hotkeys', function(hotkeys) {
       callback: function() { $scope.show = $scope.show === 0 ? 1 : 0; }
     });
     hotkeys.add({
-      combo: 'u', description: 'Show Upload / Download speed',
-      callback: function() { $scope.type = $scope.type === 'D' ? 'U' : 'D'; }
+      combo: 'u', description: 'Show LLKS / Upload / Download speed',
+      callback: function() {
+        var types = [ 'L', 'U', 'D' ];
+        var i = types.indexOf($scope.type) + 1;
+        $scope.type = types[i + 1 > types.length ? 0 : i];
+      }
     });
     hotkeys.add({
       combo: 'm', description: 'Enable / Disable multiple selections',

@@ -99,10 +99,14 @@
                   <span class="hidden-xs">Speed</span></button>
               </div>
               <div class="btn-group btn-group-sm toolbar">
+                <button class="btn btn-default" ng-click="type='L'"
+                  ng-class="{active:type==='L'}">
+                  <span class="glyphicon glyphicon-cloud-upload"></span>
+                  <span class="hidden-xs">LLKS</span></button>
                 <button class="btn btn-default" ng-click="type='U'"
                   ng-class="{active:type==='U'}">
                   <span class="glyphicon glyphicon-cloud-upload"></span>
-                  <span class="hidden-xs">Upload</span></button>
+                  <span class="hidden-xs"></span></button>
                 <button class="btn btn-default" ng-click="type='D'"
                   ng-class="{active:type==='D'}">
                   <span class="glyphicon glyphicon-cloud-download"></span>
