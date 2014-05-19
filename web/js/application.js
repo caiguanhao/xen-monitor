@@ -31,6 +31,9 @@ run(['$interval', '$rootScope', function($interval, $rootScope) {
   $interval(function() {
     $rootScope.$broadcast('anotherSecond');
   }, 1000);
+  $interval(function() {
+    $rootScope.$broadcast('anotherFiveSeconds');
+  }, 5000);
 }]).
 
 filter('cmdreplace', [function() {
@@ -213,6 +216,28 @@ directive('search', [function() {
       $scope.$emit('newSearch');
     }
   }
+}]).
+
+directive('screenshot', [function() {
+  return {
+    scope: {
+      screenshot: '='
+    },
+    link: function($scope, elem, attrs) {
+      elem.attr('src', $scope.screenshot);
+      elem.on('load', function() {
+        elem.removeClass('not-loaded').addClass('loaded');
+        elem.parent().removeClass('not-loaded').addClass('loaded');
+      });
+      elem.on('error', function() {
+        elem.removeClass('loaded').addClass('not-loaded');
+        elem.parent().removeClass('loaded').addClass('not-loaded');
+      });
+      $scope.$on('anotherFiveSeconds', function() {
+        elem.attr('src', $scope.screenshot);
+      });
+    }
+  };
 }]).
 
 factory('Socket', ['$window', 'ASSETS', 'LocalSettings',
@@ -839,6 +864,8 @@ controller('HostController', ['$scope', '$routeParams', 'Socket', 'Servers',
       Servers.freeze(Servers.freezeVMs[vm], cmdindex);
     });
   };
+
+  $scope.montage = 'http://' + $scope.host + ':54321/images/montage.png';
 }]).
 
 controller('VMController', ['$scope', '$routeParams', 'Socket', 'Servers',

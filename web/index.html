@@ -265,6 +265,10 @@
       <li><a href="/#/">All servers</a></li>
       <li class="active" ng-bind="host"></li>
     </ol>
+    <div class="sceenshot-montage" ng-show="montage">
+      <span class="status">Loading screenshots...</span>
+      <img screenshot="montage" class="img-montage img-rounded not-loaded">
+    </div>
     <table class="table table-striped">
       <thead>
         <tr>
