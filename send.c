@@ -18,6 +18,7 @@ char ip_address[16] = DEFAULT_IP_ADDRESS;
 int port = DEFAULT_PORT;
 int is_disconnected = 1;
 char run_if_null[256];
+char run_before_send[256];
 
 static int verbose_flag;
 static int daemon_flag;
@@ -35,6 +36,7 @@ static void help(const char *program) {
     "  -o, --stdout        <file>  write stdout to file\n"
     "  -e, --stderr        <file>  write stderr to file\n"
     "  -n, --run-if-null   <file>  execute this file if extra data is NULL\n"
+    "  -b, --before-send   <file>  execute this file before sending stats\n"
     "  -s, --sample-period <secs>  sample period, default: %u second(s)\n"
     "  -i, --ip-address    <addr>  send to this IP address, default: %s\n"
     "  -p, --port          <port>  send to this port, default: %u\n"
@@ -122,11 +124,12 @@ int main(int argc, char *argv[]) {
       { "stdout",        required_argument, 0, 'o' },
       { "stderr",        required_argument, 0, 'e' },
       { "run-if-null",   required_argument, 0, 'n' },
+      { "before-send",   required_argument, 0, 'b' },
       { "xe-vm-list",    required_argument, 0, 'x' },
       { "proc-net-dev",  required_argument, 0, 'd' },
       { 0,               0,                 0,  0  }
     };
-    c = getopt_long(argc, argv, "hvs:i:p:Do:e:n:x:d:", opts, &option_index);
+    c = getopt_long(argc, argv, "hvs:i:p:Do:e:n:b:x:d:", opts, &option_index);
     if (c == -1) break;
     switch (c) {
     case 'v':
@@ -179,6 +182,12 @@ int main(int argc, char *argv[]) {
       snprintf(run_if_null, sizeof run_if_null, "%s", path);
       break;
     }
+    case 'b': {
+      char path[256];
+      realpath(optarg, path);
+      snprintf(run_before_send, sizeof run_before_send, "%s", path);
+      break;
+    }
     case '?':
       exit(1);
     case 'h':
@@ -205,6 +214,10 @@ int main(int argc, char *argv[]) {
 
   if (strlen(run_if_null) > 0) {
     printf("%s will be executed if extra data is NULL.\n", run_if_null);
+  }
+  if (strlen(run_before_send) > 0) {
+    printf("%s will be executed before sending stats to server.\n",
+      run_before_send);
   }
 
   if (daemon_flag) {
@@ -299,6 +312,10 @@ int main(int argc, char *argv[]) {
     free(samples);
     if (verbose_flag) {
       puts(message);
+    }
+    if (strlen(run_before_send) > 0) {
+      if (verbose_flag) printf("executed %s\n", run_before_send);
+      system(run_before_send);
     }
     send_stats_to_server(message);
   }
