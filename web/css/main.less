@@ -123,15 +123,6 @@ footer {
   }
 }
 
-.table-vm {
-  .attr {
-    min-width: 100px;
-    width: 20%;
-    text-align: right;
-    font-weight: bold;
-  }
-}
-
 .text-dead {
   color: #929292;
 }
@@ -225,24 +216,81 @@ a.progress-bar {
   }
 }
 
+.table-host {
+  margin-bottom: 10px;
+}
+
 .head-progress {
   margin-top: 10px;
 }
 
-.sceenshot-montage {
+.screenshot {
+  .status, .error {
+    padding-top: 25%;
+    padding-bottom: 25%;
+    text-align: center;
+  }
+}
+
+.screenshot.loading {
+  .status {
+    display: block;
+  }
+  .error {
+    display: none;
+  }
+  .content {
+    display: none;
+  }
+}
+
+.screenshot.error {
+  .status {
+    display: none;
+  }
+  .error {
+    display: block;
+  }
+  .content {
+    display: none;
+  }
+}
+
+.screenshot.loaded {
+  .status {
+    display: none;
+  }
+  .error {
+    display: none;
+  }
+  .content {
+    display: block;
+  }
+}
+
+.screenshot-montage {
+  padding-top: 10px;
   padding-bottom: 10px;
-  text-align: center;
+  .status, .error {
+    padding-top: 5%;
+    padding-bottom: 5%;
+    text-align: center;
+  }
+  .img-responsive {
+    margin-left: auto;
+    margin-right: auto;
+  }
 }
 
 .img-montage {
-  width: 802px;
-  height: 168px;
   border: 1px solid #000;
 }
 
-.loaded .status {
-  display: none;
+.vm-info-key, .vm-info-value {
+  height: 38px;
 }
-.not-loaded {
-  display: none;
+
+.vm-info-key {
+  text-align: right;
+  padding-top: 9px;
 }

@@ -265,11 +265,7 @@
       <li><a href="/#/">All servers</a></li>
       <li class="active" ng-bind="host"></li>
     </ol>
-    <div class="sceenshot-montage" ng-show="montage">
-      <span class="status">Loading screenshots...</span>
-      <img screenshot="montage" class="img-montage img-rounded not-loaded">
-    </div>
-    <table class="table table-striped">
+    <table class="table table-striped table-host">
       <thead>
         <tr>
           <th><input type="checkbox" ng-model="checkedall"
@@ -355,49 +351,71 @@
       <button type="submit" ng-disabled="btnExecuteDisabled()"
         class="btn btn-sm btn-default">Execute</button>
     </form>
+    <div class="screenshot screenshot-montage loading" ng-show="montage">
+      <div class="status">
+        <div class="col-sm-6 col-sm-offset-3">
+          <div class="progress progress-striped active">
+            <div class="progress-bar" style="width: 100%">
+              <span>Loading screenshot...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="error"><span
+        class="glyphicon glyphicon-exclamation-sign"></span>
+        No screenshot available.</div>
+      <div class="content">
+        <img screenshot="montage" class="img-montage img-responsive">
+      </div>
+    </div>
   </script>
   <script type="text/ng-template" id="vm">
     <ol class="breadcrumb">
       <li><a href="/#/">All servers</a></li>
       <li><a href="/#/host/{{host}}" ng-bind="host"></a></li>
       <li class="active" ng-bind="vm"></li>
+      <li><a href="xen-monitor-rdp://{{vm}}">Open this VM via RDP</a></li>
     </ol>
-    <table class="table table-vm">
-      <tbody>
-        <tr>
-          <td class="attr">Domain ID</td>
-          <td>{{VMs.I[index] || 'Loading...'}}</td>
-        </tr>
-        <tr>
-          <td class="attr">Power State</td>
-          <td class="text-{{VMs.PSC[index]}}">{{VMs.PS[index] ||
-            'Loading...'}}</td>
-        </tr>
-        <tr>
-          <td class="attr">LLKS</td>
-          <td class="text-{{VMs.LC[index]}}">{{VMs.LT[index] ||
-            'Loading...'}}</td>
-        </tr>
-        <tr>
-          <td class="attr">Upload</td>
-          <td class="text-{{VMs.UC[index]}}">{{VMs.UT[index] ||
-            'Loading...'}}</td>
-        </tr>
-        <tr>
-          <td class="attr">Download</td>
-          <td class="text-{{VMs.DC[index]}}">{{VMs.DT[index] ||
-            'Loading...'}}</td>
-        </tr>
-        <tr>
-          <td class="attr">RDP</td>
-          <td>
-            <span class="glyphicon glyphicon-new-window"></span>
-            <a href="xen-monitor-rdp://{{vm}}">Open this VM via RDP</a>
-          </td>
-        </tr>
-        <tr>
-          <td class="attr">Command</td>
-          <td>
+    <div class="row">
+      <div class="col-sm-4 col-xs-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">Status</div>
+          <div class="panel-body">
+            <div class="col-sm-12 col-xs-6">
+              <div class="col-xs-6 vm-info-key">domain id</div>
+              <div class="col-xs-6 vm-info-value">
+                <h4 ng-bind="VMs.I[index] || 'Loading...'"></h4>
+              </div>
+            </div>
+            <div class="col-sm-12 col-xs-6">
+              <div class="col-xs-6 vm-info-key">power state</div>
+              <div class="col-xs-6 vm-info-value">
+                <h4 class="text-{{VMs.PSC[index]}}" ng-bind="VMs.PS[index] || 'Loading...'"></h4>
+              </div>
+            </div>
+            <div class="col-sm-12 col-xs-6">
+              <div class="col-xs-6 vm-info-key">llks upload</div>
+              <div class="col-xs-6 vm-info-value">
+                <h4 class="text-{{VMs.LC[index]}}" ng-bind="VMs.LT[index] || 'Loading...'"></h4>
+              </div>
+            </div>
+            <div class="col-sm-12 col-xs-6">
+              <div class="col-xs-6 vm-info-key">total upload</div>
+              <div class="col-xs-6 vm-info-value">
+                <h4 class="text-{{VMs.UC[index]}}" ng-bind="VMs.UT[index] || 'Loading...'"></h4>
+              </div>
+            </div>
+            <div class="col-sm-12 col-xs-6">
+              <div class="col-xs-6 vm-info-key">total download</div>
+              <div class="col-xs-6 vm-info-value">
+                <h4 class="text-{{VMs.DC[index]}}" ng-bind="VMs.DT[index] || 'Loading...'"></h4>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="panel panel-default" ng-show="index>-1">
+          <div class="panel-heading">Power</div>
+          <div class="panel-body">
             <div class="alert alert-{{freeze.messageColor}} cmd-alert"
               ng-show="freeze.message"
               ng-bind="freeze.message|cmdreplace:freeze.commandText"></div>
@@ -408,34 +426,47 @@
                   ng-bind="freeze.elapsed+' / '+freeze.wait"></span>
               </div>
             </div>
-            <form class="form-inline" ng-submit="execute()"
+            <form class="form" ng-submit="execute()"
               ng-show="index>-1&&!freeze.frozen">
-              <select class="form-control input-sm" ng-model="command">
-                <option ng-repeat="cmd in commands.C"
-                  value="{{$index}}">{{commands.T[$index]}}
-                  ({{commands.W[$index]}}s)</option>
-              </select>
-              <input type="password" class="form-control input-sm"
-                placeholder="Password" ng-model="password">
-              <button type="submit" ng-disabled="btnExecuteDisabled()"
-                class="btn btn-sm btn-default">Execute</button>
+              <div class="form-group">
+                <select class="form-control input-sm" ng-model="command">
+                  <option ng-repeat="cmd in commands.C"
+                    value="{{$index}}">{{commands.T[$index]}}
+                    ({{commands.W[$index]}}s)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <input type="password" class="form-control input-sm"
+                  placeholder="Password" ng-model="password">
+              </div>
+              <div class="form-group">
+                <button type="submit" ng-disabled="btnExecuteDisabled()"
+                  class="btn btn-sm btn-default">Execute</button>
+              </div>
             </form>
-            <div ng-hide="index>-1">
-              Loading...
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-8 col-xs-12">
+        <div class="screenshot loading" ng-show="screenshot">
+          <div class="status">
+            <div class="col-sm-6 col-sm-offset-3">
+              <div class="progress progress-striped active">
+                <div class="progress-bar" style="width: 100%">
+                  <span>Loading screenshot...</span>
+                </div>
+              </div>
             </div>
-          </td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>
-            <p><span class="glyphicon glyphicon-repeat"></span>
-              Restart succeeds if Domain ID is increased.</p>
-            <p><span class="glyphicon glyphicon-off"></span>
-              Shutdown or Start succeeds if Power State is changed.</p>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+          </div>
+          <div class="error"><span
+            class="glyphicon glyphicon-exclamation-sign"></span>
+            No screenshot available.</div>
+          <div class="content">
+            <img screenshot="screenshot" class="img-responsive">
+          </div>
+        </div>
+      </div>
+    </div>
   </script>
   <script type="text/ng-template" id="edit-lists">
     <div class="row">

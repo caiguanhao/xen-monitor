@@ -226,12 +226,10 @@ directive('screenshot', [function() {
     link: function($scope, elem, attrs) {
       elem.attr('src', $scope.screenshot);
       elem.on('load', function() {
-        elem.removeClass('not-loaded').addClass('loaded');
-        elem.parent().removeClass('not-loaded').addClass('loaded');
+        elem.parent().parent().removeClass('loading error').addClass('loaded');
       });
       elem.on('error', function() {
-        elem.removeClass('loaded').addClass('not-loaded');
-        elem.parent().removeClass('loaded').addClass('not-loaded');
+        elem.parent().parent().removeClass('loading loaded').addClass('error');
       });
       $scope.$on('anotherFiveSeconds', function() {
         elem.attr('src', $scope.screenshot);
@@ -926,6 +924,9 @@ controller('VMController', ['$scope', '$routeParams', 'Socket', 'Servers',
     $scope.freeze.expectOnKey = expectOnKey;
     $scope.freeze.original = orignal;
   };
+
+  $scope.screenshot = 'http://' + $scope.host + ':54321/images/' +
+    $scope.vm + '-full.png';
 }]).
 
 controller('EditListsController', ['$scope', 'LocalSettings', 'Socket',
