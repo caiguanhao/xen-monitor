@@ -6,7 +6,5 @@ node_modules
 dist
 *.tar.gz
 assets.json
-install/all
-install/done
-install/undone
+install/profiles
 *.txt
