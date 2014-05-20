@@ -1,6 +1,6 @@
 #!/bin/bash
 
-FONTFILE=Ubuntu-L.ttf
+FONTFILE="Ubuntu-L.ttf"
 
 IMAGES="/srv/xen-monitor/images"
 IMAGESTMP="$IMAGES/tmp"
