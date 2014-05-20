@@ -7,6 +7,12 @@
 ; ---------------------------------------------------------------
 
 #include <File.au3>
+#include <Misc.au3>
+
+If _Singleton("LLKSMONITOR", 1) = 0 Then
+  MsgBox(48 + 4096, "Warning", "已在运行。")
+  Exit
+EndIf
 
 Local $tools = "C:\Documents and Settings\Administrator\桌面\全套"
 If Not FileExists($tools) Then
@@ -36,7 +42,8 @@ If Not FileExists($dest) Then
   TrayTip("Done.", "Started monitoring...", 10, 1)
 EndIf
 
-TraySetToolTip("流量矿石监视器 by cgh.io")
+$tooltip = "流量矿石监视器 by cgh.io"
+TraySetToolTip($tooltip)
 
 Local $exist
 Local $activated = 0
@@ -68,7 +75,26 @@ While 1
     Local $line = FileReadLine($temp)
     FileDelete($temp)
     Local $extradata = $line;
-    If StringLen($extradata) = 0 Then $extradata = "NULL"
+    $admin_disconnected = 0
+    $Ret = DllCall('wtsapi32.dll', 'int', 'WTSEnumerateSessionsW', 'ptr', 0, _
+      'dword', 0, 'dword', 1, 'ptr*', 0, 'dword*', 0)
+    $Offset = 0
+    For $i = 1 To $Ret[5]
+      $tInfo = DllStructCreate("dword SessionId; ptr WinStationName; " & _
+        "uint State", $Ret[4] + $Offset)
+      $Offset += DllStructGetSize($tInfo)
+      $SessionId = DllStructGetData($tInfo, 'SessionId')
+      $SessionName = DllStructGetData(DllStructCreate('wchar[1024]', _
+        DllStructGetData($tInfo, 'WinStationName')), 1)
+      $SessionState = DllStructGetData($tInfo, 'State')
+      $tInfo = 0
+      If $SessionId = 0 and $SessionState = 4 Then
+        $admin_disconnected = 1
+        ExitLoop
+      EndIf
+    Next
+    DllCall("wtsapi32.dll", "none", "WTSFreeMemory", 'ptr', $Ret[4])
+    If $extradata = "" and $admin_disconnected = 1 Then $extradata = "NULL"
     RunWait('"C:\Program Files\Citrix\XenTools\xenstore_client.exe" ' & _
       ' write extradata "' & $extradata & '"', "", @SW_HIDE)
     ;TrayTip($extradata, $temp, 10, 1)

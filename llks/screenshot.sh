@@ -1,9 +1,9 @@
 #!/bin/bash
 
-pgrep server.sh >/dev/null || ( ./server.sh & )
-
 IMAGES="/srv/xen-monitor/images"
-mkdir -p $IMAGES
+IMAGESTMP="$IMAGES/tmp"
+rm -f $IMAGESTMP/*
+mkdir -p $IMAGESTMP
 
 (
   JSON="[{\"name\":\"info\",\"time\":\"`date +%s`\"},"
@@ -15,7 +15,7 @@ mkdir -p $IMAGES
     if [[ ${VM[1]} -gt 0 ]]; then
       CMD="vncdo -s localhost:"
       CMD="${CMD}$((`xenstore-read /local/domain/${VM[1]}/console/vnc-port` - 5900))"
-      CAPTURE="${CMD} capture ${IMAGES}/${VM[0]}-full.png"
+      CAPTURE="${CMD} capture ${IMAGESTMP}/${VM[0]}-full.png"
       $CAPTURE
       JSON="$JSON,{\"name\":\"${VM[0]}\","
       JSON="$JSON\"full\":\"/images/${VM[0]}-full.png\","
@@ -29,19 +29,21 @@ mkdir -p $IMAGES
 cat <<PY | python2.7 -
 import os, glob, time, math, Image, ImageFont, ImageDraw
 now = time.strftime("%H:%M:%S", time.gmtime(time.time() + 8 * 3600))
-files = glob.glob('$IMAGES/*-full.png')
+files = glob.glob('$IMAGESTMP/*-full.png')
 files.sort(key=lambda file: int(file.replace('-','.').split('.')[-3]))
 cols = 4
 rows = int(math.ceil(float(len(files)) / cols))
 off_y = 16
+screen_x = 800
+screen_y = 600
 width = 200
-height = 150
+height = 100
 font = ImageFont.truetype('Ubuntu-L.ttf', 12)
 all = Image.new('RGB', (width * cols, height * rows + off_y))
 for i, file in enumerate(files):
   filename = os.path.basename(file)
   min = Image.open(file)
-  min = min.crop((600, 450, 800, 600))  # bottom right corner
+  min = min.crop((screen_x - width, screen_y - height, screen_x, screen_y))  # bottom right corner
   min.save(file[:file.rfind('-full.png')] + '-mini.png')
   top = int(math.floor(float(i) / cols)) * height
   left = i % cols * width
@@ -49,5 +51,7 @@ for i, file in enumerate(files):
   draw = ImageDraw.Draw(all)
   draw.text((left + 10, 0), filename[:filename.find('-')], (255,255,255), font=font)
   draw.text((left + 140, 0), now, (255,255,255), font=font)
-all.save('$IMAGES/montage.png')
+all.save('$IMAGESTMP/montage.png')
 PY
+
+mv $IMAGESTMP/*.png $IMAGES
