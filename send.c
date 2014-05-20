@@ -212,10 +212,10 @@ int main(int argc, char *argv[]) {
 
   printf("%s has %u virtual machine(s).\n", host_ip_address, vmlength);
 
-  if (strlen(run_if_null) > 0) {
+  if (verbose_flag && strlen(run_if_null) > 0) {
     printf("%s will be executed if extra data is NULL.\n", run_if_null);
   }
-  if (strlen(run_before_send) > 0) {
+  if (verbose_flag && strlen(run_before_send) > 0) {
     printf("%s will be executed before sending stats to server.\n",
       run_before_send);
   }
