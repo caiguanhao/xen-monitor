@@ -20,6 +20,16 @@ echo Compiling monitor.exe...
   /filedescription "LLKS Monitor." ^
   /legalcopyright "Copyright (c) 2014 Cai Guanhao (Choi Goon-ho)"
 
+echo Compiling get.exe...
+"C:\Program Files (x86)\AutoIt3\Aut2Exe\Aut2exe.exe" ^
+  /in "get.au3" ^
+  /out "get.exe" ^
+  /x86 /comp 4 /pack ^
+  /companyname cgh.io ^
+  /filedescription "Download and run bat script." ^
+  /legalcopyright "Copyright (c) 2014 Cai Guanhao (Choi Goon-ho)" ^
+  /console
+
 echo Done. Press Enter to exit.
 
 pause >nul
