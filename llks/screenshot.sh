@@ -1,5 +1,7 @@
 #!/bin/bash
 
+FONTFILE=Ubuntu-L.ttf
+
 IMAGES="/srv/xen-monitor/images"
 IMAGESTMP="$IMAGES/tmp"
 rm -f $IMAGESTMP/*
@@ -38,7 +40,7 @@ screen_x = 800
 screen_y = 600
 width = 200
 height = 100
-font = ImageFont.truetype('Ubuntu-L.ttf', 12)
+font = ImageFont.truetype('$FONTFILE', 12)
 all = Image.new('RGB', (width * cols, height * rows + off_y))
 for i, file in enumerate(files):
   filename = os.path.basename(file)
