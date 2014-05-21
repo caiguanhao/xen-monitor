@@ -328,7 +328,8 @@ service('LocalSettings', ['$window', function($window) {
   };
   this.cached = {
     live: true,
-    hostview: 'simple'
+    hostview: 'simple',
+    password: ''
   };
 }]).
 
@@ -804,7 +805,7 @@ controller('MainController', ['$scope', 'Socket', 'Servers', 'LocalSettings',
     $scope.$apply();
   };
   $scope.btnExecuteDisabled = function() {
-    return !$scope.password || $scope.password.length < 10;
+    return !$scope.cached.password || $scope.cached.password.length < 10;
   };
   $scope.execute = function() {
     if (!$scope.cached.checked) return alert('Not ready yet.');
@@ -814,9 +815,8 @@ controller('MainController', ['$scope', 'Socket', 'Servers', 'LocalSettings',
     if (!confirm('Are you sure you want to execute this command?')) return;
     var cmdindex = $scope.command;
     var command = Servers.COMMANDS.C[cmdindex];
-    Socket.emit('ExecuteCommandMultiple', $scope.password, command,
+    Socket.emit('ExecuteCommandMultiple', $scope.cached.password, command,
       $scope.cached.checked.items);
-    $scope.password = null;
   };
   angular.extend($scope, LocalSettings.getLocalSettings({
     range: 4, show: 0, type: 'U', mclick: null
@@ -880,7 +880,7 @@ controller('HostController', ['$scope', '$routeParams', 'Socket', 'Servers',
     if ($scope.checked.toString().indexOf('true') === -1) { // all false
       return true;
     }
-    return !$scope.password || $scope.password.length < 10;
+    return !$scope.cached.password || $scope.cached.password.length < 10;
   };
   $scope.execute = function() {
     if (!$scope.checked) return alert('Not ready yet.');
@@ -890,9 +890,8 @@ controller('HostController', ['$scope', '$routeParams', 'Socket', 'Servers',
     if (!confirm('Are you sure you want to execute this command?')) return;
     var cmdindex = $scope.command;
     var command = Servers.COMMANDS.C[cmdindex];
-    Socket.emit('ExecuteCommand', $scope.password, command,
+    Socket.emit('ExecuteCommand', $scope.cached.password, command,
       $scope.host, $scope.checkedVMs);
-    $scope.password = null;
     Servers.freeze($scope.freeze, cmdindex);
     $scope.checkedVMs.forEach(function(vm) {
       Servers.freezeVMs[vm] = Servers.freezeVMs[vm] || {};
@@ -907,7 +906,9 @@ controller('HostController', ['$scope', '$routeParams', 'Socket', 'Servers',
 }]).
 
 controller('VMController', ['$scope', '$routeParams', 'Socket', 'Servers',
-  function($scope, $routeParams, Socket, Servers) {
+  'LocalSettings',
+  function($scope, $routeParams, Socket, Servers, LocalSettings) {
+  $scope.cached = LocalSettings.cached;
   $scope.host = $routeParams.host;
   $scope.vm = $routeParams.vm;
   $scope.commands = Servers.COMMANDS;
@@ -949,7 +950,7 @@ controller('VMController', ['$scope', '$routeParams', 'Socket', 'Servers',
   });
 
   $scope.btnExecuteDisabled = function() {
-    return !$scope.password || $scope.password.length < 10;
+    return !$scope.cached.password || $scope.cached.password.length < 10;
   };
   $scope.execute = function() {
     if ($scope.index < 0) return alert('Not ready yet.');
@@ -959,9 +960,8 @@ controller('VMController', ['$scope', '$routeParams', 'Socket', 'Servers',
     if (!confirm('Are you sure you want to execute this command?')) return;
     var cmdindex = $scope.command;
     var command = Servers.COMMANDS.C[cmdindex];
-    Socket.emit('ExecuteCommand', $scope.password, command,
+    Socket.emit('ExecuteCommand', $scope.cached.password, command,
       $scope.host, $scope.vm);
-    $scope.password = null;
     Servers.freeze($scope.freeze, cmdindex);
     var expectOnKey = Servers.COMMANDS.E[cmdindex];
     var orignal = $scope.VMs[expectOnKey][$scope.index];
@@ -984,18 +984,18 @@ controller('EditListsController', ['$scope', 'LocalSettings', 'Socket',
   $scope.$watch('rawLists', function(val) {
     LocalSettings.parseLists(val);
   });
+  $scope.cached = LocalSettings.cached;
   $scope.updateText = 'Update';
   $scope.update = function() {
     if (!Socket.socket.connected) {
       return alert('It seems you\'re not connected! Aborted!');
     }
-    if (typeof $scope.password !== 'string' || $scope.password.length < 5) {
+    if (typeof $scope.cached.password !== 'string' || $scope.cached.password.length < 5) {
       return alert('Please input your password.');
     }
     $scope.updateDisabled = true;
     $scope.updateText = 'Updating...';
-    Socket.emit('UpdateLists', $scope.password, $scope.rawLists);
-    $scope.password = null;
+    Socket.emit('UpdateLists', $scope.cached.password, $scope.rawLists);
   };
   if (Socket.$events) delete Socket.$events['UpdateListsStatus'];
   Socket.on('UpdateListsStatus', function(code) {

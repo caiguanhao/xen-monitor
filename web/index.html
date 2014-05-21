@@ -215,7 +215,7 @@
               ({{commands.W[$index]}}s)</option>
           </select>
           <input type="password" class="form-control input-sm"
-            placeholder="Password" ng-model="password">
+            placeholder="Password" ng-model="cached.password">
           <button type="submit" ng-disabled="btnExecuteDisabled()"
             class="btn btn-sm btn-default">Execute Commands for
             {{cached.checked.list.length}} VMs</button>
@@ -400,7 +400,7 @@
               ({{commands.W[$index]}}s)</option>
           </select>
           <input type="password" class="form-control input-sm"
-            placeholder="Password" ng-model="password">
+            placeholder="Password" ng-model="cached.password">
           <button type="submit" ng-disabled="btnExecuteDisabled()"
             class="btn btn-sm btn-default">Execute</button>
         </form>
@@ -501,7 +501,7 @@
                 </div>
                 <div class="form-group">
                   <input type="password" class="form-control input-sm"
-                    placeholder="Password" ng-model="password">
+                    placeholder="Password" ng-model="cached.password">
                 </div>
                 <div class="form-group">
                   <button type="submit" ng-disabled="btnExecuteDisabled()"
@@ -542,12 +542,12 @@
             ng-model="rawLists" placeholder="Lists"></textarea>
         </div>
         <div class="form-group">
-          <input type="password" ng-model="password" class="form-control"
+          <input type="password" ng-model="cached.password" class="form-control"
             placeholder="Password">
         </div>
         <div class="form-group">
           <button ng-click="update()" type="button"
-            ng-disabled="updateDisabled||!password||password.length<5"
+            ng-disabled="updateDisabled||!cached.password||cached.password.length<5"
             class="btn btn-default"><span class="{{updateTextColor}}"
             ng-bind="updateText"></span></button>
         </div>
