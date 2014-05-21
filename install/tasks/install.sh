@@ -10,11 +10,11 @@ if [[ -f undone ]]; then
   echo "Will process file 'undone'. Press Enter to continue."
   echo "Press Ctrl-C and then remove the file if you don't want to do this. "
 else
-  echo "Press Enter to start."
+  [[ $CONFIRMSTART == "" ]] && echo "Press Enter to start."
 fi
-read
+[[ $CONFIRMSTART == "" ]] && read
 
-PARALLEL=10
+[[ $PARALLEL == "" ]] && PARALLEL=10
 COUNT=0
 
 rm -f done
@@ -30,6 +30,9 @@ for origline in $DIST; do
       -o LogLevel=error -o PubkeyAuthentication=no \
       -n -t -t root@${line[0]} $CMD && echo $origline >> done) ;\
       echo ... ${line[0]} ; echo) &
+    if [[ $RUNONEANDEXIT -eq 1 ]]; then
+      break
+    fi
     if [[ $((COUNT % $PARALLEL)) -eq $(($PARALLEL - 1)) ]]; then
       wait
     fi
@@ -37,6 +40,10 @@ for origline in $DIST; do
   fi
 done
 wait
+
+if [[ $RUNONEANDEXIT -eq 1 ]]; then
+  exit
+fi
 
 sort done -o done
 

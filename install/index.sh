@@ -90,8 +90,73 @@ exit 0
 ;;
 
 
+dry-run|run)
+echo "Usage: $0 [dry-run|run] [all|dom-id|name-label] [get|send|login] [arguments]"
+RUN="eval"
+if [[ $1 == "dry-run" ]]; then
+  RUN="echo"
+  CONFIRMSTART=No
+  PARALLEL=1
+  RUNONEANDEXIT=1
+fi
+case $3 in
+get)
+  COMMAND="\${VNC} key super-r && sleep 1 && \${VNC} type get key space type $4 key enter"
+  ;;
+send)
+  COMMAND="\${VNC} ${*:4}"
+  ;;
+login)
+  PASSWD=
+  ISLOWER=0
+  for (( i=0; i<${#WINDOWSPASSWORD}; i++ )); do
+    case ${WINDOWSPASSWORD:$i:1} in
+      [A-Z])
+        PASSWD="$PASSWD key shift-${WINDOWSPASSWORD:$i:1}"
+        ISLOWER=0
+        ;;
+      [a-z0-9])
+        if [[ $ISLOWER -eq 0 ]]; then
+          PASSWD="$PASSWD type "
+        fi
+        PASSWD="$PASSWD${WINDOWSPASSWORD:$i:1}"
+        ISLOWER=1
+        ;;
+    esac
+  done
+  COMMAND="\${VNC} key space && sleep 1 && \${VNC} key ctrl-alt-del && sleep 1 && \${VNC} key alt-u type $WINDOWSUSERNAME key alt-p $PASSWD key enter"
+  ;;
 *)
-echo "Usage: $0 (install|deploy)"
+  echo "Unknown command."
+  exit 1
+  ;;
+esac
+CMD="
+FIND=\"$2\";
+IFS=$'\n';
+for VM in \`xl list\`; do
+  IFS=$' \t';
+  VM=(\$VM);
+  if [[ \${#FIND} -gt 0 ]] && [[ \${FIND} != \"all\" ]]; then
+    if [[ \${VM[0]} != \${FIND} ]] && [[ \${VM[1]} != \${FIND} ]]; then
+      continue;
+    fi;
+  fi;
+  if [[ \${VM[1]} -gt 0 ]]; then
+    VNC=\"vncdo -s localhost:\";
+    VNC=\"\${VNC}\$((\`xenstore-read /local/domain/\${VM[1]}/console/vnc-port\` - 5900))\";
+    CMD=\"$COMMAND\";
+    $RUN \$CMD;
+  fi;
+done
+"
+source "${DIRNAME}/tasks/install.sh"
+exit 0
+;;
+
+
+*)
+echo "Usage: $0 (install|deploy|run)"
 exit 0
 ;;
 
