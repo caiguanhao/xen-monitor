@@ -459,7 +459,7 @@ service('Servers', [function() {
     cS.success = 0; cS.warning = 0; cS.danger = 0; cS.dead = 0;
     rS['12']   = 0; rS['11']   = 0; rS['10']  = 0;
     rS['7']    = 0; rS['4']    = 0; rS['0']   = 0;
-    tS.HC      = 0; tS.VMC     = 0; tS.U      = 0; tS.D    = 0;
+    tS.HC      = 0; tS.VMC     = 0; tS.L      = 0; tS.U      = 0; tS.D    = 0;
     for (var host in this.allServers) {
       var VMs = this.allServers[host]
       for (var i = 0; i < VMs.UC.length; i++) {
@@ -467,6 +467,7 @@ service('Servers', [function() {
         rS[VMs.R]++;
         tS.VMC++;
       }
+      tS.L += VMs.TL;
       tS.U += VMs.TU;
       tS.D += VMs.TD;
       tS.HC++;
@@ -477,6 +478,9 @@ service('Servers', [function() {
     cS.dangerPercent = cS.danger / cS.total * 100;
     cS.deadPercent = Math.max(0, 100 - cS.successPercent - cS.warningPercent -
       cS.dangerPercent);
+    tS.LT = this.formatSize(tS.L);
+    tS.LHA = this.formatSize(tS.L / tS.HC);
+    tS.LVMA = this.formatSize(tS.L / tS.VMC);
     tS.UT = this.formatSize(tS.U);
     tS.UHA = this.formatSize(tS.U / tS.HC);
     tS.UVMA = this.formatSize(tS.U / tS.VMC);
@@ -722,7 +726,7 @@ controller('MainController', ['$scope', 'Socket', 'Servers', 'LocalSettings',
     $scope.$broadcast('progressBarChanged');
   };
   $scope.$watch('show', onShowOrTypeChanged);
-  var TYPES = { D: 'download', U: 'upload' };
+  var TYPES = { D: 'download', U: 'upload', L: 'llks upload' };
   $scope.$watch('type', function(val) {
     $scope.typetext = TYPES[val];
     onShowOrTypeChanged();
