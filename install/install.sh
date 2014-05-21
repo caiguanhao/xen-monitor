@@ -35,4 +35,3 @@ cd /opt/xen-monitor-master
 make install
 
 echo Done.
-exec bash
