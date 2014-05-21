@@ -269,12 +269,10 @@
     <div class="btn-group btn-group-xs pull-right">
       <a class="btn btn-default" ng-class="{disabled:!navigation.previous}"
         href="/#/host/{{navigation.previous}}">
-        <span class="glyphicon glyphicon-chevron-up"></span>
-        <span ng-bind="navigation.previous || 'Previous'"></span></a>
+        <span class="glyphicon glyphicon-chevron-up"></span> Previous</a>
       <a class="btn btn-default" ng-class="{disabled:!navigation.next}"
         href="/#/host/{{navigation.next}}">
-        <span class="glyphicon glyphicon-chevron-down"></span>
-        <span ng-bind="navigation.next || 'Next'"></span></a>
+        <span class="glyphicon glyphicon-chevron-down"></span> Next</a>
     </div>
     <div class="btn-group btn-group-xs">
       <button class="btn btn-default" ng-click="cached.hostview='simple'"
@@ -321,7 +319,7 @@
         <table class="table table-striped table-host">
           <thead>
             <tr>
-              <th><input type="checkbox" ng-model="checkedall"
+              <th><input type="checkbox" ng-model="$parent.checkedall"
                 ng-hide="checkedVMs===null"></th>
               <th>Domain ID</th>
               <th>IP Address</th>
