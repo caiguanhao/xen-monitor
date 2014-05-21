@@ -327,7 +327,8 @@ service('LocalSettings', ['$window', function($window) {
     if (this.parseListsCallback) this.parseListsCallback();
   };
   this.cached = {
-    live: true
+    live: true,
+    hostview: 'simple'
   };
 }]).
 
@@ -412,10 +413,40 @@ service('Servers', [function() {
     object.message = 'Command {} has been sent. Please wait a moment.';
     object.messageColor = 'info';
   };
+  this.addHost = function(host) {
+    var i = 0;
+    for (; this.allServerHosts[i] <= host; i++) {
+      if (this.allServerHosts[i] === host) return;
+    }
+    this.allServerHosts.splice(i, 0, host);
+  };
+  this.hostNavigation = function(host) {
+    var index = this.allServerHosts.indexOf(host);
+    var navigation = {};
+    if (index > 0) {
+      navigation.previous = this.allServerHosts[index - 1];
+    }
+    if (index < this.allServerHosts.length - 1) {
+      navigation.next = this.allServerHosts[index + 1];
+    }
+    return navigation;
+  };
+  this.vmNavigation = function(vms, index) {
+    if (index < 0) return {};
+    var navigation = {};
+    if (index > 0) {
+      navigation.previous = vms[index - 1];
+    }
+    if (index < vms.length - 1) {
+      navigation.next = vms[index + 1];
+    }
+    return navigation;
+  };
   this.freezeVMs = {};
   this.freezeHosts = {};
   this.checkedVMs = {};
   this.allServers = {};
+  this.allServerHosts = [];
   this.colorStats = {};
   this.rangeStats = {};
   this.totalStats = {};
@@ -460,6 +491,7 @@ service('Servers', [function() {
   this.topTotalDownloadTime = 0;
   var MAXSPEED = 13421772; // 12.8M
   this.updateServers = function(host, data) {
+    this.addHost(host);
     this.allServers[host] = data;
     var VM = this.allServers[host];
     if (!VM) return;
@@ -656,6 +688,7 @@ controller('MainController', ['$scope', 'Socket', 'Servers', 'LocalSettings',
   function($scope, Socket, Servers, LocalSettings, $timeout,
     MainControllerHotKeys) {
   $scope.allServers = Servers.allServers;
+  $scope.allServerHosts = Servers.allServerHosts;
   $scope.colorStats = Servers.colorStats;
   $scope.rangeStats = Servers.rangeStats;
   $scope.totalStats = Servers.totalStats;
@@ -791,10 +824,12 @@ controller('MainController', ['$scope', 'Socket', 'Servers', 'LocalSettings',
 }]).
 
 controller('HostController', ['$scope', '$routeParams', 'Socket', 'Servers',
-  function($scope, $routeParams, Socket, Servers) {
-  $scope.hostview = 'monitor';
+  'LocalSettings',
+  function($scope, $routeParams, Socket, Servers, LocalSettings) {
+  $scope.cached = LocalSettings.cached;
   $scope.host = $routeParams.host;
   $scope.VMs = Servers.allServers[$scope.host];
+  $scope.navigation = Servers.hostNavigation($scope.host);
   Servers.freezeHosts[$scope.host] = Servers.freezeHosts[$scope.host] || {};
   $scope.freeze = Servers.freezeHosts[$scope.host];
   Servers.checkedVMs[$scope.host] = Servers.checkedVMs[$scope.host] || [];
@@ -808,6 +843,7 @@ controller('HostController', ['$scope', '$routeParams', 'Socket', 'Servers',
     Servers.updateServers(host, angular.fromJson(data));
     if (host === $scope.host) {
       $scope.VMs = Servers.allServers[host];
+      $scope.navigation = Servers.hostNavigation(host);
       if (!$scope.checkedVMs) {
         $scope.checked = $scope.VMs.K.map(function() { return true; });
       }
@@ -878,7 +914,10 @@ controller('VMController', ['$scope', '$routeParams', 'Socket', 'Servers',
   $scope.command = 0;
   $scope.VMs = Servers.allServers[$scope.host];
   $scope.index = -1;
-  if ($scope.VMs) $scope.index = $scope.VMs.K.indexOf($scope.vm);
+  if ($scope.VMs) {
+    $scope.index = $scope.VMs.K.indexOf($scope.vm);
+    $scope.navigation = Servers.vmNavigation($scope.VMs.K, $scope.index);
+  }
   Servers.freezeVMs[$scope.vm] = Servers.freezeVMs[$scope.vm] || {};
   $scope.freeze = Servers.freezeVMs[$scope.vm];
 
@@ -895,6 +934,7 @@ controller('VMController', ['$scope', '$routeParams', 'Socket', 'Servers',
       if (index === -1) return;
       $scope.VMs = VMs;
       $scope.index = index;
+      $scope.navigation = Servers.vmNavigation(VMs.K, index);
       $scope.$apply();
     }
   });

@@ -225,7 +225,8 @@
         </form>
       </div>
       <div class="col-sm-12 stats range-{{VMs.R}} mclick-{{mclick}}"
-        ng-repeat="(host, VMs) in allServers" search="host+','+VMs.K+VMs.SC">
+        ng-repeat="host in allServerHosts" ng-init="VMs=allServers[host]"
+        search="host+','+VMs.K+VMs.SC">
         <div class="progress stat">
           <a rdp="xen-monitor-rdp://{{VMs.K+''}}" default="/#/host/{{host}}"
             mlink check="mselect(host, VMs.K)" class="vm-progress checked"
@@ -265,15 +266,25 @@
       <li><a href="/#/">All servers</a></li>
       <li class="active" ng-bind="host"></li>
     </ol>
+    <div class="btn-group btn-group-xs pull-right">
+      <a class="btn btn-default" ng-class="{disabled:!navigation.previous}"
+        href="/#/host/{{navigation.previous}}">
+        <span class="glyphicon glyphicon-chevron-up"></span>
+        <span ng-bind="navigation.previous || 'Previous'"></span></a>
+      <a class="btn btn-default" ng-class="{disabled:!navigation.next}"
+        href="/#/host/{{navigation.next}}">
+        <span class="glyphicon glyphicon-chevron-down"></span>
+        <span ng-bind="navigation.next || 'Next'"></span></a>
+    </div>
     <div class="btn-group btn-group-xs">
-      <button class="btn btn-default" ng-click="hostview='simple'"
-        ng-class="{active:hostview==='simple'}">
+      <button class="btn btn-default" ng-click="cached.hostview='simple'"
+        ng-class="{active:cached.hostview==='simple'}">
         Simple</button>
-      <button class="btn btn-default" ng-click="hostview='monitor'"
-        ng-class="{active:hostview==='monitor'}">
+      <button class="btn btn-default" ng-click="cached.hostview='monitor'"
+        ng-class="{active:cached.hostview==='monitor'}">
         Monitor</button>
     </div>
-    <div ng-switch on="hostview">
+    <div ng-switch on="cached.hostview">
       <div ng-switch-when="monitor">
         <div class="wide-text" ng-hide="VMs">
           Please wait while the host sends its statictics here...
@@ -422,7 +433,17 @@
       <div class="row">
         <div class="col-sm-4 col-xs-12">
           <div class="panel panel-default">
-            <div class="panel-heading">Status</div>
+            <div class="panel-heading">
+              <div class="btn-group btn-group-xs pull-right">
+                <a class="btn btn-default" ng-class="{disabled:!navigation.previous}"
+                  href="/#/host/{{host}}/vm/{{navigation.previous}}">
+                  <span class="glyphicon glyphicon-chevron-up"></span></a>
+                <a class="btn btn-default" ng-class="{disabled:!navigation.next}"
+                  href="/#/host/{{host}}/vm/{{navigation.next}}">
+                  <span class="glyphicon glyphicon-chevron-down"></span></a>
+              </div>
+              Status
+            </div>
             <div class="panel-body">
               <div class="col-sm-12 col-xs-6">
                 <div class="col-xs-6 vm-info-key">domain id</div>
