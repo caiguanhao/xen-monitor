@@ -2,7 +2,6 @@
 #include <Misc.au3>
 
 If _Singleton("AUTOSTART", 1) = 0 Then
-  MsgBox(48 + 4096, "Warning", "已在运行。")
   Exit
 EndIf
 
@@ -40,10 +39,14 @@ Run($tools & "\一键无整形.exe")
 WinWait("睿悠科技 锐速", "", 5)
 Sleep(2000)
 
+Run($tools & "\一键无整形.exe")
+WinWait("睿悠科技 锐速", "", 5)
+Sleep(2000)
+
 If Not ProcessExists("tcpz.exe") Then
   Run($tools & "\一键启动TCPZ.exe")
   WinWait("TCP-Z   (x86)   v2.6.1.72", "", 5)
-  Sleep(1000)
+  Sleep(2000)
 EndIf
 
 Local $offset_x = 23
@@ -51,16 +54,27 @@ Local $offset_y = 24
 Local $title = "流量矿石系统"
 Local $win
 
-If ProcessExists("Miner.exe") Then
-  $win = WinActivate($title)
-Else
-  Run($tools & "\一键启动流量矿石.exe")
-  $win = WinWait($title, "", 5)
-EndIf
+Local $tries = 0
 
-While $win
+While 1
+  If Not ProcessExists("Miner.exe") Then
+    Run($tools & "\一键启动流量矿石.exe")
+    Sleep(5000)
+  EndIf
+
+  $win = WinActivate($title)
+  If $win = 0 Then
+    Sleep(3000)
+    ContinueLoop
+  EndIf
+
   Local $pos = WinGetPos($win)
-  MouseMove($pos[0] + $offset_x, $pos[1] + $offset_y)
+  If @error Then
+    Sleep(2000)
+    ContinueLoop
+  EndIf
+
+  MouseMove($pos[0] + $offset_x, $pos[1] + $offset_y, 0)
   Local $coord = $pos[0] - 70 & " " & $pos[1] - 290 & " " & _
     $pos[0] + 50 & " " & $pos[1] - 270
   Local $temp = _TempFile()
@@ -68,27 +82,40 @@ While $win
     & $temp & '"', "", @SW_HIDE)
   Local $line = FileReadLine($temp)
   FileDelete($temp)
-  ;TrayTip($line, $line, 10, 1)
+  ; TrayTip($line, $line, 10, 1)
 
   ; 铁铲
-  If StringInStr($line, "铲") Then
+  If StringInStr($line, "铁") or StringInStr($line, "铲") Then
     ProcessClose("Miner.exe")
     ProcessClose("MinerWatch.exe")
     ProcessClose("卡淘金.exe")
-    Sleep(1000)
+    Sleep(2000)
+    Run($tools & "\一键无整形.exe")
+    WinWait("睿悠科技 锐速", "", 5)
+    Sleep(2000)
     Run($tools & "\一键无整形.exe")
     WinWait("睿悠科技 锐速", "", 5)
     Sleep(2000)
     Run($tools & "\一键启动流量矿石.exe")
     $win = WinWait($title, "", 5)
-    ContinueLoop
+    $tries = $tries + 1
+    If $tries > 5 Then
+      ExitLoop
+    Else
+      ContinueLoop
+    EndIf
 
   ; 挖矿机 or 爆破机 or 淘金机器人
-  ElseIf StringInStr($line, "机") or StringInStr($line, "人") Then
+  ElseIf StringInStr($line, "挖") or _
+         StringInStr($line, "矿") or _
+         StringInStr($line, "机") or _
+         StringInStr($line, "人") Then
     If Not ProcessExists("卡淘金.exe") Then
       Run($tools & "\一键启动卡淘金.exe")
-      Sleep(1000)
+      Sleep(2000)
     EndIf
+    Run($tools & "\一键26000.exe")
+    Sleep(2000)
     Run($tools & "\一键26000.exe")
     ExitLoop
   EndIf

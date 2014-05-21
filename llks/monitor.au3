@@ -52,6 +52,7 @@ Local $wait = 5000
 Local $offset_x = 53
 Local $offset_y = 7
 Local $title = "流量矿石系统"
+Local $admin_disconnected = 0
 
 While 1
   Local $extradata = ""
@@ -89,8 +90,8 @@ While 1
       "uint State", $Ret[4] + $Offset)
     $Offset += DllStructGetSize($tInfo)
     $SessionId = DllStructGetData($tInfo, 'SessionId')
-    $SessionName = DllStructGetData(DllStructCreate('wchar[1024]', _
-      DllStructGetData($tInfo, 'WinStationName')), 1)
+    ; $SessionName = DllStructGetData(DllStructCreate('wchar[1024]', _
+    ;   DllStructGetData($tInfo, 'WinStationName')), 1)
     $SessionState = DllStructGetData($tInfo, 'State')
     $tInfo = 0
     If $SessionId = 0 and $SessionState = 4 Then
