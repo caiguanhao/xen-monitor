@@ -1,3 +1,10 @@
+; AutoIt script to automatically download and execute BAT script.
+; ---------------------------------------------------------------
+; Copyright (c) 2014 Cai Guanhao (Choi Goon-ho)
+; Licensed under the terms of the MIT license.
+; Report bugs on https://github.com/caiguanhao/xen-monitor/issues
+; ---------------------------------------------------------------
+
 Local $file = "C:\command.bat"
 
 If $CmdLine[0] <> 1 Then
@@ -23,6 +30,6 @@ If $dl = 0 Then
   Exit 1
 EndIf
 ConsoleWrite("Download completed." & @CRLF)
-$pid = Run($file, "", @SW_MAXIMIZE, 0x10000)
+$pid = Run($file, "", @SW_HIDE, 0x10000)
 ConsoleWrite("Executed BAT script " & $file & " as PID " & $pid & "." & @CRLF)
 Exit

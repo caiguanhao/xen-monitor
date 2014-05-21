@@ -20,6 +20,15 @@ echo Compiling monitor.exe...
   /filedescription "LLKS Monitor." ^
   /legalcopyright "Copyright (c) 2014 Cai Guanhao (Choi Goon-ho)"
 
+echo Compiling autostart.exe...
+"C:\Program Files (x86)\AutoIt3\Aut2Exe\Aut2exe.exe" ^
+  /in autostart.au3 ^
+  /out "autostart.exe" ^
+  /x86 /comp 4 /pack ^
+  /companyname cgh.io ^
+  /filedescription "Auto-start." ^
+  /legalcopyright "Copyright (c) 2014 Cai Guanhao (Choi Goon-ho)"
+
 echo Compiling get.exe...
 "C:\Program Files (x86)\AutoIt3\Aut2Exe\Aut2exe.exe" ^
   /in "get.au3" ^
