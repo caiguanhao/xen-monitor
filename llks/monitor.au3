@@ -20,10 +20,10 @@ If Not FileExists($tools) Then
   Exit
 EndIf
 Local $dest = $tools & "\Capture2Text"
-Local $file = $tools & "\Capture2Text.zip"
-Local $dl = InetGet("http://d.cgh.io/Capture2Text.zip", $file, 1, 1)
+
+Local $file = $tools & "\Capture2Text.7z"
+Local $dl = InetGet("http://d.cgh.io/Capture2Text.7z", $file, 1, 1)
 If Not FileExists($dest) Then
-  DirCreate($dest)
   Do
     Local $info = InetGetInfo($dl)
     If $info[0] > 0 Then
@@ -34,12 +34,12 @@ If Not FileExists($dest) Then
   Until InetGetInfo($dl, 2)
   TrayTip("Extracting...", "Extracting program files...", 10, 1)
   Local $code = RunWait('"C:\Program Files\WinRAR\WinRAR.exe" x "' & $file & _
-    '" -o+ -ibck "' & $dest & '"', "", @SW_HIDE)
+    '" -o+ -ibck "' & $tools & '"', "", @SW_HIDE)
   If $code <> 0 or Not FileExists("C:\Program Files\WinRAR\WinRAR.exe") Then
     MsgBox(0 + 48 + 4096, "错误", "请重试。")
     Exit
   EndIf
-  TrayTip("Done.", "Started monitoring...", 10, 1)
+  TrayTip("Done.", "Downloaded program files.", 10, 1)
 EndIf
 
 $tooltip = "流量矿石监视器 by cgh.io"

@@ -34,6 +34,8 @@ If Not FileExists($dest) Then
   TrayTip("Done.", "Downloaded program files.", 10, 1)
 EndIf
 
+Sleep(2000)
+
 Run($tools & "\一键无整形.exe")
 WinWait("睿悠科技 锐速", "", 5)
 Sleep(2000)
@@ -44,8 +46,8 @@ If Not ProcessExists("tcpz.exe") Then
   Sleep(1000)
 EndIf
 
-Local $offset_x = 53
-Local $offset_y = 7
+Local $offset_x = 23
+Local $offset_y = 24
 Local $title = "流量矿石系统"
 Local $win
 
@@ -66,7 +68,7 @@ While $win
     & $temp & '"', "", @SW_HIDE)
   Local $line = FileReadLine($temp)
   FileDelete($temp)
-  TrayTip($line, $line, 10, 1)
+  ;TrayTip($line, $line, 10, 1)
 
   ; 铁铲
   If StringInStr($line, "铲") Then
