@@ -265,190 +265,135 @@
       <li><a href="/#/">All servers</a></li>
       <li class="active" ng-bind="host"></li>
     </ol>
-    <table class="table table-striped table-host">
-      <thead>
-        <tr>
-          <th><input type="checkbox" ng-model="checkedall"
-            ng-hide="checkedVMs===null"></th>
-          <th>Domain ID</th>
-          <th>IP Address</th>
-          <th>Power State</th>
-          <th>LLKS</th>
-          <th>Upload</th>
-          <th>Download</th>
-          <th>RDP</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr ng-repeat="VM in VMs.K">
-          <td>
-            <input type="checkbox" ng-model="checked[$index]">
-          </td>
-          <td ng-bind="VMs.I[$index]"></td>
-          <td>
-            <a href="/#/host/{{host}}/vm/{{VM}}" ng-bind="VM"></a>
-          </td>
-          <td><span class="text-{{VMs.PSC[$index]}}"
-            ng-bind="VMs.PS[$index]"></span></td>
-          <td><span class="text-{{VMs.LC[$index]}}"
-            ng-bind="VMs.LT[$index]"></span></td>
-          <td><span class="text-{{VMs.UC[$index]}}"
-            ng-bind="VMs.UT[$index]"></span></td>
-          <td><span class="text-{{VMs.DC[$index]}}"
-            ng-bind="VMs.DT[$index]"></span></td>
-          <td>
-            <a href="xen-monitor-rdp://{{VM}}"><span
-              class="glyphicon glyphicon-new-window"></span> RDP</a>
-          </td>
-        </tr>
-        <tr ng-hide="VMs">
-          <td colspan="8" class="text-center">
-            Please wait while the host sends its statictics here...
-          </td>
-        </tr>
-      </tbody>
-      <tfoot ng-show="VMs">
-        <tr>
-          <td colspan="4">
-            <a class="btn btn-xs btn-default"
-              ng-class="{disabled:!checkedVMs.length}"
-              href="xen-monitor-rdp://{{checkedVMs+''}}">
-              <span class="glyphicon glyphicon-new-window"></span>
-              Open Selected VMs via RDP</a>
-          </td>
-          <td><span class="text-{{VMs.TLC}}"
-            ng-bind="VMs.TLT"></span></td>
-          <td><span class="text-{{VMs.TUC}}"
-            ng-bind="VMs.TUT"></span></td>
-          <td><span class="text-{{VMs.TDC}}"
-            ng-bind="VMs.TDT"></span></td>
-          <td>
-            <a href="xen-monitor-rdp://{{VMs.K+''}}"><span
-              class="glyphicon glyphicon-new-window"></span> Open All</a>
-          </td>
-        </tr>
-      </tfoot>
-    </table>
-    <div class="alert alert-{{freeze.messageColor}} cmd-alert"
-      ng-show="freeze.message"
-      ng-bind="freeze.message|cmdreplace:freeze.commandText"></div>
-    <div class="progress pbar-cmd progress-striped active"
-      ng-show="freeze.frozen">
-      <div class="progress-bar" freeze-progress-bar="freeze">
-        <span ng-show="freeze.elapsed"
-          ng-bind="freeze.elapsed+' / '+freeze.wait"></span>
-      </div>
+    <div class="btn-group btn-group-xs">
+      <button class="btn btn-default" ng-click="hostview='simple'"
+        ng-class="{active:hostview==='simple'}">
+        Simple</button>
+      <button class="btn btn-default" ng-click="hostview='monitor'"
+        ng-class="{active:hostview==='monitor'}">
+        Monitor</button>
     </div>
-    <form class="form-inline" ng-submit="execute()"
-      ng-show="checked&&!freeze.frozen">
-      <select class="form-control input-sm" ng-model="command">
-        <option ng-repeat="cmd in commands.C"
-          value="{{$index}}">{{commands.T[$index]}}
-          ({{commands.W[$index]}}s)</option>
-      </select>
-      <input type="password" class="form-control input-sm"
-        placeholder="Password" ng-model="password">
-      <button type="submit" ng-disabled="btnExecuteDisabled()"
-        class="btn btn-sm btn-default">Execute</button>
-    </form>
-    <div class="screenshot screenshot-montage loading" ng-show="montage">
-      <div class="status">
-        <div class="col-sm-6 col-sm-offset-3">
-          <div class="progress progress-striped active">
-            <div class="progress-bar" style="width: 100%">
-              <span>Loading screenshot...</span>
+    <div ng-switch on="hostview">
+      <div ng-switch-when="monitor">
+        <div class="wide-text" ng-hide="VMs">
+          Please wait while the host sends its statictics here...
+        </div>
+        <div class="row monitor-screens" ng-show="VMs">
+          <div class="col-xs-12 col-sm-6 monitor-screen" ng-repeat="VM in VMs.K">
+            <div class="screenshot loading">
+              <div class="status">
+                <div class="col-sm-6 col-sm-offset-3">
+                  <div class="progress progress-striped active">
+                    <div class="progress-bar" style="width: 100%">
+                      <span>Loading screenshot...</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="error"><span
+                class="glyphicon glyphicon-exclamation-sign"></span>
+                No screenshot available for
+                <a href="/#/host/{{host}}/vm/{{VM}}" ng-bind="VM"></a>.</div>
+              <div class="content">
+                <a href="/#/host/{{host}}/vm/{{VM}}">
+                  <img screenshot="screenshotUrl(VM)" class="img-responsive">
+                </a>
+              </div>
+              <div class="info">
+                <a href="/#/host/{{host}}/vm/{{VM}}" ng-bind="VM"></a>
+              </div>
             </div>
           </div>
         </div>
       </div>
-      <div class="error"><span
-        class="glyphicon glyphicon-exclamation-sign"></span>
-        No screenshot available.</div>
-      <div class="content">
-        <img screenshot="montage" class="img-montage img-responsive">
-      </div>
-    </div>
-  </script>
-  <script type="text/ng-template" id="vm">
-    <ol class="breadcrumb">
-      <li><a href="/#/">All servers</a></li>
-      <li><a href="/#/host/{{host}}" ng-bind="host"></a></li>
-      <li class="active" ng-bind="vm"></li>
-      <li><a href="xen-monitor-rdp://{{vm}}">Open this VM via RDP</a></li>
-    </ol>
-    <div class="row">
-      <div class="col-sm-4 col-xs-12">
-        <div class="panel panel-default">
-          <div class="panel-heading">Status</div>
-          <div class="panel-body">
-            <div class="col-sm-12 col-xs-6">
-              <div class="col-xs-6 vm-info-key">domain id</div>
-              <div class="col-xs-6 vm-info-value">
-                <h4 ng-bind="VMs.I[index] || 'Loading...'"></h4>
-              </div>
-            </div>
-            <div class="col-sm-12 col-xs-6">
-              <div class="col-xs-6 vm-info-key">power state</div>
-              <div class="col-xs-6 vm-info-value">
-                <h4 class="text-{{VMs.PSC[index]}}" ng-bind="VMs.PS[index] || 'Loading...'"></h4>
-              </div>
-            </div>
-            <div class="col-sm-12 col-xs-6">
-              <div class="col-xs-6 vm-info-key">llks upload</div>
-              <div class="col-xs-6 vm-info-value">
-                <h4 class="text-{{VMs.LC[index]}}" ng-bind="VMs.LT[index] || 'Loading...'"></h4>
-              </div>
-            </div>
-            <div class="col-sm-12 col-xs-6">
-              <div class="col-xs-6 vm-info-key">total upload</div>
-              <div class="col-xs-6 vm-info-value">
-                <h4 class="text-{{VMs.UC[index]}}" ng-bind="VMs.UT[index] || 'Loading...'"></h4>
-              </div>
-            </div>
-            <div class="col-sm-12 col-xs-6">
-              <div class="col-xs-6 vm-info-key">total download</div>
-              <div class="col-xs-6 vm-info-value">
-                <h4 class="text-{{VMs.DC[index]}}" ng-bind="VMs.DT[index] || 'Loading...'"></h4>
-              </div>
-            </div>
+      <div ng-switch-when="simple">
+        <table class="table table-striped table-host">
+          <thead>
+            <tr>
+              <th><input type="checkbox" ng-model="checkedall"
+                ng-hide="checkedVMs===null"></th>
+              <th>Domain ID</th>
+              <th>IP Address</th>
+              <th>Power State</th>
+              <th>LLKS</th>
+              <th>Upload</th>
+              <th>Download</th>
+              <th>RDP</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr ng-repeat="VM in VMs.K">
+              <td>
+                <input type="checkbox" ng-model="checked[$index]">
+              </td>
+              <td ng-bind="VMs.I[$index]"></td>
+              <td>
+                <a href="/#/host/{{host}}/vm/{{VM}}" ng-bind="VM"></a>
+              </td>
+              <td><span class="text-{{VMs.PSC[$index]}}"
+                ng-bind="VMs.PS[$index]"></span></td>
+              <td><span class="text-{{VMs.LC[$index]}}"
+                ng-bind="VMs.LT[$index]"></span></td>
+              <td><span class="text-{{VMs.UC[$index]}}"
+                ng-bind="VMs.UT[$index]"></span></td>
+              <td><span class="text-{{VMs.DC[$index]}}"
+                ng-bind="VMs.DT[$index]"></span></td>
+              <td>
+                <a href="xen-monitor-rdp://{{VM}}"><span
+                  class="glyphicon glyphicon-new-window"></span> RDP</a>
+              </td>
+            </tr>
+            <tr ng-hide="VMs">
+              <td colspan="8" class="text-center">
+                Please wait while the host sends its statictics here...
+              </td>
+            </tr>
+          </tbody>
+          <tfoot ng-show="VMs">
+            <tr>
+              <td colspan="4">
+                <a class="btn btn-xs btn-default"
+                  ng-class="{disabled:!checkedVMs.length}"
+                  href="xen-monitor-rdp://{{checkedVMs+''}}">
+                  <span class="glyphicon glyphicon-new-window"></span>
+                  Open Selected VMs via RDP</a>
+              </td>
+              <td><span class="text-{{VMs.TLC}}"
+                ng-bind="VMs.TLT"></span></td>
+              <td><span class="text-{{VMs.TUC}}"
+                ng-bind="VMs.TUT"></span></td>
+              <td><span class="text-{{VMs.TDC}}"
+                ng-bind="VMs.TDT"></span></td>
+              <td>
+                <a href="xen-monitor-rdp://{{VMs.K+''}}"><span
+                  class="glyphicon glyphicon-new-window"></span> Open All</a>
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+        <div class="alert alert-{{freeze.messageColor}} cmd-alert"
+          ng-show="freeze.message"
+          ng-bind="freeze.message|cmdreplace:freeze.commandText"></div>
+        <div class="progress pbar-cmd progress-striped active"
+          ng-show="freeze.frozen">
+          <div class="progress-bar" freeze-progress-bar="freeze">
+            <span ng-show="freeze.elapsed"
+              ng-bind="freeze.elapsed+' / '+freeze.wait"></span>
           </div>
         </div>
-        <div class="panel panel-default" ng-show="index>-1">
-          <div class="panel-heading">Power</div>
-          <div class="panel-body">
-            <div class="alert alert-{{freeze.messageColor}} cmd-alert"
-              ng-show="freeze.message"
-              ng-bind="freeze.message|cmdreplace:freeze.commandText"></div>
-            <div class="progress pbar-cmd progress-striped active"
-              ng-show="freeze.frozen">
-              <div class="progress-bar" freeze-progress-bar="freeze">
-                <span ng-show="freeze.elapsed"
-                  ng-bind="freeze.elapsed+' / '+freeze.wait"></span>
-              </div>
-            </div>
-            <form class="form" ng-submit="execute()"
-              ng-show="index>-1&&!freeze.frozen">
-              <div class="form-group">
-                <select class="form-control input-sm" ng-model="command">
-                  <option ng-repeat="cmd in commands.C"
-                    value="{{$index}}">{{commands.T[$index]}}
-                    ({{commands.W[$index]}}s)</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <input type="password" class="form-control input-sm"
-                  placeholder="Password" ng-model="password">
-              </div>
-              <div class="form-group">
-                <button type="submit" ng-disabled="btnExecuteDisabled()"
-                  class="btn btn-sm btn-default">Execute</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-      <div class="col-sm-8 col-xs-12">
-        <div class="screenshot loading" ng-show="screenshot">
+        <form class="form-inline" ng-submit="execute()"
+          ng-show="checked&&!freeze.frozen">
+          <select class="form-control input-sm" ng-model="command">
+            <option ng-repeat="cmd in commands.C"
+              value="{{$index}}">{{commands.T[$index]}}
+              ({{commands.W[$index]}}s)</option>
+          </select>
+          <input type="password" class="form-control input-sm"
+            placeholder="Password" ng-model="password">
+          <button type="submit" ng-disabled="btnExecuteDisabled()"
+            class="btn btn-sm btn-default">Execute</button>
+        </form>
+        <div class="screenshot screenshot-montage loading" ng-show="montage">
           <div class="status">
             <div class="col-sm-6 col-sm-offset-3">
               <div class="progress progress-striped active">
@@ -462,7 +407,106 @@
             class="glyphicon glyphicon-exclamation-sign"></span>
             No screenshot available.</div>
           <div class="content">
-            <img screenshot="screenshot" class="img-responsive">
+            <img screenshot="montage" class="img-montage img-responsive">
+          </div>
+        </div>
+      </div>
+    </script>
+    <script type="text/ng-template" id="vm">
+      <ol class="breadcrumb">
+        <li><a href="/#/">All servers</a></li>
+        <li><a href="/#/host/{{host}}" ng-bind="host"></a></li>
+        <li class="active" ng-bind="vm"></li>
+        <li><a href="xen-monitor-rdp://{{vm}}">Open this VM via RDP</a></li>
+      </ol>
+      <div class="row">
+        <div class="col-sm-4 col-xs-12">
+          <div class="panel panel-default">
+            <div class="panel-heading">Status</div>
+            <div class="panel-body">
+              <div class="col-sm-12 col-xs-6">
+                <div class="col-xs-6 vm-info-key">domain id</div>
+                <div class="col-xs-6 vm-info-value">
+                  <h4 ng-bind="VMs.I[index] || 'Loading...'"></h4>
+                </div>
+              </div>
+              <div class="col-sm-12 col-xs-6">
+                <div class="col-xs-6 vm-info-key">power state</div>
+                <div class="col-xs-6 vm-info-value">
+                  <h4 class="text-{{VMs.PSC[index]}}" ng-bind="VMs.PS[index] || 'Loading...'"></h4>
+                </div>
+              </div>
+              <div class="col-sm-12 col-xs-6">
+                <div class="col-xs-6 vm-info-key">llks upload</div>
+                <div class="col-xs-6 vm-info-value">
+                  <h4 class="text-{{VMs.LC[index]}}" ng-bind="VMs.LT[index] || 'Loading...'"></h4>
+                </div>
+              </div>
+              <div class="col-sm-12 col-xs-6">
+                <div class="col-xs-6 vm-info-key">total upload</div>
+                <div class="col-xs-6 vm-info-value">
+                  <h4 class="text-{{VMs.UC[index]}}" ng-bind="VMs.UT[index] || 'Loading...'"></h4>
+                </div>
+              </div>
+              <div class="col-sm-12 col-xs-6">
+                <div class="col-xs-6 vm-info-key">total download</div>
+                <div class="col-xs-6 vm-info-value">
+                  <h4 class="text-{{VMs.DC[index]}}" ng-bind="VMs.DT[index] || 'Loading...'"></h4>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="panel panel-default" ng-show="index>-1">
+            <div class="panel-heading">Power</div>
+            <div class="panel-body">
+              <div class="alert alert-{{freeze.messageColor}} cmd-alert"
+                ng-show="freeze.message"
+                ng-bind="freeze.message|cmdreplace:freeze.commandText"></div>
+              <div class="progress pbar-cmd progress-striped active"
+                ng-show="freeze.frozen">
+                <div class="progress-bar" freeze-progress-bar="freeze">
+                  <span ng-show="freeze.elapsed"
+                    ng-bind="freeze.elapsed+' / '+freeze.wait"></span>
+                </div>
+              </div>
+              <form class="form" ng-submit="execute()"
+                ng-show="index>-1&&!freeze.frozen">
+                <div class="form-group">
+                  <select class="form-control input-sm" ng-model="command">
+                    <option ng-repeat="cmd in commands.C"
+                      value="{{$index}}">{{commands.T[$index]}}
+                      ({{commands.W[$index]}}s)</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <input type="password" class="form-control input-sm"
+                    placeholder="Password" ng-model="password">
+                </div>
+                <div class="form-group">
+                  <button type="submit" ng-disabled="btnExecuteDisabled()"
+                    class="btn btn-sm btn-default">Execute</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-8 col-xs-12">
+          <div class="screenshot loading" ng-show="screenshot">
+            <div class="status">
+              <div class="col-sm-6 col-sm-offset-3">
+                <div class="progress progress-striped active">
+                  <div class="progress-bar" style="width: 100%">
+                    <span>Loading screenshot...</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="error"><span
+              class="glyphicon glyphicon-exclamation-sign"></span>
+              No screenshot available.</div>
+            <div class="content">
+              <img screenshot="screenshot" class="img-responsive">
+            </div>
           </div>
         </div>
       </div>

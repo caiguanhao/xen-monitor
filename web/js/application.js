@@ -792,6 +792,7 @@ controller('MainController', ['$scope', 'Socket', 'Servers', 'LocalSettings',
 
 controller('HostController', ['$scope', '$routeParams', 'Socket', 'Servers',
   function($scope, $routeParams, Socket, Servers) {
+  $scope.hostview = 'monitor';
   $scope.host = $routeParams.host;
   $scope.VMs = Servers.allServers[$scope.host];
   Servers.freezeHosts[$scope.host] = Servers.freezeHosts[$scope.host] || {};
@@ -864,6 +865,9 @@ controller('HostController', ['$scope', '$routeParams', 'Socket', 'Servers',
   };
 
   $scope.montage = 'http://' + $scope.host + ':54321/images/montage.png';
+  $scope.screenshotUrl = function(vm) {
+    return 'http://' + $scope.host + ':54321/images/' + vm + '-full.png';
+  };
 }]).
 
 controller('VMController', ['$scope', '$routeParams', 'Socket', 'Servers',

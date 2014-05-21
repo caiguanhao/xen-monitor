@@ -224,11 +224,35 @@ a.progress-bar {
   margin-top: 10px;
 }
 
+.wide-text {
+  text-align: center;
+  padding: 20px;
+}
+
 .screenshot {
+  position: relative;
   .status, .error {
     padding-top: 25%;
     padding-bottom: 25%;
     text-align: center;
+  }
+  .info {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.35);
+    color: #FFF;
+    font-size: 12px;
+    padding: 1px 5px;
+    text-align: center;
+    height: 17px;
+    a {
+      color: #fff;
+      &:hover {
+        color: #fff;
+      }
+    }
   }
 }
 
@@ -236,34 +260,25 @@ a.progress-bar {
   .status {
     display: block;
   }
-  .error {
-    display: none;
-  }
-  .content {
+  .error, .info, .content {
     display: none;
   }
 }
 
 .screenshot.error {
-  .status {
-    display: none;
-  }
   .error {
     display: block;
   }
-  .content {
+  .status, .info, .content {
     display: none;
   }
 }
 
 .screenshot.loaded {
-  .status {
+  .status, .error {
     display: none;
   }
-  .error {
-    display: none;
-  }
-  .content {
+  .content, .info {
     display: block;
   }
 }
@@ -280,6 +295,22 @@ a.progress-bar {
     margin-left: auto;
     margin-right: auto;
   }
+}
+
+.monitor-screens {
+  padding-left: 10px;
+  padding-right: 10px;
+  .monitor-screen {
+    padding-right: 5px;
+    padding-left: 5px;
+    margin-top: 10px;
+    .screenshot {
+      .status, .error {
+        padding-bottom: 48%;
+      }
+    }
+  }
+
 }
 
 .img-montage {
