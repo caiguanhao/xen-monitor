@@ -224,12 +224,14 @@ directive('screenshot', [function() {
       screenshot: '='
     },
     link: function($scope, elem, attrs) {
+      var parent = elem.parent().parent();
+      if (!parent.hasClass('screenshot')) parent = parent.parent();
       elem.attr('src', $scope.screenshot);
       elem.on('load', function() {
-        elem.parent().parent().removeClass('loading error').addClass('loaded');
+        parent.removeClass('loading error').addClass('loaded');
       });
       elem.on('error', function() {
-        elem.parent().parent().removeClass('loading loaded').addClass('error');
+        parent.removeClass('loading loaded').addClass('error');
       });
       $scope.$on('anotherFiveSeconds', function() {
         elem.attr('src', $scope.screenshot);
@@ -329,7 +331,8 @@ service('LocalSettings', ['$window', function($window) {
   this.cached = {
     live: true,
     hostview: 'simple',
-    password: ''
+    password: '',
+    screenImageFormat: 'webp'
   };
 }]).
 
@@ -905,7 +908,8 @@ controller('HostController', ['$scope', '$routeParams', 'Socket', 'Servers',
 
   $scope.montage = 'http://' + $scope.host + ':54321/images/montage.png';
   $scope.screenshotUrl = function(vm) {
-    return 'http://' + $scope.host + ':54321/images/' + vm + '-full.png';
+    return 'http://' + $scope.host + ':54321/images/' + vm + '-full.' +
+      $scope.cached.screenImageFormat;
   };
 }]).
 
@@ -974,7 +978,7 @@ controller('VMController', ['$scope', '$routeParams', 'Socket', 'Servers',
   };
 
   $scope.screenshot = 'http://' + $scope.host + ':54321/images/' +
-    $scope.vm + '-full.png';
+    $scope.vm + '-full.' + $scope.cached.screenImageFormat;
 }]).
 
 controller('EditListsController', ['$scope', 'LocalSettings', 'Socket',

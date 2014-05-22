@@ -282,6 +282,14 @@
         ng-class="{active:cached.hostview==='monitor'}">
         Monitor</button>
     </div>
+    <div class="btn-group btn-group-xs" ng-show="cached.hostview==='monitor'">
+      <button class="btn btn-default" ng-click="cached.screenImageFormat='webp'"
+        ng-class="{active:cached.screenImageFormat==='webp'}">
+        WebP</button>
+      <button class="btn btn-default" ng-click="cached.screenImageFormat='png'"
+        ng-class="{active:cached.screenImageFormat==='png'}">
+        PNG</button>
+    </div>
     <div ng-switch on="cached.hostview">
       <div ng-switch-when="monitor">
         <div class="wide-text" ng-hide="VMs">
@@ -507,6 +515,14 @@
                 </div>
               </form>
             </div>
+          </div>
+          <div class="btn-group btn-group-xs">
+            <button class="btn btn-default" ng-click="cached.screenImageFormat='webp'"
+              ng-class="{active:cached.screenImageFormat==='webp'}">
+              WebP</button>
+            <button class="btn btn-default" ng-click="cached.screenImageFormat='png'"
+              ng-class="{active:cached.screenImageFormat==='png'}">
+              PNG</button>
           </div>
         </div>
         <div class="col-sm-8 col-xs-12">

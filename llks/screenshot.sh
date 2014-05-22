@@ -58,4 +58,4 @@ for i, file in enumerate(files):
 all.save('$IMAGESTMP/montage.png')
 PY
 
-mv $IMAGESTMP/*.png $IMAGES
+mv $IMAGESTMP/* $IMAGES
