@@ -19,8 +19,10 @@ mkdir -p $IMAGESTMP
       CMD="${CMD}$((`xenstore-read /local/domain/${VM[1]}/console/vnc-port` - 5900))"
       CAPTURE="${CMD} capture ${IMAGESTMP}/${VM[0]}-full.png"
       $CAPTURE
+      cwebp -quiet -q 30 ${IMAGESTMP}/${VM[0]}-full.png -o ${IMAGESTMP}/${VM[0]}-full.webp
       JSON="$JSON,{\"name\":\"${VM[0]}\","
       JSON="$JSON\"full\":\"/images/${VM[0]}-full.png\","
+      JSON="$JSON\"webp\":\"/images/${VM[0]}-full.webp\","
       JSON="$JSON\"mini\":\"/images/${VM[0]}-mini.png\"}"
     fi
   done
