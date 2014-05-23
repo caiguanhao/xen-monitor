@@ -335,8 +335,8 @@ void get_extra_data_of_vm(unsigned int domid, char *extra_data, unsigned int ext
   ed = popen(command, "r");
   if (ed != NULL) {
     fgets(extra_data, extra_data_size, ed);
-    unsigned int l = strlen(extra_data);
-    if (l > 0) extra_data[l - 1] = '\0'; // remove newline
+    int i = strspn(extra_data, "0123456789.KkMm/Ss ");
+    extra_data[i] = '\0';
   }
   pclose(ed);
   sprintf(command, "xenstore-write /local/domain/%u/extradata \"\" 2>/dev/null "
