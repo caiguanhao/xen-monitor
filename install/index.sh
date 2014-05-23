@@ -53,7 +53,7 @@ pkill listen;
 pkill send;
 pkill nginx;
 
-listen -b /etc/xen-monitor/command.sh -D;
+listen -r /etc/xen-monitor/command.sh -D;
 send -i ${DESTIP} -p ${DESTPORT} -s 5 -n /etc/xen-monitor/null.sh -b /etc/xen-monitor/screenshot.sh -D;
 /usr/local/nginx/sbin/nginx -c /etc/xen-monitor/nginx.conf;
 
