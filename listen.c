@@ -19,6 +19,7 @@ static int verbose_flag;
 static int daemon_flag;
 static int dry_run_flag;
 
+char run_if_no_command[256];
 char password[250];
 char password_file[256];
 
@@ -34,6 +35,7 @@ static void help(const char *program) {
     "  -D, --daemon                run as a daemon\n"
     "  -o, --stdout        <file>  write stdout to file\n"
     "  -e, --stderr        <file>  write stderr to file\n"
+    "  -r, --run           <file>  execute file when command is not found\n"
     "  -P, --password-file <file>  file or - (stdin) to read password from,\n"
     "                              default is file %s\n"
     "  -p, --port          <port>  listen to this port, default: %u\n"
@@ -54,9 +56,10 @@ int read_from_client(int fd) {
     return -1;
   } else {
     if (verbose_flag) {
-      printf("Received: %s\n", buffer);
+      printf("Received:\n%s\n", buffer);
     }
-    char *pch = strtok(buffer, " ");
+    const char delim[] = "\n";
+    char *pch = strtok(buffer, delim);
     if (pch == NULL) {
       return -1;
     } else {
@@ -66,26 +69,28 @@ int read_from_client(int fd) {
         }
         return -1;
       }
-      pch = strtok(NULL, " ");
+      pch = strtok(NULL, delim);
     }
     if (pch == NULL) {
       return -1;
     } else {
       int action;
-      if (strcmp(pch, "FORCERESTART") == 0) {
+      char action_string[256] = {0};
+      if (strcmp(pch, "forcerestart") == 0) {
         action = 1;
-      } else if (strcmp(pch, "RESTART") == 0) {
+      } else if (strcmp(pch, "restart") == 0) {
         action = 2;
-      } else if (strcmp(pch, "FORCESHUTDOWN") == 0) {
+      } else if (strcmp(pch, "forceshutdown") == 0) {
         action = 3;
-      } else if (strcmp(pch, "SHUTDOWN") == 0) {
+      } else if (strcmp(pch, "shutdown") == 0) {
         action = 4;
-      } else if (strcmp(pch, "START") == 0) {
+      } else if (strcmp(pch, "start") == 0) {
         action = 5;
       } else {
-        return 0;
+        action = 0;
+        snprintf(action_string, 256, "%s", pch);
       }
-      while ((pch = strtok(NULL, " "))) {
+      while ((pch = strtok(NULL, delim))) {
         unsigned int cmdsize = 512;
         char command[cmdsize];
         int x = 0;
@@ -110,6 +115,12 @@ int read_from_client(int fd) {
           x = snprintf(command, cmdsize,
               "xe vm-start name-label=\"%s\"", pch);
           break;
+        default:
+          x = 0;
+          if (strlen(run_if_no_command) > 0) {
+            x = snprintf(command, cmdsize, "%s %s %s", run_if_no_command, pch,
+              action_string);
+          }
         }
         if (x > 0 && x < cmdsize) {
           if (verbose_flag) {
@@ -149,10 +160,11 @@ int main(int argc, char *argv[]) {
       { "daemon",        no_argument,       0, 'D' },
       { "stdout",        required_argument, 0, 'o' },
       { "stderr",        required_argument, 0, 'e' },
+      { "run",           required_argument, 0, 'r' },
       { "dry-run",       no_argument      , 0, 'n' },
       { 0,               0,                 0,  0  }
     };
-    c = getopt_long(argc, argv, "hvP:p:Do:e:n", opts, &option_index);
+    c = getopt_long(argc, argv, "hvP:p:Do:e:r:n", opts, &option_index);
     if (c == -1) break;
     switch (c) {
     case 'v':
@@ -189,6 +201,12 @@ int main(int argc, char *argv[]) {
       freopen(path, "w", stderr);
       setvbuf(stderr, NULL, _IONBF, 0);
       stderr_to_file = 1;
+      break;
+    }
+    case 'r': {
+      char path[256];
+      realpath(optarg, path);
+      snprintf(run_if_no_command, sizeof run_if_no_command, "%s", path);
       break;
     }
     case '?':
@@ -262,6 +280,9 @@ int main(int argc, char *argv[]) {
 
   if (verbose_flag) {
     printf("Started listening on port %u.\n", port);
+    if (strlen(run_if_no_command) > 0) {
+      printf("%s will be executed if no matched command.\n", run_if_no_command);
+    }
   }
 
   if (daemon_flag) {
