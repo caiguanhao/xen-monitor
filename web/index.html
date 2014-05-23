@@ -203,16 +203,14 @@
         </div>
       </div>
       <div class="col-sm-12" ng-show="mclick==='check'">
-        <form class="form-inline toolbar" ng-submit="execute()">
+        <form class="form-inline toolbar" ng-submit="execute(command)">
           <a class="btn btn-sm btn-default"
             ng-class="{disabled:!cached.checked.list.length}"
             href="xen-monitor-rdp://{{cached.checked.list+''}}">
             <span class="glyphicon glyphicon-new-window"></span>
             Open {{cached.checked.list.length}} VMs via RDP</a>
-          <select class="form-control input-sm" ng-model="command">
-            <option ng-repeat="cmd in commands.C"
-              value="{{$index}}">{{commands.T[$index]}}
-              ({{commands.W[$index]}}s)</option>
+          <select class="form-control input-sm" ng-model="command"
+            ng-options="cmd.text group by cmd.group for cmd in commands">
           </select>
           <input type="password" class="form-control input-sm"
             placeholder="Password" ng-model="cached.password">
@@ -398,12 +396,10 @@
               ng-bind="freeze.elapsed+' / '+freeze.wait"></span>
           </div>
         </div>
-        <form class="form-inline" ng-submit="execute()"
+        <form class="form-inline" ng-submit="execute(command)"
           ng-show="checked&&!freeze.frozen">
-          <select class="form-control input-sm" ng-model="command">
-            <option ng-repeat="cmd in commands.C"
-              value="{{$index}}">{{commands.T[$index]}}
-              ({{commands.W[$index]}}s)</option>
+          <select class="form-control input-sm" ng-model="command"
+            ng-options="cmd.text group by cmd.group for cmd in commands">
           </select>
           <input type="password" class="form-control input-sm"
             placeholder="Password" ng-model="cached.password">
@@ -496,13 +492,11 @@
                     ng-bind="freeze.elapsed+' / '+freeze.wait"></span>
                 </div>
               </div>
-              <form class="form" ng-submit="execute()"
+              <form class="form" ng-submit="execute(command)"
                 ng-show="index>-1&&!freeze.frozen">
                 <div class="form-group">
-                  <select class="form-control input-sm" ng-model="command">
-                    <option ng-repeat="cmd in commands.C"
-                      value="{{$index}}">{{commands.T[$index]}}
-                      ({{commands.W[$index]}}s)</option>
+                  <select class="form-control input-sm" ng-model="command"
+                    ng-options="cmd.text group by cmd.group for cmd in commands">
                   </select>
                 </div>
                 <div class="form-group">

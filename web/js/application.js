@@ -336,7 +336,7 @@ service('LocalSettings', ['$window', function($window) {
   };
 }]).
 
-service('Servers', [function() {
+service('Servers', ['$filter', function($filter) {
   this.POWERSTATES = {
     U: 'Unknown',
     R: 'Running',
@@ -344,12 +344,83 @@ service('Servers', [function() {
     P: 'Paused',
     S: 'Suspended'
   };
-  this.COMMANDS = {
-    C: [ 'FORCERESTART', 'RESTART', 'FORCESHUTDOWN', 'SHUTDOWN', 'START' ],
-    T: [ 'Force Restart', 'Restart', 'Force Shutdown', 'Shutdown', 'Start' ],
-    W: [ 35, 60, 15, 35, 30 ], // wait n seconds
-    E: [ 'I', 'I', 'PS', 'PS', 'PS' ] // expect key to change
-  };
+  this.COMMANDS = [
+    {
+      group:   'Power',
+      command: 'forcerestart',
+      text:    'Force Restart',
+      wait:    35,
+      expect:  'I'
+    }, {
+      group:   'Power',
+      command: 'restart',
+      text:    'Restart',
+      wait:    60,
+      expect:  'I'
+    }, {
+      group:   'Power',
+      command: 'forceshutdown',
+      text:    'Force Shutdown',
+      wait:    15,
+      expect:  'PS'
+    }, {
+      group:   'Power',
+      command: 'shutdown',
+      text:    'Shutdown',
+      wait:    35,
+      expect:  'PS'
+    }, {
+      group:   'Power',
+      command: 'start',
+      text:    'Start',
+      wait:    30,
+      expect:  'PS'
+    }, {
+      group:   'Key',
+      command: 'send key f1',
+      text:    'F1 - Disable speed limit'
+    }, {
+      group:   'Key',
+      command: 'send key f2',
+      text:    'F2 - Set limit to 20000',
+    }, {
+      group:   'Key',
+      command: 'send key f3',
+      text:    'F3 - Set limit to 26000',
+    }, {
+      group:   'Key',
+      command: 'send key f4',
+      text:    'F4 - Open TCP-Z',
+    }, {
+      group:   'Key',
+      command: 'send key f5',
+      text:    'F5 - Open LLKS',
+    }, {
+      group:   'Key',
+      command: 'send key f6',
+      text:    'F6 - Open KTJ',
+    }, {
+      group:   'Key',
+      command: 'send key f7',
+      text:    'F7 - View statistics',
+    }, {
+      group:   'Key',
+      command: 'send key enter',
+      text:    'Enter',
+    }, {
+      group:   'Key',
+      command: 'send key esc',
+      text:    'Escape',
+    }, {
+      group:   'Combination',
+      command: 'login',
+      text: 'Log into Windows'
+    }, {
+      group:   'Combination',
+      command: 'get',
+      text: 'Run get command'
+    }
+  ];
   this.colorBySpeed = function(speed) {
     if (speed > 2048000) return 'success';
     if (speed > 1024000) return 'warning';
@@ -407,13 +478,13 @@ service('Servers', [function() {
     if (size > 1048576) return (size / 1048576).toFixed(2) + ' MB/s';
     return (size / 1024).toFixed(2) + ' KB/s';
   };
-  this.freeze = function(object, cmdindex) {
+  this.freeze = function(object, command) {
     object.time = (+new Date);
-    object.wait = this.COMMANDS.W[cmdindex];
+    object.wait = command.wait || 1;
     object.elapsed = 0;
     object.frozen = true;
     object.pBarWidth = 0;
-    object.commandText = this.COMMANDS.T[cmdindex];
+    object.commandText = command.text || '';
     object.message = 'Command {} has been sent. Please wait a moment.';
     object.messageColor = 'info';
   };
@@ -768,7 +839,7 @@ controller('MainController', ['$scope', 'Socket', 'Servers', 'LocalSettings',
     }
   };
   $scope.commands = Servers.COMMANDS;
-  $scope.command = 0;
+  $scope.command = $scope.commands[0];
   $scope.clearChecked = function() {
     $scope.cached.checked = {
       list: [],
@@ -814,16 +885,14 @@ controller('MainController', ['$scope', 'Socket', 'Servers', 'LocalSettings',
   $scope.btnExecuteDisabled = function() {
     return !$scope.cached.password || $scope.cached.password.length < 10;
   };
-  $scope.execute = function() {
+  $scope.execute = function(command) {
     if (!$scope.cached.checked) return alert('Not ready yet.');
     if (!Socket.socket.connected) {
       return alert('It seems you\'re not connected! Aborted!');
     }
     if (!confirm('Are you sure you want to execute this command?')) return;
-    var cmdindex = $scope.command;
-    var command = Servers.COMMANDS.C[cmdindex];
-    Socket.emit('ExecuteCommandMultiple', $scope.cached.password, command,
-      $scope.cached.checked.items);
+    Socket.emit('ExecuteCommandMultiple', $scope.cached.password,
+      command.command, $scope.cached.checked.items);
   };
   angular.extend($scope, LocalSettings.getLocalSettings({
     range: 4, show: 0, type: 'U', mclick: null
@@ -843,7 +912,7 @@ controller('HostController', ['$scope', '$routeParams', 'Socket', 'Servers',
   $scope.checked = Servers.checkedVMs[$scope.host];
   $scope.checkedVMs = null;
   $scope.commands = Servers.COMMANDS;
-  $scope.command = 0;
+  $scope.command = $scope.commands[0];
 
   if (Socket.$events) delete Socket.$events['Update'];
   Socket.on('Update', function(host, data) {
@@ -889,20 +958,18 @@ controller('HostController', ['$scope', '$routeParams', 'Socket', 'Servers',
     }
     return !$scope.cached.password || $scope.cached.password.length < 10;
   };
-  $scope.execute = function() {
+  $scope.execute = function(command) {
     if (!$scope.checked) return alert('Not ready yet.');
     if (!Socket.socket.connected) {
       return alert('It seems you\'re not connected! Aborted!');
     }
     if (!confirm('Are you sure you want to execute this command?')) return;
-    var cmdindex = $scope.command;
-    var command = Servers.COMMANDS.C[cmdindex];
-    Socket.emit('ExecuteCommand', $scope.cached.password, command,
+    Socket.emit('ExecuteCommand', $scope.cached.password, command.command,
       $scope.host, $scope.checkedVMs);
-    Servers.freeze($scope.freeze, cmdindex);
+    Servers.freeze($scope.freeze, command);
     $scope.checkedVMs.forEach(function(vm) {
       Servers.freezeVMs[vm] = Servers.freezeVMs[vm] || {};
-      Servers.freeze(Servers.freezeVMs[vm], cmdindex);
+      Servers.freeze(Servers.freezeVMs[vm], command);
     });
   };
 
@@ -920,7 +987,7 @@ controller('VMController', ['$scope', '$routeParams', 'Socket', 'Servers',
   $scope.host = $routeParams.host;
   $scope.vm = $routeParams.vm;
   $scope.commands = Servers.COMMANDS;
-  $scope.command = 0;
+  $scope.command = $scope.commands[0];
   $scope.VMs = Servers.allServers[$scope.host];
   $scope.index = -1;
   if ($scope.VMs) {
@@ -960,21 +1027,21 @@ controller('VMController', ['$scope', '$routeParams', 'Socket', 'Servers',
   $scope.btnExecuteDisabled = function() {
     return !$scope.cached.password || $scope.cached.password.length < 10;
   };
-  $scope.execute = function() {
+  $scope.execute = function(command) {
     if ($scope.index < 0) return alert('Not ready yet.');
     if (!Socket.socket.connected) {
       return alert('It seems you\'re not connected! Aborted!');
     }
     if (!confirm('Are you sure you want to execute this command?')) return;
-    var cmdindex = $scope.command;
-    var command = Servers.COMMANDS.C[cmdindex];
-    Socket.emit('ExecuteCommand', $scope.cached.password, command,
+    Socket.emit('ExecuteCommand', $scope.cached.password, command.command,
       $scope.host, $scope.vm);
-    Servers.freeze($scope.freeze, cmdindex);
-    var expectOnKey = Servers.COMMANDS.E[cmdindex];
-    var orignal = $scope.VMs[expectOnKey][$scope.index];
-    $scope.freeze.expectOnKey = expectOnKey;
-    $scope.freeze.original = orignal;
+    Servers.freeze($scope.freeze, command);
+    var expectOnKey = command.expect;
+    if (expectOnKey) {
+      var orignal = $scope.VMs[expectOnKey][$scope.index];
+      $scope.freeze.expectOnKey = expectOnKey;
+      $scope.freeze.original = orignal;
+    }
   };
 
   $scope.screenshot = 'http://' + $scope.host + ':54321/images/' +

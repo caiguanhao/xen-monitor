@@ -65,14 +65,14 @@ function checkIPAddress(ipaddr) {
   return true;
 }
 
-function checkCommand(cmd) {
-  return [ "FORCERESTART", "RESTART", "FORCESHUTDOWN", "SHUTDOWN",
-    "START" ].indexOf(cmd) !== -1;
+function checkCommand(command) {
+  if (!command || command.length < 5 || command.length > 100) return false;
+  if (!/^[\s\-\_A-Za-z0-9\.\/]+$/.test(command)) return false;
+  return true;
 }
 
 function validateCommand(password, command, host, vm) {
   if (!password || password.length < 10 || password.length > 250) return false;
-  if (!command || command.length < 5 || command.length > 20) return false;
   if (!checkCommand(command)) return false;
   if (!checkIPAddress(host)) return false;
   if (vm instanceof Array) {
@@ -110,8 +110,8 @@ io.sockets.on('connection', function (socket) {
     }
     var cmdsocket = new net.Socket();
     cmdsocket.connect(3333, host, function() {
-      vm = vm instanceof Array ? vm.join(' ') : vm;
-      cmdsocket.end(password + ' ' + command + ' ' + vm);
+      vm = vm instanceof Array ? vm.join('\n') : vm;
+      cmdsocket.end(password + '\n' + command + '\n' + vm);
     });
     cmdsocket.on('end', function() {});
     cmdsocket.on('error', function() {
@@ -125,7 +125,6 @@ io.sockets.on('connection', function (socket) {
 
   socket.on('ExecuteCommandMultiple', function(password, command, multiple) {
     if (!password || password.length < 10 || password.length > 250) return;
-    if (!command || command.length < 5 || command.length > 20) return;
     if (!checkCommand(command)) return;
     if (typeof multiple !== 'object') return;
     for (var host in multiple) {
@@ -144,8 +143,8 @@ io.sockets.on('connection', function (socket) {
         var deferred = Q.defer();
         var cmdsocket = new net.Socket();
         cmdsocket.connect(3333, cur, function() {
-          var vms = multiple[cur].join(' ');
-          cmdsocket.end(password + ' ' + command + ' ' + vms);
+          var vms = multiple[cur].join('\n');
+          cmdsocket.end(password + '\n' + command + '\n' + vms);
         });
         cmdsocket.on('end', function() {
           deferred.resolve();
