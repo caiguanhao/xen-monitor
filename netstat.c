@@ -335,7 +335,7 @@ void get_extra_data_of_vm(unsigned int domid, char *extra_data, unsigned int ext
   ed = popen(command, "r");
   if (ed != NULL) {
     fgets(extra_data, extra_data_size, ed);
-    int i = strspn(extra_data, "0123456789.KkMm/Ss ");
+    int i = strspn(extra_data, "0123456789.KkMm/SsNUL ");
     extra_data[i] = '\0';
   }
   pclose(ed);
