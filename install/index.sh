@@ -21,6 +21,12 @@ exit 0
 
 deploy)
 CMD="
+rm -rf /opt/xen-monitor-master;
+curl -Ls https://github.com/caiguanhao/xen-monitor/archive/master.tar.gz -o /opt/xen-monitor.tar.gz;
+tar xfz /opt/xen-monitor.tar.gz -C /opt;
+cd /opt/xen-monitor-master;
+make install >/dev/null;
+
 echo ${LISTENPASSWD} > /etc/listen.passwd;
 
 mkdir -p /etc/xen-monitor;

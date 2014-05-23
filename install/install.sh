@@ -52,11 +52,4 @@ test -f /usr/local/nginx/sbin/nginx || {
   make install
 }
 
-echo Installing xen-monitor...
-rm -rf /opt/xen-monitor-master
-curl -L# https://github.com/caiguanhao/xen-monitor/archive/master.tar.gz -o /opt/xen-monitor.tar.gz
-tar xfz /opt/xen-monitor.tar.gz -C /opt
-cd /opt/xen-monitor-master
-make install
-
 echo Done.
