@@ -37,17 +37,23 @@ chmod +x /etc/xen-monitor/screenshot.sh;
 curl -Ls https://github.com/caiguanhao/xen-monitor/raw/master/llks/nginx.conf -o /etc/xen-monitor/nginx.conf;
 curl -Ls https://github.com/caiguanhao/xen-monitor/raw/master/llks/Ubuntu-L.ttf -o /etc/xen-monitor/Ubuntu-L.ttf;
 
+curl -Ls https://github.com/caiguanhao/xen-monitor/raw/master/llks/command.sh -o /etc/xen-monitor/command.sh;
+chmod +x /etc/xen-monitor/command.sh;
+
 sed -i -e 's/^USERNAME=.*$/USERNAME=${WINDOWSUSERNAME}/' \
        -e 's/^PASSWORD=.*$/PASSWORD=${WINDOWSPASSWORD}/' \
        /etc/xen-monitor/null.sh;
 sed -i 's#^FONTFILE=.*\$#FONTFILE=\"/etc/xen-monitor/Ubuntu-L.ttf\"#' \
        /etc/xen-monitor/screenshot.sh;
+sed -i -e 's/^WINDOWSUSERNAME=.*$/WINDOWSUSERNAME=${WINDOWSUSERNAME}/' \
+       -e 's/^WINDOWSPASSWORD=.*$/WINDOWSPASSWORD=${WINDOWSPASSWORD}/' \
+       /etc/xen-monitor/command.sh;
 
 pkill listen;
 pkill send;
 pkill nginx;
 
-listen -D;
+listen -b /etc/xen-monitor/command.sh -D;
 send -i ${DESTIP} -p ${DESTPORT} -s 5 -n /etc/xen-monitor/null.sh -b /etc/xen-monitor/screenshot.sh -D;
 /usr/local/nginx/sbin/nginx -c /etc/xen-monitor/nginx.conf;
 
