@@ -212,6 +212,9 @@
           <select class="form-control input-sm" ng-model="command"
             ng-options="cmd.text group by cmd.group for cmd in commands">
           </select>
+          <input type="text" class="form-control input-sm"
+            ng-show="command.custom===true"
+            placeholder="Custom command" ng-model="command.command">
           <input type="password" class="form-control input-sm"
             placeholder="Password" ng-model="cached.password">
           <button type="submit" ng-disabled="btnExecuteDisabled()"
@@ -401,6 +404,9 @@
           <select class="form-control input-sm" ng-model="command"
             ng-options="cmd.text group by cmd.group for cmd in commands">
           </select>
+          <input type="text" class="form-control input-sm"
+            ng-show="command.custom===true"
+            placeholder="Custom command" ng-model="command.command">
           <input type="password" class="form-control input-sm"
             placeholder="Password" ng-model="cached.password">
           <button type="submit" ng-disabled="btnExecuteDisabled()"
@@ -480,7 +486,7 @@
             </div>
           </div>
           <div class="panel panel-default" ng-show="index>-1">
-            <div class="panel-heading">Power</div>
+            <div class="panel-heading">Send Command</div>
             <div class="panel-body">
               <div class="alert alert-{{freeze.messageColor}} cmd-alert"
                 ng-show="freeze.message"
