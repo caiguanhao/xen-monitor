@@ -55,6 +55,7 @@ git fetch --all >/dev/null 2>/dev/null
 git reset --hard origin/master >/dev/null 2>/dev/null
 npm install >/dev/null 2>/dev/null
 test_last_command
+echo "Current HEAD ... $(git log --pretty=format:'%Cgreen%h %s%Creset' -n 1)"
 printf "Flushing Redis database $RedisDB ... "
 redis-cli -n $RedisDB flushdb >/dev/null 2>/dev/null
 test_last_command
@@ -63,15 +64,18 @@ screen -S $SessionName -X quit >/dev/null 2>/dev/null
 test_last_command
 sleep 1
 printf "Starting app ... "
-screen -dmS $SessionName -t app /srv/xen-monitor2/service -p $AppPort -d $RedisDB >/dev/null 2>/dev/null
+screen -dmS $SessionName -t app ./service -p $AppPort -d $RedisDB \
+  >/dev/null 2>/dev/null
 test_last_command
 sleep 1
 printf "Starting receive ... "
-screen -S $SessionName -X screen -t receive /srv/xen-monitor2/receive -p $ReceivePort -d $RedisDB >/dev/null 2>/dev/null
+screen -S $SessionName -X screen -t receive ./receive -p $ReceivePort \
+  -d $RedisDB >/dev/null 2>/dev/null
 test_last_command
 printf "Checking web app status code ... "
 sleep 5
-CODE=\$(curl http://$Host/socket.io/1/ -sLo /dev/null -w "%{http_code}" --max-time 10)
+CODE=\$(curl http://$Host/socket.io/1/ -sLo /dev/null -w "%{http_code}" \
+  --max-time 10)
 if [[ \$CODE -eq 200 ]]; then
 echo -e "\\033[32m\$CODE"
 echo -e "It seems everything works fine.\\033[0m"
