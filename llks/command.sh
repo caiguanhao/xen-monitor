@@ -27,7 +27,7 @@ fi
 
 case $2 in
 get)
-  COMMAND="$VNC key super-r && sleep 1 && $VNC type get key space type $4 key enter"
+  COMMAND="$VNC key super-r && sleep 1 && $VNC type get key space type $3 key enter"
   ;;
 send)
   COMMAND="$VNC ${*:3}"
