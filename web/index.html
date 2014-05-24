@@ -499,6 +499,10 @@
                     ng-options="cmd.text group by cmd.group for cmd in commands">
                   </select>
                 </div>
+                <div class="form-group" ng-show="command.custom===true">
+                  <input type="text" class="form-control input-sm"
+                    placeholder="Custom command" ng-model="command.command">
+                </div>
                 <div class="form-group">
                   <input type="password" class="form-control input-sm"
                     placeholder="Password" ng-model="cached.password">

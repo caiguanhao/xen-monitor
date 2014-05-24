@@ -417,8 +417,9 @@ service('Servers', ['$filter', function($filter) {
       text: 'Log into Windows'
     }, {
       group:   'Combination',
-      command: 'get',
-      text: 'Run get command'
+      command: '',
+      custom: true,
+      text: 'Custom command'
     }
   ];
   this.colorBySpeed = function(speed) {
