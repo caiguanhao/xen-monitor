@@ -35,7 +35,7 @@ for node in $NODES; do
     while :; do
       read -n 1 -p "Deploy app to $Host? Ctrl-C to exit. [Y/n] " a
       echo
-      [[ $a == "Y" ]] || [[ $a == "y" ]] && break
+      [[ $a == "Y" ]] || [[ $a == "y" ]] || [[ $a == "" ]] && break
       [[ $a == "N" ]] || [[ $a == "n" ]] && { SKIP=1; break; }
     done
     if [[ $SKIP -eq 1 ]]; then
