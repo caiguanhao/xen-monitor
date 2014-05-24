@@ -210,6 +210,7 @@
             <span class="glyphicon glyphicon-new-window"></span>
             Open {{cached.checked.list.length}} VMs via RDP</a>
           <select class="form-control input-sm" ng-model="command"
+            ng-change="cached.cmdindex=commands.indexOf(command)"
             ng-options="cmd.text group by cmd.group for cmd in commands">
           </select>
           <input type="text" class="form-control input-sm"
@@ -402,6 +403,7 @@
         <form class="form-inline" ng-submit="execute(command)"
           ng-show="checked&&!freeze.frozen">
           <select class="form-control input-sm" ng-model="command"
+            ng-change="cached.cmdindex=commands.indexOf(command)"
             ng-options="cmd.text group by cmd.group for cmd in commands">
           </select>
           <input type="text" class="form-control input-sm"
@@ -502,6 +504,7 @@
                 ng-show="index>-1&&!freeze.frozen">
                 <div class="form-group">
                   <select class="form-control input-sm" ng-model="command"
+                    ng-change="cached.cmdindex=commands.indexOf(command)"
                     ng-options="cmd.text group by cmd.group for cmd in commands">
                   </select>
                 </div>

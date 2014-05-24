@@ -332,7 +332,8 @@ service('LocalSettings', ['$window', function($window) {
     live: true,
     hostview: 'simple',
     password: '',
-    screenImageFormat: 'webp'
+    screenImageFormat: 'webp',
+    cmdindex: 0
   };
 }]).
 
@@ -840,7 +841,7 @@ controller('MainController', ['$scope', 'Socket', 'Servers', 'LocalSettings',
     }
   };
   $scope.commands = Servers.COMMANDS;
-  $scope.command = $scope.commands[0];
+  $scope.command = $scope.commands[$scope.cached.cmdindex];
   $scope.clearChecked = function() {
     $scope.cached.checked = {
       list: [],
@@ -913,7 +914,7 @@ controller('HostController', ['$scope', '$routeParams', 'Socket', 'Servers',
   $scope.checked = Servers.checkedVMs[$scope.host];
   $scope.checkedVMs = null;
   $scope.commands = Servers.COMMANDS;
-  $scope.command = $scope.commands[0];
+  $scope.command = $scope.commands[$scope.cached.cmdindex];
 
   if (Socket.$events) delete Socket.$events['Update'];
   Socket.on('Update', function(host, data) {
@@ -988,7 +989,7 @@ controller('VMController', ['$scope', '$routeParams', 'Socket', 'Servers',
   $scope.host = $routeParams.host;
   $scope.vm = $routeParams.vm;
   $scope.commands = Servers.COMMANDS;
-  $scope.command = $scope.commands[0];
+  $scope.command = $scope.commands[$scope.cached.cmdindex];
   $scope.VMs = Servers.allServers[$scope.host];
   $scope.index = -1;
   if ($scope.VMs) {
