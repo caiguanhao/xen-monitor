@@ -240,8 +240,8 @@ directive('screenshot', [function() {
   };
 }]).
 
-factory('Socket', ['$window', 'ASSETS', 'LocalSettings',
-  function($window, ASSETS, LocalSettings) {
+factory('Socket', ['$window', 'ASSETS', 'LocalSettings', 'Servers',
+  function($window, ASSETS, LocalSettings, Servers) {
   var socket = $window.io.connect('/', {
     'force new connection': true,
     'reconnect': true,
@@ -249,8 +249,11 @@ factory('Socket', ['$window', 'ASSETS', 'LocalSettings',
     'reconnection limit': 5000,
     'max reconnection attempts': 10000
   });
-  socket.on('CheckAssetsVersion', function(data, lists) {
+  socket.on('CheckAssetsVersion', function(data, lists, whitelist) {
     LocalSettings.parseLists(lists);
+    if (angular.isArray(whitelist)) {
+      Servers.whitelist = whitelist;
+    }
     if (typeof data !== 'object' || typeof ASSETS !== 'object') {
       return;
     }
@@ -524,6 +527,8 @@ service('Servers', ['$filter', function($filter) {
   this.checkedVMs = {};
   this.allServers = {};
   this.allServerHosts = [];
+  this.whitelist = [];
+  this.serversLoaded = {};
   this.colorStats = {};
   this.rangeStats = {};
   this.totalStats = {};
@@ -689,6 +694,13 @@ service('Servers', ['$filter', function($filter) {
       this.topTotalDownload = 0;
       this.topTotalDownloadTime = now;
     }
+
+    var loaded = this.allServerHosts.length / this.whitelist.length * 100;
+    this.serversLoaded.loaded = Math.min(Math.round(loaded), 100);
+    var that = this;
+    this.serversLoaded.notLoaded = this.whitelist.filter(function(s) {
+      return !that.allServers[s];
+    });
   };
 }]).
 
@@ -782,6 +794,7 @@ controller('MainController', ['$scope', 'Socket', 'Servers', 'LocalSettings',
     $scope.$broadcast('newSearch');
   }, 0);
 
+  $scope.loaded = Servers.serversLoaded;
   MainControllerHotKeys.apply($scope);
 
   if (Socket.$events) delete Socket.$events['Update'];

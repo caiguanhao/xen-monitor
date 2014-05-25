@@ -226,6 +226,25 @@
             class="btn btn-sm btn-default">Clear Selection</button>
         </form>
       </div>
+
+      <div class="col-sm-12 servers-loaded" ng-show="loaded.loaded<100">
+        <div class="progress progress-striped active">
+          <div class="progress-bar" style="width: {{loaded.loaded}}%">
+            <span>{{loaded.loaded}}% servers loaded</span>
+          </div>
+        </div>
+        <div class="progress-text" ng-init="displayLimit=6">
+          Not loaded:
+          <span ng-repeat="host in loaded.notLoaded | limitTo:displayLimit">
+            <a href="/#/host/{{host}}" ng-bind="host"></a><span
+              ng-if="$index<displayLimit-1">,</span>
+          </span>
+          <span ng-show="loaded.notLoaded.length - displayLimit > 0">
+            and {{loaded.notLoaded.length - displayLimit}} others
+          </span>
+        </div>
+      </div>
+
       <div class="col-sm-12 stats range-{{allServers[host].R}} mclick-{{mclick}}"
         ng-repeat="host in allServerHosts"
         search="host+','+allServers[host].K+allServers[host].SC">

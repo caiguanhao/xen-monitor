@@ -10,6 +10,7 @@ var io = require('socket.io').listen(server);
 var ENVIRONMENT = process.env.NODE_ENV || 'development';
 var net = require('net');
 var Q = require('q');
+var fs = require('fs');
 
 if (argv.help || argv.h) {
   var n = console.log;
@@ -89,8 +90,15 @@ var assetsHashes = {};
 try {
   assetsHashes = require('./assets.json');
 } catch(e) {}
-
-var fs = require('fs');
+var WHITELIST = [];
+try {
+  WHITELIST = fs.readFileSync('./whitelist.txt').toString().trim().split('\n');
+  for (var i = WHITELIST.length - 1; i > -1; i--) {
+    if (!WHITELIST[i] || !net.isIPv4(WHITELIST[i])) {
+      WHITELIST.splice(i, 1);
+    }
+  }
+} catch(e) {}
 var LISTS = '';
 try {
   LISTS = fs.readFileSync('./lists.txt').toString();
@@ -102,7 +110,7 @@ try {
 } catch(e) {}
 
 io.sockets.on('connection', function (socket) {
-  socket.emit('CheckAssetsVersion', assetsHashes, LISTS);
+  socket.emit('CheckAssetsVersion', assetsHashes, LISTS, WHITELIST);
 
   socket.on('ExecuteCommand', function(password, command, host, vm) {
     if (!validateCommand(password, command, host, vm)) {
