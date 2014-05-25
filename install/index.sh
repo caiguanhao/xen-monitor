@@ -30,15 +30,17 @@ make install >/dev/null;
 echo ${LISTENPASSWD} > /etc/listen.passwd;
 
 mkdir -p /etc/xen-monitor;
-curl -Ls https://github.com/caiguanhao/xen-monitor/raw/master/llks/null.sh -o /etc/xen-monitor/null.sh;
-chmod +x /etc/xen-monitor/null.sh;
-curl -Ls https://github.com/caiguanhao/xen-monitor/raw/master/llks/screenshot.sh -o /etc/xen-monitor/screenshot.sh;
-chmod +x /etc/xen-monitor/screenshot.sh;
-curl -Ls https://github.com/caiguanhao/xen-monitor/raw/master/llks/nginx.conf -o /etc/xen-monitor/nginx.conf;
-curl -Ls https://github.com/caiguanhao/xen-monitor/raw/master/llks/Ubuntu-L.ttf -o /etc/xen-monitor/Ubuntu-L.ttf;
+cp -f /opt/xen-monitor-master/llks/null.sh /etc/xen-monitor/null.sh;
+cp -f /opt/xen-monitor-master/llks/screenshot.sh /etc/xen-monitor/screenshot.sh;
+cp -f /opt/xen-monitor-master/llks/screenshot-timeout.sh /etc/xen-monitor/screenshot-timeout.sh;
+cp -f /opt/xen-monitor-master/llks/command.sh /etc/xen-monitor/command.sh;
+chmod 700 /etc/xen-monitor/null.sh \
+          /etc/xen-monitor/screenshot.sh \
+          /etc/xen-monitor/screenshot-timeout.sh \
+          /etc/xen-monitor/command.sh;
 
-curl -Ls https://github.com/caiguanhao/xen-monitor/raw/master/llks/command.sh -o /etc/xen-monitor/command.sh;
-chmod +x /etc/xen-monitor/command.sh;
+cp -f /opt/xen-monitor-master/llks/nginx.conf /etc/xen-monitor/nginx.conf;
+cp -f /opt/xen-monitor-master/llks/Ubuntu-L.ttf /etc/xen-monitor/Ubuntu-L.ttf;
 
 sed -i -e 's/^USERNAME=.*$/USERNAME=${WINDOWSUSERNAME}/' \
        -e 's/^PASSWORD=.*$/PASSWORD=${WINDOWSPASSWORD}/' \
@@ -54,7 +56,8 @@ pkill send;
 pkill nginx;
 
 listen -r /etc/xen-monitor/command.sh -D;
-send -i ${DESTIP} -p ${DESTPORT} -s 5 -n /etc/xen-monitor/null.sh -b /etc/xen-monitor/screenshot.sh -D;
+send -i ${DESTIP} -p ${DESTPORT} -s 5 -n /etc/xen-monitor/null.sh \
+  -b /etc/xen-monitor/screenshot-timeout.sh -D;
 /usr/local/nginx/sbin/nginx -c /etc/xen-monitor/nginx.conf;
 
 sed -i -e '/dport 3333/d' -e '/dport 54321/d' \

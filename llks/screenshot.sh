@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 FONTFILE="Ubuntu-L.ttf"
 
 IMAGES="/srv/xen-monitor/images"
