@@ -74,6 +74,7 @@ directive('totalProgressBar', [function() {
     },
     link: function($scope, elem, attrs) {
       $scope.$on('totalProgressBarChanged', function() {
+        if (!$scope.VMs) return;
         var t = $scope.$parent.type;
         elem[0].className = 'progress-bar progress-bar-'+$scope.VMs['T' + t + 'C'];
         elem.css('width', $scope.VMs['T' + t + 'P'] + '%');
@@ -533,6 +534,7 @@ service('Servers', ['$filter', function($filter) {
   this.rangeStats = {};
   this.totalStats = {};
   this.lastTimeCountServersByColor = 0;
+  this.removeServerIfNoUpdatesFor = 20000; // ms
   this.countServersByColor = function() {
     var cS = this.colorStats;
     var rS = this.rangeStats;
@@ -541,8 +543,17 @@ service('Servers', ['$filter', function($filter) {
     rS['12']   = 0; rS['11']   = 0; rS['10']  = 0;
     rS['7']    = 0; rS['4']    = 0; rS['0']   = 0;
     tS.HC      = 0; tS.VMC     = 0; tS.L      = 0; tS.U      = 0; tS.D    = 0;
+    var now = +new Date;
     for (var host in this.allServers) {
-      var VMs = this.allServers[host]
+      var VMs = this.allServers[host];
+      if (VMs.$time && now - VMs.$time > this.removeServerIfNoUpdatesFor) {
+        var index = this.allServerHosts.indexOf(host);
+        if (index > -1) {
+          this.allServerHosts.splice(index, 1);
+          delete this.allServers[host];
+        }
+        continue;
+      }
       for (var i = 0; i < VMs.UC.length; i++) {
         cS[VMs.UC[i]]++;
         rS[VMs.R]++;
@@ -695,12 +706,14 @@ service('Servers', ['$filter', function($filter) {
       this.topTotalDownloadTime = now;
     }
 
-    var loaded = this.allServerHosts.length / this.whitelist.length * 100;
-    this.serversLoaded.loaded = Math.min(Math.round(loaded), 100);
+    this.allServers[host].$time = now;
+
     var that = this;
     this.serversLoaded.notLoaded = this.whitelist.filter(function(s) {
-      return !that.allServers[s];
+      return angular.isUndefined(that.allServers[s]);
     });
+    var loaded = 100 - this.serversLoaded.notLoaded.length / this.whitelist.length * 100;
+    this.serversLoaded.loaded = Math.min(Math.round(loaded), 100);
   };
 }]).
 

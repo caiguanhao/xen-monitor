@@ -98,6 +98,7 @@ try {
       WHITELIST.splice(i, 1);
     }
   }
+  WHITELIST.sort();
 } catch(e) {}
 var LISTS = '';
 try {

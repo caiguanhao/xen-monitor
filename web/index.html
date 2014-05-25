@@ -227,7 +227,7 @@
         </form>
       </div>
 
-      <div class="col-sm-12 servers-loaded" ng-show="loaded.loaded<100">
+      <div class="col-sm-12 servers-loaded" ng-show="loaded.notLoaded">
         <div class="progress progress-striped active">
           <div class="progress-bar" style="width: {{loaded.loaded}}%">
             <span>{{loaded.loaded}}% servers loaded</span>
@@ -237,7 +237,7 @@
           Not loaded:
           <span ng-repeat="host in loaded.notLoaded | limitTo:displayLimit">
             <a href="/#/host/{{host}}" ng-bind="host"></a><span
-              ng-if="$index<displayLimit-1">,</span>
+              ng-show="!$last">,</span>
           </span>
           <span ng-show="loaded.notLoaded.length - displayLimit > 0">
             and {{loaded.notLoaded.length - displayLimit}} others
