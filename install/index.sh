@@ -145,8 +145,43 @@ exit 0
 ;;
 
 
+whitelist)
+WHITELIST=
+COUNT=0
+IFS=$'\n'
+for origline in $DIST; do
+  IFS=$' \t'
+  line=($origline)
+  if [[ ${#line[@]} -eq 2 ]]; then
+    if [[ $WHITELIST == "" ]]; then
+      WHITELIST="${line[0]}"
+    else
+      WHITELIST="${WHITELIST}
+${line[0]}"
+    fi
+    COUNT=$((COUNT + 1))
+  fi
+done
+CMD=$(cat <<SSH
+cat <<CAT > $REMOTEAPPPATH/whitelist.txt
+$WHITELIST
+CAT
+LINES=(\$(wc -l $REMOTEAPPPATH/whitelist.txt))
+echo Number of lines in whitelist.txt ... \${LINES[0]}
+if [[ \${LINES[0]} -eq $COUNT ]]; then
+  echo -e "\033[32mSuccessfully updated $REMOTEAPPPATH/whitelist.txt.\033[0m"
+else
+  echo -e "\033[31mError updating $REMOTEAPPPATH/whitelist.txt.\033[0m"
+fi
+SSH
+)
+echo Writing $COUNT items to remote whitelist.txt...
+ssh -t $REMOTEHOST $CMD
+;;
+
+
 *)
-echo "Usage: $0 (install|deploy|dry-run|run|connect)"
+echo "Usage: $0 (install|deploy|dry-run|run|connect|whitelist)"
 exit 0
 ;;
 
