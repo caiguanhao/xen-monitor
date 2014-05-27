@@ -475,7 +475,7 @@
               class="glyphicon glyphicon-exclamation-sign"></span>
               No screenshot available.</div>
             <div class="content">
-              <img screenshot="screenshot" class="img-responsive">
+              <img screenshot="screenshot" interactive class="img-responsive">
             </div>
           </div>
         </div>
@@ -541,6 +541,7 @@
                 <div class="form-group">
                   <div class="cmdbtns" ng-repeat="cmdgroup in cmdgroups">
                     <button type="button" class="btn btn-sm btn-default"
+                      title="{{cmd.text}}"
                       ng-click="$parent.$parent.command=cmd;
                       $parent.$parent.cached.cmdindex=commands.indexOf($parent.$parent.command)"
                       ng-class="{active:$parent.$parent.command==cmd}"
@@ -558,7 +559,7 @@
                 </div>
                 <div class="form-group form-group-last">
                   <button type="submit" ng-disabled="btnExecuteDisabled()"
-                    class="btn btn-sm btn-default">Execute</button>
+                    class="btn btn-sm btn-success">Execute</button>
                 </div>
               </form>
             </div>

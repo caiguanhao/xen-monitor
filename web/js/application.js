@@ -234,25 +234,27 @@ directive('screenshot', [function() {
       elem.on('error', function() {
         parent.removeClass('loading loaded').addClass('error');
       });
-      elem.on('mousemove', function(e) {
-        var ratio = elem[0].naturalWidth / elem[0].offsetWidth;
-        var x = Math.round(e.offsetX * ratio);
-        var y = Math.round(e.offsetY * ratio);
-        if (!$scope.$parent.shouldUpdateCoordinates) {
-          $scope.$parent.$emit('updateCoordinates', x, y);
-        }
-      });
-      elem.css('cursor', 'crosshair');
-      elem.on('click', function() {
-        var p = $scope.$parent;
-        if (p.shouldUpdateCoordinates) {
-          p.shouldUpdateCoordinates = false;
-          elem.css('cursor', 'crosshair');
-        } else {
-          p.shouldUpdateCoordinates = true;
-          elem.css('cursor', 'default');
-        }
-      });
+      if (!angular.isUndefined(attrs.interactive)) {
+        elem.on('mousemove', function(e) {
+          var ratio = elem[0].naturalWidth / elem[0].offsetWidth;
+          var x = Math.round(e.offsetX * ratio);
+          var y = Math.round(e.offsetY * ratio);
+          if (!$scope.$parent.shouldUpdateCoordinates) {
+            $scope.$parent.$emit('updateCoordinates', x, y);
+          }
+        });
+        elem.css('cursor', 'crosshair');
+        elem.on('click', function() {
+          var p = $scope.$parent;
+          if (p.shouldUpdateCoordinates) {
+            p.shouldUpdateCoordinates = false;
+            elem.css('cursor', 'crosshair');
+          } else {
+            p.shouldUpdateCoordinates = true;
+            elem.css('cursor', 'default');
+          }
+        });
+      }
       $scope.$on('anotherFiveSeconds', function() {
         elem.attr('src', $scope.screenshot);
       });
@@ -1133,7 +1135,6 @@ controller('VMController', ['$scope', '$routeParams', 'Socket', 'Servers',
     if (!Socket.socket.connected) {
       return alert('It seems you\'re not connected! Aborted!');
     }
-    if (!confirm('Are you sure you want to execute this command?')) return;
     Socket.emit('ExecuteCommand', $scope.cached.password, command.command,
       $scope.host, $scope.vm);
     Servers.freeze($scope.freeze, command);
