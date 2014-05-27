@@ -234,6 +234,25 @@ directive('screenshot', [function() {
       elem.on('error', function() {
         parent.removeClass('loading loaded').addClass('error');
       });
+      elem.on('mousemove', function(e) {
+        var ratio = elem[0].naturalWidth / elem[0].offsetWidth;
+        var x = Math.round(e.offsetX * ratio);
+        var y = Math.round(e.offsetY * ratio);
+        if (!$scope.$parent.shouldUpdateCoordinates) {
+          $scope.$parent.$emit('updateCoordinates', x, y);
+        }
+      });
+      elem.css('cursor', 'crosshair');
+      elem.on('click', function() {
+        var p = $scope.$parent;
+        if (p.shouldUpdateCoordinates) {
+          p.shouldUpdateCoordinates = false;
+          elem.css('cursor', 'crosshair');
+        } else {
+          p.shouldUpdateCoordinates = true;
+          elem.css('cursor', 'default');
+        }
+      });
       $scope.$on('anotherFiveSeconds', function() {
         elem.attr('src', $scope.screenshot);
       });
@@ -383,50 +402,90 @@ service('Servers', ['$filter', function($filter) {
     }, {
       group:   'Key',
       command: 'send key f1',
-      text:    'F1 - Disable speed limit'
+      text:    'F1 - Disable speed limit',
+      short:   'F1'
     }, {
       group:   'Key',
       command: 'send key f2',
       text:    'F2 - Set limit to 20000',
+      short:   'F2'
     }, {
       group:   'Key',
       command: 'send key f3',
       text:    'F3 - Set limit to 26000',
+      short:   'F3'
     }, {
       group:   'Key',
       command: 'send key f4',
       text:    'F4 - Open TCP-Z',
+      short:   'F4'
     }, {
       group:   'Key',
       command: 'send key f5',
       text:    'F5 - Open LLKS',
+      short:   'F5'
     }, {
       group:   'Key',
       command: 'send key f6',
       text:    'F6 - Open KTJ',
+      short:   'F6'
     }, {
       group:   'Key',
       command: 'send key f7',
       text:    'F7 - View statistics',
+      short:   'F7'
     }, {
       group:   'Key',
       command: 'send key enter',
       text:    'Enter',
+      short:   'Enter'
     }, {
       group:   'Key',
       command: 'send key esc',
       text:    'Escape',
+      short:   'Escape'
+    }, {
+      group:   'Mouse',
+      template:'send move {{x}} {{y}}',
+      command: '',
+      custom:  true,
+      text:    'Move mouse',
+      short:   'Move'
+    }, {
+      group:   'Mouse',
+      template:'send move {{x}} {{y}} click 1',
+      command: '',
+      custom:  true,
+      text:    'Left click',
+      short:   'Click'
+    }, {
+      group:   'Mouse',
+      template:'send move {{x}} {{y}} click 1 click 1',
+      command: '',
+      custom:  true,
+      text:    'Double click',
+      short:   'DblClick'
+    }, {
+      group:   'Mouse',
+      template:'send move {{x}} {{y}} click 3',
+      command: '',
+      custom:  true,
+      text:    'Right click',
+      short:   'RClick'
     }, {
       group:   'Combination',
       command: 'login',
-      text: 'Log into Windows'
+      text:    'Log into Windows',
+      short:   'Login'
     }, {
       group:   'Combination',
       command: '',
-      custom: true,
-      text: 'Custom command'
+      custom:  true,
+      text:    'Custom command',
+      short:   'Custom'
     }
   ];
+  this.COMMANDGroups = ['Power', 'Key', 'Mouse', 'Combination'];
   this.colorBySpeed = function(speed) {
     if (speed > 2048000) return 'success';
     if (speed > 1024000) return 'warning';
@@ -1009,12 +1068,13 @@ controller('HostController', ['$scope', '$routeParams', 'Socket', 'Servers',
 }]).
 
 controller('VMController', ['$scope', '$routeParams', 'Socket', 'Servers',
-  'LocalSettings',
-  function($scope, $routeParams, Socket, Servers, LocalSettings) {
+  'LocalSettings', '$interpolate',
+  function($scope, $routeParams, Socket, Servers, LocalSettings, $interpolate) {
   $scope.cached = LocalSettings.cached;
   $scope.host = $routeParams.host;
   $scope.vm = $routeParams.vm;
   $scope.commands = Servers.COMMANDS;
+  $scope.cmdgroups = Servers.COMMANDGroups;
   $scope.command = $scope.commands[$scope.cached.cmdindex];
   $scope.VMs = Servers.allServers[$scope.host];
   $scope.index = -1;
@@ -1024,6 +1084,19 @@ controller('VMController', ['$scope', '$routeParams', 'Socket', 'Servers',
   }
   Servers.freezeVMs[$scope.vm] = Servers.freezeVMs[$scope.vm] || {};
   $scope.freeze = Servers.freezeVMs[$scope.vm];
+
+  var cX = 0, cY = 0;
+  $scope.$watch('cached.cmdindex', function() {
+    $scope.$emit('updateCoordinates', cX, cY);
+  });
+  $scope.$on('updateCoordinates', function(e, x, y) {
+    var tpl = $scope.command.template;
+    if (tpl) {
+      cX = x; cY = y;
+      $scope.command.command = $interpolate(tpl)({ x: x, y: y });
+      if (!$scope.$$phase) $scope.$apply();
+    }
+  });
 
   if (Socket.$events) {
     delete Socket.$events['Update'];

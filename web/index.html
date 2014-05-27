@@ -539,10 +539,14 @@
               <form class="form" ng-submit="execute(command)"
                 ng-show="index>-1&&!freeze.frozen">
                 <div class="form-group">
-                  <select class="form-control input-sm" ng-model="command"
-                    ng-change="cached.cmdindex=commands.indexOf(command)"
-                    ng-options="cmd.text group by cmd.group for cmd in commands">
-                  </select>
+                  <div class="cmdbtns" ng-repeat="cmdgroup in cmdgroups">
+                    <button type="button" class="btn btn-sm btn-default"
+                      ng-click="$parent.$parent.command=cmd;
+                      $parent.$parent.cached.cmdindex=commands.indexOf($parent.$parent.command)"
+                      ng-class="{active:$parent.$parent.command==cmd}"
+                      ng-repeat="cmd in commands | filter: { group: cmdgroup }"
+                      ng-bind="cmd.short||cmd.text"></button>
+                  </div>
                 </div>
                 <div class="form-group" ng-show="command.custom===true">
                   <input type="text" class="form-control input-sm"
