@@ -262,6 +262,23 @@ directive('screenshot', [function() {
   };
 }]).
 
+directive('statsCollection', [function() {
+  return {
+    link: function($scope, elem, attrs) {
+      $scope.$on('findVisible', function() {
+        var visible = [];
+        var children = elem[0].querySelectorAll('.stats');
+        for (var i = 0; i < children.length; i++) {
+          if (children[i].offsetParent) {
+            visible.push(children[i].getAttribute('data-host'))
+          }
+        }
+        $scope.$broadcast('returnVisible', visible);
+      });
+    }
+  };
+}]).
+
 factory('Socket', ['$window', 'ASSETS', 'LocalSettings', 'Servers',
   function($window, ASSETS, LocalSettings, Servers) {
   var socket = $window.io.connect('/', {
@@ -936,6 +953,20 @@ controller('MainController', ['$scope', 'Socket', 'Servers', 'LocalSettings',
     };
   };
   if (!$scope.cached.checked) $scope.clearChecked();
+  $scope.selectVisible = function() {
+    $scope.$broadcast('findVisible');
+  };
+  $scope.$on('returnVisible', function(e, visible) {
+    for (var i = 0; i < visible.length; i++) {
+      var host = visible[i];
+      $scope.cached.checked.items[host] = angular.copy($scope.allServers[host].K);
+      $scope.cached.checked.items[host].forEach(function(item) {
+        if ($scope.cached.checked.list.indexOf(item) === -1) {
+          $scope.cached.checked.list.push(item);
+        }
+      });
+    }
+  });
   $scope.mselect = function(host, vm) {
     if (vm instanceof Array) {
       if ($scope.cached.checked.items[host]) {

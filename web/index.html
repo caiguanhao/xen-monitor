@@ -224,6 +224,8 @@
           <button type="button" ng-disabled="cached.checked.list.length===0"
             ng-click="clearChecked()"
             class="btn btn-sm btn-default">Clear Selection</button>
+          <button type="button" ng-click="selectVisible()"
+            class="btn btn-sm btn-default">Select Visible</button>
         </form>
       </div>
 
@@ -245,21 +247,23 @@
         </div>
       </div>
 
-      <div class="col-sm-12 stats range-{{allServers[host].R}} mclick-{{mclick}}"
-        ng-repeat="host in allServerHosts"
-        search="host+','+allServers[host].K+allServers[host].SC">
-        <div class="progress stat">
-          <a rdp="xen-monitor-rdp://{{allServers[host].K+''}}" default="/#/host/{{host}}"
-            mlink check="mselect(host, allServers[host].K)" class="vm-progress checked"
-            style="width: 20%">
-            <div total-progress-bar="allServers[host]" ip="host"></div>
-          </a>
-          <a rdp="xen-monitor-rdp://{{VM}}" default="/#/host/{{host}}/vm/{{VM}}"
-            mlink check="mselect(host, VM)" class="vm-progress"
-            ng-class="{checked:cached.checked.items[host].indexOf(VM)>-1}"
-            ng-repeat="VM in allServers[host].K" style="width: {{allServers[host].W}}%">
-            <div progress-bar="allServers[host]" index="$index" ip="VM"></div>
-          </a>
+      <div stats-collection>
+        <div class="col-sm-12 stats range-{{allServers[host].R}} mclick-{{mclick}}"
+          ng-repeat="host in allServerHosts" data-host="{{host}}"
+          search="host+','+allServers[host].K+allServers[host].SC">
+          <div class="progress stat">
+            <a rdp="xen-monitor-rdp://{{allServers[host].K+''}}" default="/#/host/{{host}}"
+              mlink check="mselect(host, allServers[host].K)" class="vm-progress checked"
+              style="width: 20%">
+              <div total-progress-bar="allServers[host]" ip="host"></div>
+            </a>
+            <a rdp="xen-monitor-rdp://{{VM}}" default="/#/host/{{host}}/vm/{{VM}}"
+              mlink check="mselect(host, VM)" class="vm-progress"
+              ng-class="{checked:cached.checked.items[host].indexOf(VM)>-1}"
+              ng-repeat="VM in allServers[host].K" style="width: {{allServers[host].W}}%">
+              <div progress-bar="allServers[host]" index="$index" ip="VM"></div>
+            </a>
+          </div>
         </div>
       </div>
     </div>
