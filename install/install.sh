@@ -161,6 +161,3 @@ test -f /usr/local/nginx/sbin/nginx || {
 }
 
 echo -e "\033[32mDone.\033[0m"
-
-echo "Wait 10 seconds to exit."
-sleep 10

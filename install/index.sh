@@ -34,54 +34,22 @@ exit 0
 
 
 deploy)
+VERBOSE=0
+IFS=''
 CMD="
-rm -rf /opt/xen-monitor-master;
-curl -Ls https://github.com/caiguanhao/xen-monitor/archive/master.tar.gz -o /opt/xen-monitor.tar.gz;
-tar xfz /opt/xen-monitor.tar.gz -C /opt;
-cd /opt/xen-monitor-master;
-make install >/dev/null;
-
-echo ${LISTENPASSWD} > /etc/listen.passwd;
-
-mkdir -p /etc/xen-monitor;
-cp -f /opt/xen-monitor-master/llks/null.sh /etc/xen-monitor/null.sh;
-cp -f /opt/xen-monitor-master/llks/screenshot.sh /etc/xen-monitor/screenshot.sh;
-cp -f /opt/xen-monitor-master/llks/screenshot-timeout.sh /etc/xen-monitor/screenshot-timeout.sh;
-cp -f /opt/xen-monitor-master/llks/command.sh /etc/xen-monitor/command.sh;
-chmod 700 /etc/xen-monitor/null.sh \
-          /etc/xen-monitor/screenshot.sh \
-          /etc/xen-monitor/screenshot-timeout.sh \
-          /etc/xen-monitor/command.sh;
-
-cp -f /opt/xen-monitor-master/llks/nginx.conf /etc/xen-monitor/nginx.conf;
-cp -f /opt/xen-monitor-master/llks/Ubuntu-L.ttf /etc/xen-monitor/Ubuntu-L.ttf;
-
-sed -i -e 's/^USERNAME=.*$/USERNAME=${WINDOWSUSERNAME}/' \
-       -e 's/^PASSWORD=.*$/PASSWORD=${WINDOWSPASSWORD}/' \
-       /etc/xen-monitor/null.sh;
-sed -i 's#^FONTFILE=.*\$#FONTFILE=\"/etc/xen-monitor/Ubuntu-L.ttf\"#' \
-       /etc/xen-monitor/screenshot.sh;
-sed -i -e 's/^WINDOWSUSERNAME=.*$/WINDOWSUSERNAME=${WINDOWSUSERNAME}/' \
-       -e 's/^WINDOWSPASSWORD=.*$/WINDOWSPASSWORD=${WINDOWSPASSWORD}/' \
-       /etc/xen-monitor/command.sh;
-
-pkill listen;
-pkill send;
-pkill nginx;
-
-listen -r /etc/xen-monitor/command.sh -D;
-send -i ${DESTIP} -p ${DESTPORT} -s 5 -n /etc/xen-monitor/null.sh \
-  -b /etc/xen-monitor/screenshot-timeout.sh -D;
-/usr/local/nginx/sbin/nginx -c /etc/xen-monitor/nginx.conf;
-
-sed -i -e '/dport 3333/d' -e '/dport 54321/d' \
-  -e '/dport 80/a -A RH-Firewall-1-INPUT -m state --state NEW -m tcp -p tcp --dport 3333 -j ACCEPT' \
-  -e '/dport 80/a -A RH-Firewall-1-INPUT -m state --state NEW -m tcp -p tcp --dport 54321 -j ACCEPT' \
-  /etc/sysconfig/iptables;
-
-/etc/init.d/iptables restart >/dev/null;
+cat <<'DEPLOY' > /etc/xen-monitor/deploy.sh
+$(cat ${DIRNAME}/deploy.sh)
+DEPLOY
+sed -i -e 's/^LISTENPASSWD=.*$/LISTENPASSWD=\"${LISTENPASSWD}\"/' \
+       -e 's/^DESTIP=.*$/DESTIP=\"${DESTIP}\"/' \
+       -e 's/^DESTPORT=.*$/DESTPORT=\"${DESTPORT}\"/' \
+       /etc/xen-monitor/deploy.sh
+chmod 700 /etc/xen-monitor/deploy.sh
+/etc/xen-monitor/deploy.sh $([[ $VERBOSE -eq 1 ]] && echo -v)
+echo \"Wait 10 seconds to exit.\"
+sleep 10
 "
-source "${DIRNAME}/tasks/install.sh"
+UseScreen
 exit 0
 ;;
 
