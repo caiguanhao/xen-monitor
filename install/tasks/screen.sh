@@ -5,9 +5,16 @@
   exit 1
 }
 
+DIRNAME="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
 SSHARGS="-t -t"
 if [[ $INTERACTIVE -eq 1 ]]; then
   SSHARGS=""
+fi
+
+if [[ ! -z $VERBOSE ]]; then
+  ARGS="-v"
+  # SSHARGS="${SSHARGS} -v"
 fi
 
 IFS=$'\n'
@@ -20,11 +27,14 @@ for origline in $DIST; do
     else
       SCREENARGS="-X screen -t ${line[0]}"
     fi
-    screen -S install $SCREENARGS sshpass -p "${line[1]}" ssh -v \
-      -o StrictHostKeyChecking=no \
-      -o UserKnownHostsFile=/dev/null \
-      -o LogLevel=error -o PubkeyAuthentication=no \
-      $SSHARGS root@${line[0]} $CMD
+    Host="${line[0]}"
+    Password="${line[1]}"
+    screen -S install $SCREENARGS \
+      $DIRNAME/ssh.sh \
+        -h "$Host" \
+        -p "$Password" \
+        -a "$SSHARGS" \
+        $ARGS "$CMD"
     COUNT=$((COUNT + 1))
   fi
 done

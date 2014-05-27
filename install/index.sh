@@ -7,14 +7,28 @@ DIRNAME="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
   exit 1
 }
 
+Usage() {
+  echo "Usage: $0 (install|deploy|dry-run|run|connect|whitelist)
+  - install     create screens for each server and install software there
+  - deploy      update configurations and restart software on each server
+  - run         [all|dom-id|name-label] [get|send|login] [arguments]
+                run vnc commands on each server while dry-run is for test
+  - connect     create screens to log into each server
+  - whitelist   make and write whitelist file to each server
+"
+}
+
+UseScreen() {
+  source "${DIRNAME}/tasks/screen.sh"
+}
+
 case $1 in
 
 install)
-CMD="
-curl -Ls https://github.com/caiguanhao/xen-monitor/raw/master/install/install.sh | bash;
-exec bash
-"
-source "${DIRNAME}/tasks/screen.sh"
+VERBOSE=0
+IFS=''
+CMD="$(cat ${DIRNAME}/install.sh)"
+UseScreen
 exit 0
 ;;
 
@@ -73,7 +87,6 @@ exit 0
 
 
 dry-run|run)
-echo "Usage: $0 [dry-run|run] [all|dom-id|name-label] [get|send|login] [arguments]"
 RUN="eval"
 if [[ $1 == "dry-run" ]]; then
   RUN="echo"
@@ -181,8 +194,7 @@ ssh -t $REMOTEHOST $CMD
 
 
 *)
-echo "Usage: $0 (install|deploy|dry-run|run|connect|whitelist)"
-exit 0
+Usage
 ;;
 
 esac
