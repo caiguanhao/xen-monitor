@@ -113,7 +113,7 @@ for VM in \`xl list\`; do
   fi;
 done
 "
-source "${DIRNAME}/tasks/install.sh"
+source "${DIRNAME}/tasks/parallels.sh"
 exit 0
 ;;
 
@@ -121,7 +121,7 @@ exit 0
 connect)
 COUNT=0
 INTERACTIVE=1
-source "${DIRNAME}/tasks/screen.sh"
+UseScreen
 exit 0
 ;;
 

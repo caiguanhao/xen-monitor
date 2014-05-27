@@ -1,6 +1,6 @@
 #!/bin/bash
 
-TIMEOUT=5
+TIMEOUT=20
 DIR=$(dirname -- "$0")
 SCRIPT="$DIR/screenshot.sh"
 
