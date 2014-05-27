@@ -8,13 +8,14 @@ DIRNAME="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 }
 
 Usage() {
-  echo "Usage: $0 (install|deploy|dry-run|run|connect|whitelist)
+  echo "Usage: $0 (install|deploy|dry-run|run|connect|whitelist|check)
   - install     create screens for each server and install software there
   - deploy      update configurations and restart software on each server
   - run         [all|dom-id|name-label] [get|send|login] [arguments]
                 run vnc commands on each server while dry-run is for test
   - connect     create screens to log into each server
   - whitelist   make and write whitelist file to each server
+  - check       check undone servers after all screens are terminated
 "
 }
 
@@ -43,6 +44,8 @@ DEPLOY
 sed -i -e 's/^LISTENPASSWD=.*$/LISTENPASSWD=\"${LISTENPASSWD}\"/' \
        -e 's/^DESTIP=.*$/DESTIP=\"${DESTIP}\"/' \
        -e 's/^DESTPORT=.*$/DESTPORT=\"${DESTPORT}\"/' \
+       -e 's/^WINDOWSUSERNAME=.*$/WINDOWSUSERNAME=\"${WINDOWSUSERNAME}\"/' \
+       -e 's/^WINDOWSPASSWORD=.*$/WINDOWSPASSWORD=\"${WINDOWSPASSWORD}\"/' \
        /etc/xen-monitor/deploy.sh
 chmod 700 /etc/xen-monitor/deploy.sh
 /etc/xen-monitor/deploy.sh $([[ $VERBOSE -eq 1 ]] && echo -v)
@@ -119,7 +122,7 @@ exit 0
 
 
 connect)
-COUNT=0
+CMD=
 INTERACTIVE=1
 UseScreen
 exit 0
@@ -158,6 +161,24 @@ SSH
 )
 echo Writing $COUNT items to remote whitelist.txt...
 ssh -t $REMOTEHOST $CMD
+;;
+
+
+check)
+sort done -o done
+sort all -o all
+
+comm -13 done all > undone
+
+IFS=$' \t'
+DONE=(`wc -l done`)
+UNDONE=(`wc -l undone`)
+
+echo There are ${DONE[0]} done and ${UNDONE[0]} undone.
+
+if [[ ${UNDONE[0]} -eq 0 ]]; then
+  rm -f all undone
+fi
 ;;
 
 

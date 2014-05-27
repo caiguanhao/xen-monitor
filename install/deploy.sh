@@ -3,6 +3,8 @@
 LISTENPASSWD="ExamplePassword"
 DESTIP="127.0.0.1"
 DESTPORT="8124"
+WINDOWSUSERNAME="administrator"
+WINDOWSPASSWORD="ExamplePassword"
 
 for argument in "$@"; do
   case "$argument" in
@@ -76,13 +78,13 @@ chmod 700 /etc/xen-monitor/null.sh \
 cp -f /opt/xen-monitor-master/llks/nginx.conf /etc/xen-monitor/nginx.conf
 cp -f /opt/xen-monitor-master/llks/Ubuntu-L.ttf /etc/xen-monitor/Ubuntu-L.ttf
 
-sed -i -e 's/^USERNAME=.*$/USERNAME=${WINDOWSUSERNAME}/' \
-       -e 's/^PASSWORD=.*$/PASSWORD=${WINDOWSPASSWORD}/' \
+sed -i -e "s/^USERNAME=.*$/USERNAME=\"${WINDOWSUSERNAME}\"/" \
+       -e "s/^PASSWORD=.*$/PASSWORD=\"${WINDOWSPASSWORD}\"/" \
        /etc/xen-monitor/null.sh
 sed -i 's#^FONTFILE=.*$#FONTFILE=\"/etc/xen-monitor/Ubuntu-L.ttf\"#' \
        /etc/xen-monitor/screenshot.sh
-sed -i -e 's/^WINDOWSUSERNAME=.*$/WINDOWSUSERNAME=${WINDOWSUSERNAME}/' \
-       -e 's/^WINDOWSPASSWORD=.*$/WINDOWSPASSWORD=${WINDOWSPASSWORD}/' \
+sed -i -e "s/^WINDOWSUSERNAME=.*$/WINDOWSUSERNAME=\"${WINDOWSUSERNAME}\"/" \
+       -e "s/^WINDOWSPASSWORD=.*$/WINDOWSPASSWORD=\"${WINDOWSPASSWORD}\"/" \
        /etc/xen-monitor/command.sh
 test_last_command
 

@@ -17,6 +17,23 @@ if [[ ! -z $VERBOSE ]]; then
   # SSHARGS="${SSHARGS} -v"
 fi
 
+if [[ -f undone ]]; then
+  DIST="$(cat undone)"
+  echo "Will process file 'undone'. Press Enter to continue."
+  echo "Press Ctrl-C and then remove the file if you don't want to do this. "
+else
+  [[ $CONFIRMSTART == "" ]] && echo "Press Enter to start."
+fi
+[[ $CONFIRMSTART == "" ]] && read
+
+COUNT=0
+
+rm -f done
+touch done
+
+rm -f all
+touch all
+
 IFS=$'\n'
 for origline in $DIST; do
   IFS=$' \t'
@@ -36,6 +53,7 @@ for origline in $DIST; do
         -a "$SSHARGS" \
         $ARGS "$CMD"
     COUNT=$((COUNT + 1))
+    echo $Host $Password >> all
   fi
 done
 

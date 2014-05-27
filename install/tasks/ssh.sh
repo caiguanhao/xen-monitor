@@ -5,8 +5,8 @@ Usage() {
 "Usage: $0 [OPTION] -- [COMMAND]
 Required:
        -h <host>       host to connect
-       <command>       command to execute
 Optional:
+       <command>       command to execute
        -p <password>   password for the host
        -a <ssh-args>   additional ssh arguments
        -v              verbose
@@ -26,7 +26,7 @@ done
 
 COMMAND="$1"
 
-[[ -z $HOST ]] || [[ -z $COMMAND ]] && { Usage; }
+[[ -z $HOST ]] && { Usage; }
 [[ ! -z $PASSWORD ]] && { SSHPASS="sshpass -p $PASSWORD"; }
 [[ $VERBOSE -eq 1 ]] && {
   COMMAND="VERBOSE=1
@@ -44,4 +44,6 @@ $SSHPASS \
     root@$HOST \
     "$COMMAND"
 
-# exec bash
+if [[ $? -eq 0 ]]; then
+  echo $HOST $PASSWORD >> done
+fi
