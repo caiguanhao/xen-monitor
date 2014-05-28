@@ -110,8 +110,43 @@ try {
   PASSWORD = fs.readFileSync('./password.txt').toString().trim();
 } catch(e) {}
 
+var CLIENTS = [];
+var useragent = require('useragent');
+function findClientById(id) {
+  for (var i = 0; i < CLIENTS.length; i++) {
+    if (CLIENTS[i].id === id) return i;
+  }
+  return -1;
+}
+
 io.sockets.on('connection', function (socket) {
   socket.emit('CheckAssetsVersion', assetsHashes, LISTS, WHITELIST);
+
+  var handshaken = socket.manager.handshaken[socket.id];
+  var agent = useragent.parse(handshaken.headers['user-agent']);
+  var ip = handshaken.address.address;
+  CLIENTS.push({
+    ip: ip,
+    info: agent.toString() || ip,
+    time: +new Date(handshaken.time) / 1000,
+    page: (handshaken.query ? handshaken.query.page : '' ) || '/',
+    id: socket.id
+  });
+  io.sockets.emit('WhoIsOnline', CLIENTS);
+  socket.on('IAmOnPage', function(page) {
+    var index = findClientById(socket.id);
+    if (index > -1 && page) {
+      CLIENTS[index].page = page;
+      io.sockets.emit('WhoIsOnline', CLIENTS);
+    }
+  });
+  socket.on('disconnect', function() {
+    var index = findClientById(socket.id);
+    if (index > -1) {
+      CLIENTS.splice(index, 1);
+      io.sockets.emit('WhoIsOnline', CLIENTS);
+    }
+  });
 
   socket.on('ExecuteCommand', function(password, command, host, vm) {
     if (!validateCommand(password, command, host, vm)) {
