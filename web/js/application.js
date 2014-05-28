@@ -251,7 +251,7 @@ directive('screenshot', [function() {
             elem.css('cursor', 'crosshair');
           } else {
             p.shouldUpdateCoordinates = true;
-            elem.css('cursor', 'default');
+            elem.css('cursor', 'pointer');
           }
         });
       }
@@ -393,25 +393,31 @@ service('Servers', ['$filter', function($filter) {
       command: 'forcerestart',
       text:    'Force Restart',
       wait:    35,
-      expect:  'I'
+      expect:  'I',
+      short:   'Restart',
+      glyphicon: 'repeat'
     }, {
       group:   'Power',
       command: 'restart',
       text:    'Restart',
       wait:    60,
-      expect:  'I'
+      expect:  'I',
+      hideIfButton: true
     }, {
       group:   'Power',
       command: 'forceshutdown',
       text:    'Force Shutdown',
       wait:    15,
-      expect:  'PS'
+      expect:  'PS',
+      short:   'Shutdown',
+      glyphicon: 'off'
     }, {
       group:   'Power',
       command: 'shutdown',
       text:    'Shutdown',
       wait:    35,
-      expect:  'PS'
+      expect:  'PS',
+      hideIfButton: true
     }, {
       group:   'Power',
       command: 'start',
@@ -462,46 +468,58 @@ service('Servers', ['$filter', function($filter) {
       group:   'Key',
       command: 'send key esc',
       text:    'Escape',
-      short:   'Escape'
+      short:   'ESC'
+    }, {
+      group:   'Key',
+      command: 'send key alt-f4',
+      text:    'Alt-F4'
     }, {
       group:   'Mouse',
       template:'send move {{x}} {{y}}',
       command: '',
       custom:  true,
       text:    'Move mouse',
-      short:   'Move'
+      short:   'Move',
+      hideInSelect: true,
+      glyphicon: 'move'
     }, {
       group:   'Mouse',
       template:'send move {{x}} {{y}} click 1',
       command: '',
       custom:  true,
       text:    'Left click',
-      short:   'Click'
+      short:   'Click',
+      hideInSelect: true,
+      glyphicon: 'hand-up'
     }, {
       group:   'Mouse',
       template:'send move {{x}} {{y}} click 1 click 1',
       command: '',
       custom:  true,
       text:    'Double click',
-      short:   'DblClick'
+      short:   'DblClick',
+      hideInSelect: true
     }, {
       group:   'Mouse',
       template:'send move {{x}} {{y}} click 3',
       command: '',
       custom:  true,
       text:    'Right click',
-      short:   'RClick'
+      short:   'RClick',
+      hideInSelect: true
     }, {
       group:   'Combination',
       command: 'login',
       text:    'Log into Windows',
-      short:   'Login'
+      short:   'Windows Login',
+      glyphicon: 'log-in'
     }, {
       group:   'Combination',
       command: '',
       custom:  true,
       text:    'Custom command',
-      short:   'Custom'
+      short:   'Custom',
+      glyphicon: 'edit'
     }
   ];
   this.COMMANDGroups = ['Power', 'Key', 'Mouse', 'Combination'];
