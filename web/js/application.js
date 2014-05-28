@@ -390,42 +390,6 @@ service('Servers', ['$filter', function($filter) {
   };
   this.COMMANDS = [
     {
-      group:   'Power',
-      command: 'forcerestart',
-      text:    'Force Restart',
-      wait:    35,
-      expect:  'I',
-      short:   'Restart',
-      glyphicon: 'repeat'
-    }, {
-      group:   'Power',
-      command: 'restart',
-      text:    'Restart',
-      wait:    60,
-      expect:  'I',
-      hideIfButton: true
-    }, {
-      group:   'Power',
-      command: 'forceshutdown',
-      text:    'Force Shutdown',
-      wait:    15,
-      expect:  'PS',
-      short:   'Shutdown',
-      glyphicon: 'off'
-    }, {
-      group:   'Power',
-      command: 'shutdown',
-      text:    'Shutdown',
-      wait:    35,
-      expect:  'PS',
-      hideIfButton: true
-    }, {
-      group:   'Power',
-      command: 'start',
-      text:    'Start',
-      wait:    30,
-      expect:  'PS'
-    }, {
       group:   'Key',
       command: 'send key f1',
       text:    'F1 - Disable speed limit',
@@ -509,6 +473,42 @@ service('Servers', ['$filter', function($filter) {
       short:   'RClick',
       hideInSelect: true
     }, {
+      group:   'Power',
+      command: 'forcerestart',
+      text:    'Force Restart',
+      wait:    35,
+      expect:  'I',
+      short:   'Restart',
+      glyphicon: 'repeat'
+    }, {
+      group:   'Power',
+      command: 'restart',
+      text:    'Restart',
+      wait:    60,
+      expect:  'I',
+      hideIfButton: true
+    }, {
+      group:   'Power',
+      command: 'forceshutdown',
+      text:    'Force Shutdown',
+      wait:    15,
+      expect:  'PS',
+      short:   'Shutdown',
+      glyphicon: 'off'
+    }, {
+      group:   'Power',
+      command: 'shutdown',
+      text:    'Shutdown',
+      wait:    35,
+      expect:  'PS',
+      hideIfButton: true
+    }, {
+      group:   'Power',
+      command: 'start',
+      text:    'Start',
+      wait:    30,
+      expect:  'PS'
+    }, {
       group:   'Combination',
       command: 'login',
       text:    'Log into Windows',
@@ -523,7 +523,7 @@ service('Servers', ['$filter', function($filter) {
       glyphicon: 'edit'
     }
   ];
-  this.COMMANDGroups = ['Power', 'Key', 'Mouse', 'Combination'];
+  this.COMMANDGroups = [ 'Key', 'Mouse', 'Power', 'Combination' ];
   this.colorBySpeed = function(speed) {
     if (speed > 2048000) return 'success';
     if (speed > 1024000) return 'warning';
@@ -965,6 +965,9 @@ controller('MainController', ['$scope', 'Socket', 'Servers', 'LocalSettings',
   };
   $scope.commands = Servers.COMMANDS;
   $scope.command = $scope.commands[$scope.cached.cmdindex];
+  if ($scope.command && $scope.command.hideInSelect) {
+    $scope.command = $scope.commands[0];
+  }
   $scope.clearChecked = function() {
     $scope.cached.checked = {
       list: [],
@@ -1052,6 +1055,9 @@ controller('HostController', ['$scope', '$routeParams', 'Socket', 'Servers',
   $scope.checkedVMs = null;
   $scope.commands = Servers.COMMANDS;
   $scope.command = $scope.commands[$scope.cached.cmdindex];
+  if ($scope.command && $scope.command.hideInSelect) {
+    $scope.command = $scope.commands[0];
+  }
 
   if (Socket.$events) delete Socket.$events['Update'];
   Socket.on('Update', function(host, data) {
@@ -1128,6 +1134,9 @@ controller('VMController', ['$scope', '$routeParams', 'Socket', 'Servers',
   $scope.commands = Servers.COMMANDS;
   $scope.cmdgroups = Servers.COMMANDGroups;
   $scope.command = $scope.commands[$scope.cached.cmdindex];
+  if ($scope.command && $scope.command.hideIfButton) {
+    $scope.command = $scope.commands[0];
+  }
   $scope.VMs = Servers.allServers[$scope.host];
   $scope.index = -1;
   if ($scope.VMs) {

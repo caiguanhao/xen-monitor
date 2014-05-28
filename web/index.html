@@ -72,8 +72,11 @@
             target="_blank">Source</a>
         </div>
         <div class="col-sm-6 text-right footer-split">
-          <select ng-model="selectedClient"
-            ng-options="client.info group by client.page for client in clients"></select>
+          <div ng-show="clients">
+            <span class="glyphicon glyphicon-user"></span>
+            <select ng-model="selectedClient"
+              ng-options="client.info group by client.page for client in clients"></select>
+          </div>
         </div>
       </div>
     </footer>
