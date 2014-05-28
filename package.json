@@ -24,7 +24,8 @@
     "redis": "^0.10.1",
     "socket.io": "^0.9.16",
     "q": "^1.0.1",
-    "minimist": "0.0.8"
+    "minimist": "0.0.8",
+    "useragent": "^2.0.8"
   },
   "devDependencies": {
     "grunt-contrib-watch": "^0.6.1",

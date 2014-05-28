@@ -59,16 +59,22 @@
       </header>
       <div id="content" class="container" ng-view></div>
     </div>
-    <footer>
+    <footer ng-controller="FooterController">
       <div class="footer container">
-        <a href="/#/">Home</a>
-        |
-        <a href="/#/rdp">RDP</a>
-        |
-        &copy; 2014 <a href="http://cgh.io/" target="_blank">CGH.io</a>
-        |
-        <a href="https://github.com/caiguanhao/xen-monitor"
-          target="_blank">Source</a>
+        <div class="col-sm-6 text-left footer-split">
+          <a href="/#/">Home</a>
+          |
+          <a href="/#/rdp">RDP</a>
+          |
+          &copy; 2014 <a href="http://cgh.io/" target="_blank">CGH.io</a>
+          |
+          <a href="https://github.com/caiguanhao/xen-monitor"
+            target="_blank">Source</a>
+        </div>
+        <div class="col-sm-6 text-right footer-split">
+          <select ng-model="selectedClient"
+            ng-options="client.info group by client.page for client in clients"></select>
+        </div>
       </div>
     </footer>
   </script>

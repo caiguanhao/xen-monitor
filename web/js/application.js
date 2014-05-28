@@ -279,14 +279,15 @@ directive('statsCollection', [function() {
   };
 }]).
 
-factory('Socket', ['$window', 'ASSETS', 'LocalSettings', 'Servers',
-  function($window, ASSETS, LocalSettings, Servers) {
+factory('Socket', ['$window', 'ASSETS', 'LocalSettings', 'Servers', '$location',
+  function($window, ASSETS, LocalSettings, Servers, $location) {
   var socket = $window.io.connect('/', {
     'force new connection': true,
     'reconnect': true,
     'reconnection delay': 1000,
     'reconnection limit': 5000,
-    'max reconnection attempts': 10000
+    'max reconnection attempts': 10000,
+    'query': 'page=' + $location.path()
   });
   socket.on('CheckAssetsVersion', function(data, lists, whitelist) {
     LocalSettings.parseLists(lists);
@@ -1239,6 +1240,40 @@ controller('EditListsController', ['$scope', 'LocalSettings', 'Socket',
       $scope.updateTextColor = null;
       $scope.updateDisabled = false;
     }, 4000);
+  });
+}]).
+
+controller('FooterController', ['$scope', 'Socket', '$location', function($scope, Socket, $location) {
+  if (Socket.$events) delete Socket.$events['WhoIsOnline'];
+  var rCS;
+  Socket.on('WhoIsOnline', function(clients) {
+    var p = $location.path(), same = 0;
+    for (var i = 0; i < clients.length; i++) {
+      if (clients[i].page === p) {
+        same++;
+      }
+      if (clients[i].id === Socket.socket.sessionid) {
+        clients[i].info += ' (You)';
+      }
+    }
+    clients.unshift({
+      info: clients.length + ' online, ' + (same - 1) + ' others on this page',
+    });
+    $scope.clients = clients;
+    $scope.selectedClient = $scope.clients[0];
+    $scope.$apply();
+
+    $scope.$watch('selectedClient', function(client) {
+      if (client.page) {
+        $scope.selectedClient = $scope.clients[0];
+        $location.path(client.page)
+      }
+    });
+
+    if (angular.isFunction(rCS)) rCS();
+    rCS = $scope.$on('$routeChangeStart', function() {
+      Socket.emit('IAmOnPage', $location.path());
+    });
   });
 }]).
 

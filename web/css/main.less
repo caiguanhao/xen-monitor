@@ -43,7 +43,15 @@ footer {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  text-align: center;
+}
+
+@media (max-width: 767px) {
+  footer {
+    height: auto;
+    .footer-split {
+      text-align: center;
+    }
+  }
 }
 
 .ie-warnings {
