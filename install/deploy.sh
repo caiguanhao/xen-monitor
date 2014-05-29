@@ -31,6 +31,19 @@ test_last_command() {
   fi
 }
 
+test_last_command_no_exit() {
+  CODE=$?
+  if [[ $VERBOSE -ne 1 ]]; then
+    if [[ $CODE -eq 0 ]]; then
+      echo -e "\033[32mOK\033[0m"
+    else
+      echo -e "\033[31mFAIL\033[0m"
+    fi
+  else
+    echo
+  fi
+}
+
 status() {
   if [[ $VERBOSE -ne 1 ]]; then
     printf "$@"
@@ -92,15 +105,15 @@ set +e
 
 status "Stopping listen ... "
 pkill listen 1>$STDOUT 2>$STDERR
-test_last_command
+test_last_command_no_exit
 
 status "Stopping send ... "
 pkill send 1>$STDOUT 2>$STDERR
-test_last_command
+test_last_command_no_exit
 
 status "Stopping nginx ... "
 pkill nginx 1>$STDOUT 2>$STDERR
-test_last_command
+test_last_command_no_exit
 
 set -e
 

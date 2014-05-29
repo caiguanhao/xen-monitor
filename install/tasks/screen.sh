@@ -61,4 +61,8 @@ if [[ $COUNT -gt 0 ]]; then
   screen -r install
 fi
 
+echo
+echo "If you are seeing this, it means screen is terminated."
+echo -e "You should run \`\033[36m$0 check\033[0m\` to see if there are undone servers."
+
 exit 0

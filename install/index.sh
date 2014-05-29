@@ -13,7 +13,7 @@ Usage() {
   - deploy      update configurations and restart software on each server
   - run         [all|dom-id|name-label] [get|send|login] [arguments]
                 run vnc commands on each server while dry-run is for test
-  - connect     create screens to log into each server
+  - connect     create screens to log into each server or the hosts in arguments
   - whitelist   make and write whitelist file to each server
   - check       check undone servers after all screens are terminated
 "
@@ -124,6 +124,27 @@ exit 0
 connect)
 CMD=
 INTERACTIVE=1
+_DIST=
+IFS=$'\n'
+for origline in $DIST; do
+  IFS=$' \t'
+  line=($origline)
+  if [[ ${#line[@]} -eq 2 ]]; then
+    for var in ${*:2}; do
+      if [[ "${line[0]}" == "$var" ]]; then
+        _DIST="${_DIST}$origline
+"
+      fi
+    done
+  fi
+done
+if [[ $# -ge 2 ]] && [[ $_DIST == "" ]]; then
+  echo "No servers matching any of ${*:2}."
+  exit 1
+fi
+if [[ ${_DIST} != "" ]]; then
+  DIST="${_DIST}"
+fi
 UseScreen
 exit 0
 ;;
