@@ -631,7 +631,7 @@ service('Servers', ['$filter', function($filter) {
   this.rangeStats = {};
   this.totalStats = {};
   this.lastTimeCountServersByColor = 0;
-  this.removeServerIfNoUpdatesFor = 20000; // ms
+  this.removeServerIfNoUpdatesFor = 30000; // ms
   this.countServersByColor = function() {
     var cS = this.colorStats;
     var rS = this.rangeStats;
@@ -812,6 +812,13 @@ service('Servers', ['$filter', function($filter) {
     var loaded = 100 - this.serversLoaded.notLoaded.length / this.whitelist.length * 100;
     this.serversLoaded.loaded = Math.min(Math.round(loaded), 100);
   };
+  this.updateTimeOnly = function(host) {
+    var server = this.allServers[host];
+    if (!angular.isUndefined(server)) {
+      var now = +new Date;
+      server.$time = now;
+    }
+  };
 }]).
 
 service('MainControllerHotKeys', ['hotkeys', function(hotkeys) {
@@ -909,6 +916,7 @@ controller('MainController', ['$scope', 'Socket', 'Servers', 'LocalSettings',
 
   if (Socket.$events) delete Socket.$events['Update'];
   Socket.on('Update', function(host, data) {
+    Servers.updateTimeOnly(host);
     if (!$scope.cached.live) return;
     Servers.updateServers(host, angular.fromJson(data));
     $scope.$apply();
