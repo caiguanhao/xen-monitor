@@ -8,7 +8,7 @@ DIRNAME="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 }
 
 Usage() {
-  echo "Usage: $0 (install|deploy|dry-run|run|connect|whitelist|check)
+  echo "Usage: $0 (install|deploy|dry-run|run|connect|whitelist|check|mount)
   - install     create screens for each server and install software there
   - deploy      update configurations and restart software on each server
   - run         [all|dom-id|name-label] [get|send|login] [arguments]
@@ -16,6 +16,7 @@ Usage() {
   - connect     create screens to log into each server or the hosts in arguments
   - whitelist   make and write whitelist file to each server
   - check       check undone servers after all screens are terminated
+  - mount       mount /Media directory to D:\\Media of the first VM
 "
 }
 
@@ -200,6 +201,11 @@ echo There are ${DONE[0]} done and ${UNDONE[0]} undone.
 if [[ ${UNDONE[0]} -eq 0 ]]; then
   rm -f all undone
 fi
+;;
+
+
+mount)
+source "${DIRNAME}/mount.sh"
 ;;
 
 
