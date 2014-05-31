@@ -2,8 +2,8 @@ var argv = require('minimist')(process.argv.slice(2));
 var express = require('express');
 var app = express();
 var redis = require('redis');
-var client = redis.createClient(6379, '192.241.201.105');
-var subscribe = redis.createClient(6379, '192.241.201.105');
+var client = redis.createClient();
+var subscribe = redis.createClient();
 var DEFAULT_PORT = 23456;
 var server = require('http').createServer(app)
 var io = require('socket.io').listen(server);
@@ -23,7 +23,7 @@ if (argv.help || argv.h) {
 }
 
 var PORT = (+argv.port || +argv.p || DEFAULT_PORT);
-var DBNUM = (+argv.db || +argv.d || 1);
+var DBNUM = (+argv.db || +argv.d || 0);
 
 client.select(DBNUM);
 subscribe.select(DBNUM);
