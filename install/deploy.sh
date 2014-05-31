@@ -80,10 +80,12 @@ status "Writing configurations ... "
 echo $LISTENPASSWD > /etc/listen.passwd
 mkdir -p /etc/xen-monitor
 cp -f /opt/xen-monitor-master/llks/null.sh /etc/xen-monitor/null.sh
+cp -f /opt/xen-monitor-master/llks/null-timeout.sh /etc/xen-monitor/null-timeout.sh
 cp -f /opt/xen-monitor-master/llks/screenshot.sh /etc/xen-monitor/screenshot.sh
 cp -f /opt/xen-monitor-master/llks/screenshot-timeout.sh /etc/xen-monitor/screenshot-timeout.sh
 cp -f /opt/xen-monitor-master/llks/command.sh /etc/xen-monitor/command.sh
 chmod 700 /etc/xen-monitor/null.sh \
+          /etc/xen-monitor/null-timeout.sh \
           /etc/xen-monitor/screenshot.sh \
           /etc/xen-monitor/screenshot-timeout.sh \
           /etc/xen-monitor/command.sh
@@ -102,6 +104,11 @@ sed -i -e "s/^WINDOWSUSERNAME=.*$/WINDOWSUSERNAME=\"${WINDOWSUSERNAME}\"/" \
 test_last_command
 
 set +e
+
+pkill screenshot.sh
+pkill screenshot-timeout.sh
+pkill null.sh
+pkill null-timeout.sh
 
 status "Stopping listen ... "
 pkill listen 1>$STDOUT 2>$STDERR
@@ -122,7 +129,7 @@ listen -r /etc/xen-monitor/command.sh -D 1>$STDOUT 2>$STDERR
 test_last_command
 
 status "Starting send ... "
-send -i $DESTIP -p $DESTPORT -s 5 -n /etc/xen-monitor/null.sh \
+send -i $DESTIP -p $DESTPORT -s 5 -n /etc/xen-monitor/null-timeout.sh \
   -b /etc/xen-monitor/screenshot-timeout.sh -D 1>$STDOUT 2>$STDERR
 test_last_command
 
