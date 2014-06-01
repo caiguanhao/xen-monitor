@@ -8,4 +8,4 @@ alarm() {
   perl -e 'alarm shift; exec @ARGV' "$@";
 }
 
-alarm $TIMEOUT $SCRIPT
+alarm $TIMEOUT $SCRIPT "$@"
