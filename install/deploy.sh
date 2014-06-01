@@ -52,6 +52,10 @@ status() {
   fi
 }
 
+kill_shell_script() {
+  ps -A -o pid,cmd | awk '($2 ~ /bash/ && $3 ~ /'$1'/) || $2 ~ /'$1'/ { print $1 }' | xargs --no-run-if-empty kill
+}
+
 if [[ $VERBOSE -eq 1 ]]; then
   echo
   echo Connected.
@@ -79,12 +83,12 @@ test_last_command
 set +e
 
 status "Stopping screenshot ... "
-pkill -f screenshot.sh
-pkill -f screenshot-timeout.sh
+kill_shell_script screenshot.sh
+kill_shell_script screenshot-timeout.sh
 test_last_command_no_exit
 
-pkill -f null.sh
-pkill -f null-timeout.sh
+kill_shell_script null.sh
+kill_shell_script null-timeout.sh
 
 status "Stopping listen ... "
 pkill listen 1>$STDOUT 2>$STDERR
