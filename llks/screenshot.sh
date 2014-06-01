@@ -12,20 +12,19 @@ mkdir -p $IMAGESTMP
 (
   JSON="[{\"name\":\"info\",\"time\":\"`date +%s`\"},"
   JSON="$JSON{\"name\":\"montage\",\"full\":\"/images/montage.png\"}"
-  IFS=$'\n'
-  for VM in `xl list`; do
-    IFS=$' \t'
-    VM=($VM)
-    if [[ ${VM[1]} -gt 0 ]]; then
-      CMD="vncdo -s localhost:"
-      CMD="${CMD}$((`xenstore-read /local/domain/${VM[1]}/console/vnc-port` - 5900))"
-      CAPTURE="${CMD} capture ${IMAGESTMP}/${VM[0]}-full.png"
-      $CAPTURE
-      cwebp -quiet -q 30 ${IMAGESTMP}/${VM[0]}-full.png -o ${IMAGESTMP}/${VM[0]}-full.webp
-      JSON="$JSON,{\"name\":\"${VM[0]}\","
-      JSON="$JSON\"full\":\"/images/${VM[0]}-full.png\","
-      JSON="$JSON\"webp\":\"/images/${VM[0]}-full.webp\","
-      JSON="$JSON\"mini\":\"/images/${VM[0]}-mini.png\"}"
+  IFS=$','
+  for VMUUID in $(xe vm-list params=uuid --minimal); do
+    VMDOMID="$(xe vm-param-get param-name=dom-id uuid=${VMUUID})"
+    VMNAME="$(xe vm-param-get param-name=name-label uuid=${VMUUID})"
+    if [[ ${VMDOMID} -gt 0 ]]; then
+      P="$(($(xenstore-read /local/domain/${VMDOMID}/console/vnc-port) - 5900))"
+      vncdo -s localhost:${P} capture ${IMAGESTMP}/${VMNAME}-full.png
+      cwebp -quiet -q 30 ${IMAGESTMP}/${VMNAME}-full.png -o ${IMAGESTMP}/${VMNAME}-full.webp
+      JSON="$JSON,{\"name\":\"${VMNAME}\","
+      JSON="$JSON\"uuid\":\"${VMUUID}\","
+      JSON="$JSON\"full\":\"/images/${VMNAME}-full.png\","
+      JSON="$JSON\"webp\":\"/images/${VMNAME}-full.webp\","
+      JSON="$JSON\"mini\":\"/images/${VMNAME}-mini.png\"}"
     fi
   done
   JSON="$JSON]"

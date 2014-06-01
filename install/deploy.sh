@@ -144,7 +144,7 @@ listen -r /etc/xen-monitor/command.sh -D 1>$STDOUT 2>$STDERR
 test_last_command
 
 status "Starting screenshot ... "
-/etc/xen-monitor/screenshot-timeout.sh 1>$STDOUT 2>$STDERR &
+/etc/xen-monitor/screenshot-timeout.sh 1>/dev/null 2>/dev/null &
 test_last_command
 
 status "Updating iptables ... "
