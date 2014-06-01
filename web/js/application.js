@@ -509,6 +509,13 @@ service('Servers', ['$filter', function($filter) {
       wait:    30,
       expect:  'PS'
     }, {
+      group:   'Power',
+      command: 'reboot',
+      text:    'Reboot Server',
+      wait:    30,
+      short:   'Reboot',
+      hostOnly: true
+    }, {
       group:   'Combination',
       command: 'login',
       text:    'Log into Windows',
@@ -1041,8 +1048,14 @@ controller('MainController', ['$scope', 'Socket', 'Servers', 'LocalSettings',
       return alert('It seems you\'re not connected! Aborted!');
     }
     if (!confirm('Are you sure you want to execute this command?')) return;
+    var targets = angular.copy($scope.cached.checked.items)
+    if (command.hostOnly) {
+      for (var target in targets) {
+        targets[target] = ' ';
+      }
+    }
     Socket.emit('ExecuteCommandMultiple', $scope.cached.password,
-      command.command, $scope.cached.checked.items);
+      command.command, targets);
   };
   angular.extend($scope, LocalSettings.getLocalSettings({
     range: 4, show: 0, type: 'U', mclick: null
@@ -1117,13 +1130,19 @@ controller('HostController', ['$scope', '$routeParams', 'Socket', 'Servers',
       return alert('It seems you\'re not connected! Aborted!');
     }
     if (!confirm('Are you sure you want to execute this command?')) return;
+    var targets = ' ';
+    if (!command.hostOnly) {
+      targets = $scope.checkedVMs;
+    }
     Socket.emit('ExecuteCommand', $scope.cached.password, command.command,
-      $scope.host, $scope.checkedVMs);
+      $scope.host, targets);
     Servers.freeze($scope.freeze, command);
-    $scope.checkedVMs.forEach(function(vm) {
-      Servers.freezeVMs[vm] = Servers.freezeVMs[vm] || {};
-      Servers.freeze(Servers.freezeVMs[vm], command);
-    });
+    if (!command.hostOnly) {
+      $scope.checkedVMs.forEach(function(vm) {
+        Servers.freezeVMs[vm] = Servers.freezeVMs[vm] || {};
+        Servers.freeze(Servers.freezeVMs[vm], command);
+      });
+    }
   };
 
   $scope.montage = 'http://' + $scope.host + ':54321/images/montage.png';
@@ -1202,11 +1221,15 @@ controller('VMController', ['$scope', '$routeParams', 'Socket', 'Servers',
     if (!Socket.socket.connected) {
       return alert('It seems you\'re not connected! Aborted!');
     }
+    var target = ' ';
+    if (!command.hostOnly) {
+      target = $scope.vm;
+    }
     Socket.emit('ExecuteCommand', $scope.cached.password, command.command,
-      $scope.host, $scope.vm);
+      $scope.host, target);
     Servers.freeze($scope.freeze, command);
     var expectOnKey = command.expect;
-    if (expectOnKey) {
+    if (!command.hostOnly && expectOnKey) {
       var orignal = $scope.VMs[expectOnKey][$scope.index];
       $scope.freeze.expectOnKey = expectOnKey;
       $scope.freeze.original = orignal;

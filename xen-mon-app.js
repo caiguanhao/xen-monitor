@@ -80,6 +80,8 @@ function validateCommand(password, command, host, vm) {
     for (var i = vm.length - 1; i > -1; i--) {
       if (!checkIPAddress(vm[i])) return false;
     }
+  } else if (vm === ' ') {
+    return true; // command for host only
   } else {
     if (!checkIPAddress(vm)) return false;
   }
@@ -173,6 +175,7 @@ io.sockets.on('connection', function (socket) {
     if (typeof multiple !== 'object') return;
     for (var host in multiple) {
       if (!checkIPAddress(host)) return;
+      if (multiple[host] === ' ') continue;
       if (!(multiple[host] instanceof Array)) return;
       if (multiple[host].length === 0) {
         delete multiple[host];
@@ -187,7 +190,12 @@ io.sockets.on('connection', function (socket) {
         var deferred = Q.defer();
         var cmdsocket = new net.Socket();
         cmdsocket.connect(3333, cur, function() {
-          var vms = multiple[cur].join('\n');
+          var vms;
+          if (multiple[cur] instanceof Array) {
+            vms = multiple[cur].join('\n');
+          } else {
+            vms = multiple[cur];
+          }
           cmdsocket.end(password + '\n' + command + '\n' + vms);
         });
         cmdsocket.on('end', function() {
