@@ -61,7 +61,7 @@ redis-cli -n $RedisDB flushdb >/dev/null 2>/dev/null
 test_last_command
 printf "Quitting existing screen ... "
 screen -S $SessionName -X quit >/dev/null 2>/dev/null
-test_last_command
+echo OK
 sleep 1
 printf "Starting app ... "
 screen -dmS $SessionName -t app ./service -p $AppPort -d $RedisDB \
