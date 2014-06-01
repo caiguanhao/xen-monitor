@@ -155,4 +155,24 @@ sed -i -e '/dport 3333/d' -e '/dport 54321/d' \
 /etc/init.d/iptables restart 1>$STDOUT 2>$STDERR
 test_last_command
 
+status "Allowing virtual machines to auto-start ... "
+IFS=$','
+for UUID in $(xe pool-list --minimal); do
+  xe pool-param-set uuid=$UUID other-config:auto_poweron=true
+done
+for UUID in $(xe vm-list --minimal); do
+  xe vm-param-set uuid=$UUID other-config:auto_poweron=true
+done
+test_last_command
+
+status "Making startup script ... "
+echo "#!/bin/bash
+/etc/xen-monitor/deploy.sh" > /etc/xen-monitor/start.sh
+chmod +x /etc/xen-monitor/start.sh
+sed -i '/# run xen-monitor - start/,/# run xen-monitor - end/d' /etc/rc.local
+echo "# run xen-monitor - start
+/etc/xen-monitor/start.sh
+# run xen-monitor - end" >> /etc/rc.local
+test_last_command
+
 echo -e "\033[32mDone.\033[0m"
