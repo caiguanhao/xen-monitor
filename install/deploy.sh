@@ -76,7 +76,31 @@ status "Installing xen-monitor ... "
 make install 1>$STDOUT 2>$STDERR
 test_last_command
 
-status "Writing configurations ... "
+set +e
+
+status "Stopping screenshot ... "
+pkill -f screenshot.sh
+pkill -f screenshot-timeout.sh
+test_last_command_no_exit
+
+pkill -f null.sh
+pkill -f null-timeout.sh
+
+status "Stopping listen ... "
+pkill listen 1>$STDOUT 2>$STDERR
+test_last_command_no_exit
+
+status "Stopping send ... "
+pkill send 1>$STDOUT 2>$STDERR
+test_last_command_no_exit
+
+status "Stopping nginx ... "
+pkill nginx 1>$STDOUT 2>$STDERR
+test_last_command_no_exit
+
+set -e
+
+status "Writing scripts and configurations ... "
 echo $LISTENPASSWD > /etc/listen.passwd
 mkdir -p /etc/xen-monitor
 cp -f /opt/xen-monitor-master/llks/null.sh /etc/xen-monitor/null.sh
@@ -103,38 +127,20 @@ sed -i -e "s/^WINDOWSUSERNAME=.*$/WINDOWSUSERNAME=\"${WINDOWSUSERNAME}\"/" \
        /etc/xen-monitor/command.sh
 test_last_command
 
-set +e
+status "Starting nginx ... "
+/usr/local/nginx/sbin/nginx -c /etc/xen-monitor/nginx.conf 1>$STDOUT 2>$STDERR
+test_last_command
 
-pkill screenshot.sh
-pkill screenshot-timeout.sh
-pkill null.sh
-pkill null-timeout.sh
-
-status "Stopping listen ... "
-pkill listen 1>$STDOUT 2>$STDERR
-test_last_command_no_exit
-
-status "Stopping send ... "
-pkill send 1>$STDOUT 2>$STDERR
-test_last_command_no_exit
-
-status "Stopping nginx ... "
-pkill nginx 1>$STDOUT 2>$STDERR
-test_last_command_no_exit
-
-set -e
+status "Starting send ... "
+send -i $DESTIP -p $DESTPORT -s 5 -n /etc/xen-monitor/null-timeout.sh -D 1>$STDOUT 2>$STDERR
+test_last_command
 
 status "Starting listen ... "
 listen -r /etc/xen-monitor/command.sh -D 1>$STDOUT 2>$STDERR
 test_last_command
 
-status "Starting send ... "
-send -i $DESTIP -p $DESTPORT -s 5 -n /etc/xen-monitor/null-timeout.sh \
-  -b /etc/xen-monitor/screenshot-timeout.sh -D 1>$STDOUT 2>$STDERR
-test_last_command
-
-status "Starting nginx ... "
-/usr/local/nginx/sbin/nginx -c /etc/xen-monitor/nginx.conf 1>$STDOUT 2>$STDERR
+status "Starting screenshot ... "
+/etc/xen-monitor/screenshot-timeout.sh 1>$STDOUT 2>$STDERR &
 test_last_command
 
 status "Updating iptables ... "
