@@ -47,8 +47,33 @@ yum --enablerepo=base -y install \
   openssl-devel \
   bzip2-devel \
   freetype-devel \
+  ncurses-devel \
   pcre-devel 1>$STDOUT 2>$STDERR
 test_last_command
+
+test -f /bin/screen || {
+  status "Downloading GNU screen ... "
+  curl -L# http://ftp.gnu.org/gnu/screen/screen-4.2.1.tar.gz -o /opt/screen-4.2.1.tar.gz 1>$STDOUT 2>$STDERR
+  test_last_command
+
+  status "Extracting GNU screen ... "
+  tar xfz /opt/screen-4.2.1.tar.gz -C /opt 1>$STDOUT 2>$STDERR
+  test_last_command
+
+  cd /opt/screen-4.2.1
+
+  status "Configuring GNU screen ... "
+  ./configure 1>$STDOUT 2>$STDERR
+  test_last_command
+
+  status "Compiling GNU screen ... "
+  make 1>$STDOUT 2>$STDERR
+  test_last_command
+
+  status "Installing GNU screen ... "
+  make install 1>$STDOUT 2>$STDERR
+  test_last_command
+}
 
 test -f /usr/local/bin/python2.7 || {
   status "Downloading Python 2.7.6 source code ... "

@@ -102,6 +102,10 @@ status "Stopping nginx ... "
 pkill nginx 1>$STDOUT 2>$STDERR
 test_last_command_no_exit
 
+status "Terminating screen ... "
+screen -S XenMonitor -X quit 1>$STDOUT 2>$STDERR
+test_last_command_no_exit
+
 set -e
 
 status "Writing scripts and configurations ... "
@@ -136,15 +140,15 @@ status "Starting nginx ... "
 test_last_command
 
 status "Starting send ... "
-send -i $DESTIP -p $DESTPORT -s 5 -n /etc/xen-monitor/null-timeout.sh -D 1>$STDOUT 2>$STDERR
+screen -S XenMonitor -d -m -t send send -i $DESTIP -p $DESTPORT -s 5 -n /etc/xen-monitor/null-timeout.sh 1>$STDOUT 2>$STDERR
 test_last_command
 
 status "Starting listen ... "
-listen -r /etc/xen-monitor/command.sh -D 1>$STDOUT 2>$STDERR
+screen -S XenMonitor -X screen -t listen listen -r /etc/xen-monitor/command.sh 1>$STDOUT 2>$STDERR
 test_last_command
 
 status "Starting screenshot ... "
-/etc/xen-monitor/screenshot-timeout.sh 1>/dev/null 2>/dev/null &
+screen -S XenMonitor -X screen -t screenshot /etc/xen-monitor/screenshot-timeout.sh 1>$STDOUT 2>$STDERR
 test_last_command
 
 status "Updating iptables ... "

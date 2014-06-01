@@ -2,7 +2,7 @@
 
 set -e
 
-FONTFILE="Ubuntu-L.ttf"
+FONTFILE="/etc/xen-monitor/Ubuntu-L.ttf"
 
 IMAGES="/srv/xen-monitor/images"
 IMAGESTMP="$IMAGES/tmp"
@@ -18,8 +18,8 @@ mkdir -p $IMAGESTMP
     VMNAME="$(xe vm-param-get param-name=name-label uuid=${VMUUID})"
     if [[ ${VMDOMID} -gt 0 ]]; then
       P="$(($(xenstore-read /local/domain/${VMDOMID}/console/vnc-port) - 5900))"
-      vncdo -s localhost:${P} capture ${IMAGESTMP}/${VMNAME}-full.png
-      cwebp -quiet -q 30 ${IMAGESTMP}/${VMNAME}-full.png -o ${IMAGESTMP}/${VMNAME}-full.webp
+      /usr/local/bin/python2.7 /usr/local/bin/vncdo -s localhost:${P} capture ${IMAGESTMP}/${VMNAME}-full.png
+      /usr/local/bin/cwebp -quiet -q 30 ${IMAGESTMP}/${VMNAME}-full.png -o ${IMAGESTMP}/${VMNAME}-full.webp
       JSON="$JSON,{\"name\":\"${VMNAME}\","
       JSON="$JSON\"uuid\":\"${VMUUID}\","
       JSON="$JSON\"full\":\"/images/${VMNAME}-full.png\","
@@ -31,7 +31,7 @@ mkdir -p $IMAGESTMP
   echo $JSON > ${IMAGES}/images.json
 )
 
-cat <<PY | python2.7 -
+cat <<PY | /usr/local/bin/python2.7 -
 import os, glob, time, math, Image, ImageFont, ImageDraw
 now = time.strftime("%H:%M:%S", time.gmtime(time.time() + 8 * 3600))
 files = glob.glob('$IMAGESTMP/*-full.png')
