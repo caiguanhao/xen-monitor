@@ -33,21 +33,21 @@
                     ng-show="colorStats.success"></span>
                 </a>
                 <a href="/#/" class="progress-bar progress-bar-warning"
-                  ng-click="cached.opensearch=true;cached.search='warning';"
+                  ng-click="saved.opensearch=true;saved.search='warning';"
                   style="width: {{colorStats.warningPercent}}%">
                   <span ng-bind="colorStats.warning"
                     ng-show="colorStats.warning"></span>
                 </a>
                 <a href="/#/" class="progress-bar progress-bar-danger"
-                  ng-click="cached.opensearch=true;
-                  cached.search='warning danger';"
+                  ng-click="saved.opensearch=true;
+                  saved.search='warning danger';"
                   style="width: {{colorStats.dangerPercent}}%">
                   <span ng-bind="colorStats.danger"
                     ng-show="colorStats.danger"></span>
                 </a>
                 <a href="/#/" class="progress-bar progress-bar-dead-auto"
-                  ng-click="cached.opensearch=true;
-                  cached.search='warning danger dead';"
+                  ng-click="saved.opensearch=true;
+                  saved.search='warning danger dead';"
                   style="width: {{colorStats.deadPercent}}%">
                   <span ng-bind="colorStats.dead"
                     ng-show="colorStats.dead"></span>
@@ -82,7 +82,7 @@
     </footer>
   </script>
   <script type="text/ng-template" id="main">
-    <div class="row show-range-{{range}}">
+    <div class="row show-range-{{saved.range}}">
       <div class="col-sm-12">
         <div class="form-inline">
           <div class="form-group toolbar-group">
@@ -98,51 +98,51 @@
                   <span class="hidden-xs">Paused</span></span></button>
               </div>
               <div class="btn-group btn-group-sm toolbar">
-                <button class="btn btn-default" ng-click="show=0"
-                  ng-class="{active:show===0}">
+                <button class="btn btn-default" ng-click="saved.show=0"
+                  ng-class="{active:saved.show===0}">
                   <span class="glyphicon glyphicon-globe"></span>
                   <span class="hidden-xs">IP Address</span></button>
-                <button class="btn btn-default" ng-click="show=1"
-                  ng-class="{active:show===1}">
+                <button class="btn btn-default" ng-click="saved.show=1"
+                  ng-class="{active:saved.show===1}">
                   <span class="glyphicon glyphicon-signal"></span>
                   <span class="hidden-xs">Speed</span></button>
               </div>
               <div class="btn-group btn-group-sm toolbar">
-                <button class="btn btn-default" ng-click="type='L'"
-                  ng-class="{active:type==='L'}">
+                <button class="btn btn-default" ng-click="saved.type='L'"
+                  ng-class="{active:saved.type==='L'}">
                   <span class="glyphicon glyphicon-cloud-upload"></span>
                   <span class="hidden-xs">LLKS</span></button>
-                <button class="btn btn-default" ng-click="type='U'"
-                  ng-class="{active:type==='U'}">
+                <button class="btn btn-default" ng-click="saved.type='U'"
+                  ng-class="{active:saved.type==='U'}">
                   <span class="glyphicon glyphicon-cloud-upload"></span>
                   <span class="hidden-xs"></span></button>
-                <button class="btn btn-default" ng-click="type='D'"
-                  ng-class="{active:type==='D'}">
+                <button class="btn btn-default" ng-click="saved.type='D'"
+                  ng-class="{active:saved.type==='D'}">
                   <span class="glyphicon glyphicon-cloud-download"></span>
                   </button>
               </div>
               <div class="btn-group btn-group-sm toolbar">
                 <button class="btn btn-default" ng-click="openMClickCheck()"
-                  ng-class="{active:mclick==='check'}">
+                  ng-class="{active:saved.mclick==='check'}">
                   <span class="glyphicon glyphicon-check"></span></button>
                 <button class="btn btn-default" ng-click="openMClickRDP()"
-                  ng-class="{active:mclick==='rdp'}">
+                  ng-class="{active:saved.mclick==='rdp'}">
                   <span class="glyphicon glyphicon-new-window"></span></button>
               </div>
               <div class="btn-group btn-group-sm toolbar">
                 <button class="btn btn-default" ng-click="openSearch()"
-                  ng-class="{active:cached.opensearch,
-                  'btn-success':cached.search}">
+                  ng-class="{active:saved.opensearch,
+                  'btn-success':saved.search}">
                   <span class="glyphicon glyphicon-search"></span></button>
               </div>
-              <div class="input-group search-input" ng-show="cached.opensearch">
+              <div class="input-group search-input" ng-show="saved.opensearch">
                 <div class="input-group-btn btn-group-sm">
                   <button type="button" class="btn btn-default"
-                    ng-click="cached.search=null;openSearch();">
+                    ng-click="saved.search=null;openSearch();">
                     <span class="glyphicon glyphicon-remove"></span></button>
                 </div>
                 <input type="text" class="form-control input-sm search-input"
-                  placeholder="Search IP address..." ng-model="cached.search"
+                  placeholder="Search IP address..." ng-model="saved.search"
                   focus="focusSearch">
                 <div class="input-group-btn btn-group-sm"
                   ng-class="{open:searchList}">
@@ -153,15 +153,15 @@
                     Lists <span class="caret"></span></button>
                   <ul class="dropdown-menu pull-right lists-dropdown"
                     ng-click="searchList=false">
-                    <li><a href ng-click="cached.search='warning'">
+                    <li><a href ng-click="saved.search='warning'">
                       <span class="text-warning">Warning</span></a></li>
-                    <li><a href ng-click="cached.search='danger'">
+                    <li><a href ng-click="saved.search='danger'">
                       <span class="text-danger">Danger</span></a></li>
-                    <li><a href ng-click="cached.search='dead'">
+                    <li><a href ng-click="saved.search='dead'">
                       <span class="text-dead">Dead</span></a></li>
                     <li class="divider"></li>
                     <li ng-repeat="K in lists.K"><a href ng-bind="K"
-                      ng-click="cached.search=lists.V[$index]"></a></li>
+                      ng-click="saved.search=lists.V[$index]"></a></li>
                     <li class="divider" ng-show="lists.K"></li>
                     <li><a href="/#/edit-lists">
                       <span class="glyphicon glyphicon-edit"></span>
@@ -170,31 +170,31 @@
                 </div>
               </div>
               <div class="btn-group btn-group-sm toolbar hidden-xs"
-                ng-hide="cached.opensearch">
-                <button class="btn btn-default" ng-click="range='all'"
-                  ng-class="{active:range==='all'}">
+                ng-hide="saved.opensearch">
+                <button class="btn btn-default" ng-click="saved.range='all'"
+                  ng-class="{active:saved.range==='all'}">
                   <span class="glyphicon glyphicon-asterisk"></span></button>
-                <button class="btn btn-default" ng-click="range=0"
-                  ng-class="{active:range===0}">0
+                <button class="btn btn-default" ng-click="saved.range=0"
+                  ng-class="{active:saved.range===0}">0
                   <span class="badge" ng-bind="rangeStats[0]"></span></button>
-                <button class="btn btn-default" ng-click="range=4"
-                  ng-class="{active:range===4}">4
+                <button class="btn btn-default" ng-click="saved.range=4"
+                  ng-class="{active:saved.range===4}">4
                   <span class="badge" ng-bind="rangeStats[4]"></span></button>
-                <button class="btn btn-default" ng-click="range=7"
-                  ng-class="{active:range===7}">7
+                <button class="btn btn-default" ng-click="saved.range=7"
+                  ng-class="{active:saved.range===7}">7
                   <span class="badge" ng-bind="rangeStats[7]"></span></button>
-                <button class="btn btn-default" ng-click="range=10"
-                  ng-class="{active:range===10}">10
+                <button class="btn btn-default" ng-click="saved.range=10"
+                  ng-class="{active:saved.range===10}">10
                   <span class="badge" ng-bind="rangeStats[10]"></span></button>
-                <button class="btn btn-default" ng-click="range=11"
-                  ng-class="{active:range===11}">11
+                <button class="btn btn-default" ng-click="saved.range=11"
+                  ng-class="{active:saved.range===11}">11
                   <span class="badge" ng-bind="rangeStats[11]"></span></button>
-                <button class="btn btn-default" ng-click="range=12"
-                  ng-class="{active:range===12}">12M+
+                <button class="btn btn-default" ng-click="saved.range=12"
+                  ng-class="{active:saved.range===12}">12M+
                   <span class="badge" ng-bind="rangeStats[12]"></span></button>
               </div>
-              <div ng-hide="cached.opensearch" class="select-range">
-                <select class="form-control input-sm" ng-model="range">
+              <div ng-hide="saved.opensearch" class="select-range">
+                <select class="form-control input-sm" ng-model="saved.range">
                   <option value="all">All</option>
                   <option value="0" ng-bind="'0 ('+rangeStats[0]+')'"></option>
                   <option value="4" ng-bind="'4 ('+rangeStats[4]+')'"></option>
@@ -211,7 +211,7 @@
           </div>
         </div>
       </div>
-      <div class="col-sm-12" ng-show="mclick==='check'">
+      <div class="col-sm-12" ng-show="saved.mclick==='check'">
         <form class="form-inline toolbar" ng-submit="execute(command)">
           <a class="btn btn-sm btn-default"
             ng-class="{disabled:!cached.checked.list.length}"
@@ -262,7 +262,7 @@
       </div>
 
       <div stats-collection>
-        <div class="col-sm-12 stats range-{{allServers[host].R}} mclick-{{mclick}}"
+        <div class="col-sm-12 stats range-{{allServers[host].R}} mclick-{{saved.mclick}}"
           ng-repeat="host in allServerHosts" data-host="{{host}}"
           search="host+','+allServers[host].K+allServers[host].SC">
           <div class="progress stat">
@@ -283,15 +283,15 @@
     </div>
     <div class="row" ng-show="totalStats.HC">
       <div class="col-xs-6 col-sm-2 col-sm-offset-2 stat-text">
-        <h4 ng-bind="totalStats[type+'T']"></h4>
+        <h4 ng-bind="totalStats[saved.type+'T']"></h4>
         <small>total {{typetext}}</small>
       </div>
       <div class="col-xs-6 col-sm-2 stat-text">
-        <h4 ng-bind="totalStats[type+'HA']"></h4>
+        <h4 ng-bind="totalStats[saved.type+'HA']"></h4>
         <small>{{typetext}} per host</small>
       </div>
       <div class="col-xs-6 col-sm-2 stat-text">
-        <h4 ng-bind="totalStats[type+'VMA']"></h4>
+        <h4 ng-bind="totalStats[saved.type+'VMA']"></h4>
         <small>{{typetext}} per VM</small>
       </div>
       <div class="col-xs-6 col-sm-2 stat-text">
@@ -314,28 +314,34 @@
         <span class="glyphicon glyphicon-chevron-down"></span> Next</a>
     </div>
     <div class="btn-group btn-group-xs">
-      <button class="btn btn-default" ng-click="cached.hostview='simple'"
-        ng-class="{active:cached.hostview==='simple'}">
+      <button class="btn btn-default" ng-click="saved.hostview='simple'"
+        ng-class="{active:saved.hostview==='simple'}">
         Simple</button>
-      <button class="btn btn-default" ng-click="cached.hostview='monitor'"
-        ng-class="{active:cached.hostview==='monitor'}">
+      <button class="btn btn-default" ng-click="saved.hostview='monitor'"
+        ng-class="{active:saved.hostview==='monitor'}">
         Monitor</button>
     </div>
-    <div class="btn-group btn-group-xs" ng-show="cached.hostview==='monitor'">
-      <button class="btn btn-default" ng-click="cached.screenImageFormat='webp'"
-        ng-class="{active:cached.screenImageFormat==='webp'}">
+    <div class="btn-group btn-group-xs" ng-show="saved.hostview==='monitor'">
+      <button class="btn btn-default" ng-click="saved.screenImageFormat='webp'"
+        ng-class="{active:saved.screenImageFormat==='webp'}">
         WebP</button>
-      <button class="btn btn-default" ng-click="cached.screenImageFormat='png'"
-        ng-class="{active:cached.screenImageFormat==='png'}">
+      <button class="btn btn-default" ng-click="saved.screenImageFormat='png'"
+        ng-class="{active:saved.screenImageFormat==='png'}">
         PNG</button>
     </div>
-    <div ng-switch on="cached.hostview">
+    <div class="btn-group btn-group-xs" ng-show="saved.hostview==='monitor'">
+      <button class="btn btn-default" ng-click="saved.columns=2"
+        ng-class="{active:saved.columns===2}">2 columns</button>
+      <button class="btn btn-default" ng-click="saved.columns=4"
+        ng-class="{active:saved.columns===4}">4 columns</button>
+    </div>
+    <div ng-switch on="saved.hostview">
       <div ng-switch-when="monitor">
         <div class="wide-text" ng-hide="VMs">
           Please wait while the host sends its statictics here...
         </div>
         <div class="row monitor-screens" ng-show="VMs">
-          <div class="col-xs-12 col-sm-6 monitor-screen" ng-repeat="VM in VMs.K">
+          <div class="col-xs-12 col-sm-{{12/saved.columns}} monitor-screen" ng-repeat="VM in VMs.K">
             <div class="screenshot loading">
               <div class="status">
                 <div class="col-sm-6 col-sm-offset-3">
@@ -595,11 +601,11 @@
             <div class="panel-heading">Image Quality</div>
             <div class="panel-body">
               <div class="btn-group btn-group-xs">
-                <button class="btn btn-default" ng-click="cached.screenImageFormat='webp'"
-                  ng-class="{active:cached.screenImageFormat==='webp'}">
+                <button class="btn btn-default" ng-click="saved.screenImageFormat='webp'"
+                  ng-class="{active:saved.screenImageFormat==='webp'}">
                   WebP</button>
-                <button class="btn btn-default" ng-click="cached.screenImageFormat='png'"
-                  ng-class="{active:cached.screenImageFormat==='png'}">
+                <button class="btn btn-default" ng-click="saved.screenImageFormat='png'"
+                  ng-class="{active:saved.screenImageFormat==='png'}">
                   PNG</button>
               </div>
             </div>

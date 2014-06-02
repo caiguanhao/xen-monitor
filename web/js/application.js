@@ -75,10 +75,10 @@ directive('totalProgressBar', [function() {
     link: function($scope, elem, attrs) {
       $scope.$on('totalProgressBarChanged', function() {
         if (!$scope.VMs) return;
-        var t = $scope.$parent.type;
+        var t = $scope.$parent.saved.type;
         elem[0].className = 'progress-bar progress-bar-'+$scope.VMs['T' + t + 'C'];
         elem.css('width', $scope.VMs['T' + t + 'P'] + '%');
-        elem.text($scope.$parent.show ? $scope.VMs['T' + t + 'T'] : $scope.ip);
+        elem.text($scope.$parent.saved.show ? $scope.VMs['T' + t + 'T'] : $scope.ip);
       });
       $scope.$emit('totalProgressBarChanged');
     }
@@ -94,10 +94,10 @@ directive('progressBar', [function() {
     },
     link: function($scope, elem, attrs) {
       $scope.$on('progressBarChanged', function() {
-        var i = $scope.index, t = $scope.$parent.type;
+        var i = $scope.index, t = $scope.$parent.saved.type;
         elem[0].className = 'progress-bar progress-bar-'+$scope.VMs[t + 'C'][i];
         elem.css('width', $scope.VMs[t + 'P'][i] + '%');
-        elem.text($scope.$parent.show ? $scope.VMs[t + 'T'][i] : $scope.ip);
+        elem.text($scope.$parent.saved.show ? $scope.VMs[t + 'T'][i] : $scope.ip);
       });
       $scope.$emit('progressBarChanged');
     }
@@ -153,10 +153,10 @@ directive('mlink', ['$parse', function($parse) {
   return function($scope, elem, attrs) {
     $scope.$on('changeMLink', function() {
       elem.unbind('click');
-      var type = $scope.mclick
-      if (type === 'rdp') {
+      var mclick = $scope.saved.mclick
+      if (mclick === 'rdp') {
         elem.attr('href', attrs.rdp);
-      } else if (type === 'check') {
+      } else if (mclick === 'check') {
         elem.attr('href', '');
         elem.bind('click', function(e) {
           e.preventDefault();
@@ -197,7 +197,7 @@ directive('search', [function() {
     },
     link: function($scope, elem, attrs) {
       $scope.$on('newSearch', function() {
-        var s = $scope.$parent.cached.search;
+        var s = $scope.$parent.saved.search;
         var match = false;
         if (s) {
           var ss = s.split(/\s+/);
@@ -314,40 +314,39 @@ factory('Socket', ['$window', 'ASSETS', 'LocalSettings', 'Servers', '$location',
 
 service('LocalSettings', ['$window', function($window) {
   var lskey = 'XenMonApp.LocalSettings';
-  this.getLocalSettings = function(defaultSettings) {
-    var LS = defaultSettings;
-    try {
-      var _LS;
-      _LS = angular.fromJson($window.localStorage[lskey]);
-      if (_LS.type !== undefined) LS.type = _LS.type;
-      if (_LS.show !== undefined) LS.show = _LS.show;
-      if (_LS.range !== undefined) LS.range = _LS.range;
-      if (_LS.mclick !== undefined) LS.mclick = _LS.mclick;
-    } catch(e) {}
-    return LS;
+  var saved = null;
+  try {
+    saved = angular.fromJson($window.localStorage[lskey]);
+  } catch(e) {}
+
+  this.cached = {
+    live: true,
+    password: '',
+    cmdindex: 0
   };
-  this.saveLocalSettings = function($scope) {
-    var LS = {
-      type: $scope.type, show: $scope.show, range: $scope.range,
-      mclick: $scope.mclick
-    };
-    try {
-      $window.localStorage[lskey] = angular.toJson(LS);
-    } catch(e) {
-      delete $window.localStorage[lskey];
-    }
+  this.saved = angular.extend({
+    range: 'all',
+    show: 0,
+    type: 'U',
+    mclick: null,
+    search: '',
+    opensearch: false,
+    hostview: 'simple',
+    screenImageFormat: 'webp',
+    columns: 2
+  }, saved);
+
+  this.giveSavedToScope = function($scope) {
+    $scope.saved = this.saved;
+    $scope.$watch('saved', function(newval, oldval) {
+      try {
+        $window.localStorage[lskey] = angular.toJson($scope.saved);
+      } catch(e) {
+        delete $window.localStorage[lskey];
+      }
+    }, true);
   };
-  this.getSearch = function($scope) {
-    $scope.cached.search = $window.localStorage[lskey + '.Search'];
-    if ($scope.cached.search) $scope.cached.opensearch = true;
-  };
-  this.saveSearch = function($scope) {
-    if (typeof $scope.cached.search === 'string') {
-      $window.localStorage[lskey + '.Search'] = $scope.cached.search;
-    } else {
-      delete $window.localStorage[lskey + '.Search'];
-    }
-  };
+
   this.rawLists = '';
   this.lists = {};
   this.parseListsCallback = null;
@@ -370,13 +369,6 @@ service('LocalSettings', ['$window', function($window) {
       this.lists.V.push(matches[i].replace(/[\t\s\r\n]+/g, ' ').trim());
     }
     if (this.parseListsCallback) this.parseListsCallback();
-  };
-  this.cached = {
-    live: true,
-    hostview: 'simple',
-    password: '',
-    screenImageFormat: 'webp',
-    cmdindex: 0
   };
 }]).
 
@@ -857,42 +849,42 @@ service('MainControllerHotKeys', ['hotkeys', function(hotkeys) {
     });
     hotkeys.add({
       combo: 'i', description: 'Show IP address / Speed text',
-      callback: function() { $scope.show = $scope.show === 0 ? 1 : 0; }
+      callback: function() { $scope.saved.show = $scope.saved.show === 0 ? 1 : 0; }
     });
     hotkeys.add({
       combo: 'u', description: 'Show LLKS / Upload / Download speed',
       callback: function() {
         var types = [ 'L', 'U', 'D' ];
-        var i = types.indexOf($scope.type) + 1;
-        $scope.type = types[i + 1 > types.length ? 0 : i];
+        var i = types.indexOf($scope.saved.type) + 1;
+        $scope.saved.type = types[i + 1 > types.length ? 0 : i];
       }
     });
     hotkeys.add({
       combo: 'm', description: 'Enable / Disable multiple selections',
       callback: function() {
-        $scope.mclick = $scope.mclick === 'check' ? null : 'check';
+        $scope.saved.mclick = $scope.saved.mclick === 'check' ? null : 'check';
       }
     });
     hotkeys.add({
       combo: 'r', description: 'Enable / Disable RDP links',
       callback: function() {
-        $scope.mclick = $scope.mclick === 'rdp' ? null : 'rdp';
+        $scope.saved.mclick = $scope.saved.mclick === 'rdp' ? null : 'rdp';
       }
     });
     hotkeys.add({
       combo: 's', description: 'Enable / Disable search',
       callback: function() {
-        $scope.cached.opensearch = !$scope.cached.opensearch;
+        $scope.saved.opensearch = !$scope.saved.opensearch;
       }
     });
     hotkeys.add({
       combo: '`', description: 'Show all VMs',
-      callback: function() { $scope.range = 'all'; }
+      callback: function() { $scope.saved.range = 'all'; }
     });
     this.ranges.forEach(function(range) {
       hotkeys.add({
         combo: range[0], description: 'Show VMs with ' + range[2] + ' upload speed',
-        callback: function() { $scope.range = range[1]; }
+        callback: function() { $scope.saved.range = range[1]; }
       });
     });
   };
@@ -917,6 +909,7 @@ controller('MainController', ['$scope', 'Socket', 'Servers', 'LocalSettings',
     $scope.lists = LocalSettings.lists;
   };
   LocalSettings.parseListsCallback();
+  LocalSettings.giveSavedToScope($scope);
   $scope.cached = LocalSettings.cached;
   $timeout(function() {
     $scope.$broadcast('newSearch');
@@ -931,55 +924,48 @@ controller('MainController', ['$scope', 'Socket', 'Servers', 'LocalSettings',
     if (!$scope.cached.live) return;
     Servers.updateServers(host, angular.fromJson(data));
     $scope.$apply();
-    if ($scope.cached.search) $scope.$broadcast('newSearch');
+    if ($scope.saved.search) $scope.$broadcast('newSearch');
     $scope.$broadcast('totalProgressBarChanged');
     $scope.$broadcast('progressBarChanged');
   });
-  $scope.$watch('range', function() {
-    LocalSettings.saveLocalSettings($scope);
-  });
   var onShowOrTypeChanged = function() {
-    LocalSettings.saveLocalSettings($scope);
     $scope.$broadcast('totalProgressBarChanged');
     $scope.$broadcast('progressBarChanged');
   };
-  $scope.$watch('show', onShowOrTypeChanged);
+  $scope.$watch('saved.show', onShowOrTypeChanged);
   var TYPES = { D: 'download', U: 'upload', L: 'llks upload' };
-  $scope.$watch('type', function(val) {
+  $scope.$watch('saved.type', function(val) {
     $scope.typetext = TYPES[val];
     onShowOrTypeChanged();
   });
-  $scope.$watch('mclick', function(val) {
+  $scope.$watch('saved.mclick', function(val) {
     $scope.$broadcast('changeMLink', val);
-    LocalSettings.saveLocalSettings($scope);
   });
-  LocalSettings.getSearch($scope);
-  $scope.$watch('cached.search', function(val) {
-    if (val === undefined) return;
-    $scope.range = 'all';
+  $scope.$watch('saved.search', function(val, oldval) {
+    if (val === undefined || val === oldval) return;
+    $scope.saved.range = 'all';
     $scope.$broadcast('newSearch');
-    LocalSettings.saveSearch($scope);
   });
   $scope.openSearch = function(val) {
-    $scope.cached.opensearch = !$scope.cached.opensearch;
-    if ($scope.cached.opensearch === true) {
+    $scope.saved.opensearch = !$scope.saved.opensearch;
+    if ($scope.saved.opensearch === true) {
       $scope.cached.live = false;
     }
     $scope.$emit('focusSearch');
   };
   $scope.openMClickCheck = function() {
-    if ($scope.mclick === 'check') {
-      $scope.mclick = null;
+    if ($scope.saved.mclick === 'check') {
+      $scope.saved.mclick = null;
     } else {
       $scope.cached.live = false;
-      $scope.mclick = 'check';
+      $scope.saved.mclick = 'check';
     }
   };
   $scope.openMClickRDP = function() {
-    if ($scope.mclick === 'rdp') {
-      $scope.mclick = null;
+    if ($scope.saved.mclick === 'rdp') {
+      $scope.saved.mclick = null;
     } else {
-      $scope.mclick = 'rdp';
+      $scope.saved.mclick = 'rdp';
     }
   };
   $scope.commands = Servers.COMMANDS;
@@ -1061,14 +1047,12 @@ controller('MainController', ['$scope', 'Socket', 'Servers', 'LocalSettings',
     Socket.emit('ExecuteCommandMultiple', $scope.cached.password,
       command.command, targets);
   };
-  angular.extend($scope, LocalSettings.getLocalSettings({
-    range: 4, show: 0, type: 'U', mclick: null
-  }));
 }]).
 
 controller('HostController', ['$scope', '$routeParams', 'Socket', 'Servers',
   'LocalSettings',
   function($scope, $routeParams, Socket, Servers, LocalSettings) {
+  LocalSettings.giveSavedToScope($scope);
   $scope.cached = LocalSettings.cached;
   $scope.host = $routeParams.host;
   $scope.VMs = Servers.allServers[$scope.host];
@@ -1176,13 +1160,14 @@ controller('HostController', ['$scope', '$routeParams', 'Socket', 'Servers',
   $scope.montage = 'http://' + $scope.host + ':54321/images/montage.png';
   $scope.screenshotUrl = function(vm) {
     return 'http://' + $scope.host + ':54321/images/' + vm + '-full.' +
-      $scope.cached.screenImageFormat;
+      $scope.saved.screenImageFormat;
   };
 }]).
 
 controller('VMController', ['$scope', '$routeParams', 'Socket', 'Servers',
   'LocalSettings', '$interpolate',
   function($scope, $routeParams, Socket, Servers, LocalSettings, $interpolate) {
+  LocalSettings.giveSavedToScope($scope);
   $scope.cached = LocalSettings.cached;
   $scope.host = $routeParams.host;
   $scope.vm = $routeParams.vm;
@@ -1265,7 +1250,7 @@ controller('VMController', ['$scope', '$routeParams', 'Socket', 'Servers',
   };
 
   $scope.screenshot = 'http://' + $scope.host + ':54321/images/' +
-    $scope.vm + '-full.' + $scope.cached.screenImageFormat;
+    $scope.vm + '-full.' + $scope.saved.screenImageFormat;
 }]).
 
 controller('EditListsController', ['$scope', 'LocalSettings', 'Socket',
