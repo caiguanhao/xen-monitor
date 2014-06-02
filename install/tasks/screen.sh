@@ -46,6 +46,7 @@ for origline in $DIST; do
     fi
     Host="${line[0]}"
     Password="${line[1]}"
+    CMD="${CMD//\{\{HOSTIP\}\}/$Host}"
     screen -S install $SCREENARGS \
       $DIRNAME/ssh.sh \
         -h "$Host" \

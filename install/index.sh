@@ -29,7 +29,11 @@ case $1 in
 install)
 VERBOSE=0
 IFS=''
-CMD="$(cat ${DIRNAME}/install.sh)"
+CMD="
+$(cat ${DIRNAME}/install.sh)
+echo \"Wait 10 seconds to exit.\"
+sleep 10
+"
 UseScreen
 exit 0
 ;;
@@ -47,6 +51,8 @@ sed -i -e 's/^LISTENPASSWD=.*$/LISTENPASSWD=\"${LISTENPASSWD}\"/' \
        -e 's/^DESTPORT=.*$/DESTPORT=\"${DESTPORT}\"/' \
        -e 's/^WINDOWSUSERNAME=.*$/WINDOWSUSERNAME=\"${WINDOWSUSERNAME}\"/' \
        -e 's/^WINDOWSPASSWORD=.*$/WINDOWSPASSWORD=\"${WINDOWSPASSWORD}\"/' \
+       -e 's/^REMOTEHOST=.*$/REMOTEHOST=\"${REMOTEHOST}\"/' \
+       -e 's/^HOSTIP=.*$/HOSTIP=\"{{HOSTIP}}\"/' \
        /etc/xen-monitor/deploy.sh
 chmod 700 /etc/xen-monitor/deploy.sh
 /etc/xen-monitor/deploy.sh $([[ $VERBOSE -eq 1 ]] && echo -v)

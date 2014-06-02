@@ -5,6 +5,8 @@ DESTIP="127.0.0.1"
 DESTPORT="8124"
 WINDOWSUSERNAME="administrator"
 WINDOWSPASSWORD="ExamplePassword"
+REMOTEHOST="127.0.0.1"
+HOSTIP="127.0.0.1"
 
 for argument in "$@"; do
   case "$argument" in
@@ -177,6 +179,23 @@ sed -i '/# run xen-monitor - start/,/# run xen-monitor - end/d' /etc/rc.local
 echo "# run xen-monitor - start
 /etc/xen-monitor/start.sh
 # run xen-monitor - end" >> /etc/rc.local
+test_last_command
+
+status "Writing index.html ... "
+test -f /opt/xensource/www/XenCenter.iso && {
+  mv /opt/xensource/www /opt/xensource/www-old 1>$STDOUT 2>$STDERR
+}
+mkdir -p /opt/xensource/www 1>$STDOUT 2>$STDERR
+URL="http://${REMOTEHOST}/host/${HOSTIP}"
+echo "<html>
+  <title>${HOSTIP}</title>
+  <meta http-equiv=\"refresh\" content=\"0; url=$URL\">
+<head>
+</head>
+<body>
+  <p>Redirecting to <a href=\"$URL\">$URL</a>.</p>
+</body>
+</html>" > /opt/xensource/www/index.html
 test_last_command
 
 echo -e "\033[32mDone.\033[0m"

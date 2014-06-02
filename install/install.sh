@@ -153,13 +153,17 @@ test -f /usr/local/bin/pip || {
   test_last_command
 }
 
-status "Installing PIL ... "
-/usr/local/bin/pip install PIL --allow-external PIL --allow-unverified PIL 1>$STDOUT 2>$STDERR
-test_last_command
+test -d /usr/local/lib/python2.7/site-packages/PIL || {
+  status "Installing PIL ... "
+  /usr/local/bin/pip install PIL --allow-external PIL --allow-unverified PIL 1>$STDOUT 2>$STDERR
+  test_last_command
+}
 
-status "Installing vncdotool ... "
-/usr/local/bin/pip install vncdotool 1>$STDOUT 2>$STDERR
-test_last_command
+test -d /usr/local/lib/python2.7/site-packages/vncdotool || {
+  status "Installing vncdotool ... "
+  /usr/local/bin/pip install vncdotool 1>$STDOUT 2>$STDERR
+  test_last_command
+}
 
 test -f /usr/local/nginx/sbin/nginx || {
   status "Downloading nginx ... "
