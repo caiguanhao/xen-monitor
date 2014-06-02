@@ -8,28 +8,43 @@ IMAGES="/srv/xen-monitor/images"
 IMAGESTMP="$IMAGES/tmp"
 rm -f $IMAGESTMP/*
 mkdir -p $IMAGESTMP
+_IFS=$IFS
 
-(
-  JSON="[{\"name\":\"info\",\"time\":\"`date +%s`\"},"
-  JSON="$JSON{\"name\":\"montage\",\"full\":\"/images/montage.png\"}"
-  IFS=$','
-  for VMUUID in $(xe vm-list params=uuid --minimal); do
-    VMDOMID="$(xe vm-param-get param-name=dom-id uuid=${VMUUID})"
-    VMNAME="$(xe vm-param-get param-name=name-label uuid=${VMUUID})"
-    if [[ ${VMDOMID} -gt 0 ]]; then
-      P="$(($(xenstore-read /local/domain/${VMDOMID}/console/vnc-port) - 5900))"
-      /usr/local/bin/python2.7 /usr/local/bin/vncdo -s localhost:${P} capture ${IMAGESTMP}/${VMNAME}-full.png
-      /usr/local/bin/cwebp -quiet -q 30 ${IMAGESTMP}/${VMNAME}-full.png -o ${IMAGESTMP}/${VMNAME}-full.webp
-      JSON="$JSON,{\"name\":\"${VMNAME}\","
-      JSON="$JSON\"uuid\":\"${VMUUID}\","
-      JSON="$JSON\"full\":\"/images/${VMNAME}-full.png\","
-      JSON="$JSON\"webp\":\"/images/${VMNAME}-full.webp\","
-      JSON="$JSON\"mini\":\"/images/${VMNAME}-mini.png\"}"
-    fi
-  done
-  JSON="$JSON]"
-  echo $JSON > ${IMAGES}/images.json
-)
+JSON="[
+  {
+    \"name\": \"info\",
+    \"time\": \"`date +%s`\"
+  },
+  {
+    \"name\": \"montage\",
+    \"full\": \"/images/montage.png\"
+  }"
+IFS=$','
+for VMUUID in $(xe vm-list params=uuid --minimal); do
+  VMDOMID="$(xe vm-param-get param-name=dom-id uuid=${VMUUID})"
+  VMNAME="$(xe vm-param-get param-name=name-label uuid=${VMUUID})"
+  if [[ ${VMDOMID} -gt 0 ]]; then
+    P="$(($(xenstore-read /local/domain/${VMDOMID}/console/vnc-port) - 5900))"
+    D="${IMAGESTMP}/${VMNAME}"
+    /usr/local/bin/python2.7 /usr/local/bin/vncdo -s localhost:${P} capture $D-full.png
+    /usr/local/bin/cwebp -quiet -q 30 $D-full.png -o $D-full.webp
+    /usr/local/bin/cwebp -quiet -resize 255 0 -q 30 $D-full.png -o $D-small.webp
+    mv $IMAGESTMP/* $IMAGES
+    JSON="$JSON,
+  {
+    \"name\": \"${VMNAME}\",
+    \"uuid\": \"${VMUUID}\",
+    \"full\": \"/images/${VMNAME}-full.png\",
+    \"webp\": \"/images/${VMNAME}-full.webp\",
+    \"small\": \"/images/${VMNAME}-small.png\",
+    \"mini\": \"/images/${VMNAME}-mini.png\"
+  }"
+  fi
+done
+JSON="$JSON
+]"
+IFS=$_IFS
+echo "$JSON" > ${IMAGES}/images.json
 
 cat <<PY | /usr/local/bin/python2.7 -
 import os, glob, time, math, Image, ImageFont, ImageDraw
