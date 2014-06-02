@@ -758,6 +758,9 @@ service('Servers', ['$filter', function($filter) {
     VM.W   = 100;
     VM.R   = this.rangeBySpeed(totalUpload);
 
+    VM.SSS = [];  // small screenshot
+    VM.MSS = 'http://' + host + ':54321/images/montage.png';
+
     var i, c = 0;
     for (i = length - 1; i > -1 ; i--) {
       var llksPercent = Math.floor(VM.L[i] / topLLKSUpload * 100);
@@ -781,6 +784,8 @@ service('Servers', ['$filter', function($filter) {
       var PS = this.POWERSTATES[VM.S[i]] ? VM.S[i] : 'U';
       VM.PS.unshift(this.POWERSTATES[PS]);
       VM.PSC.unshift(this.colorByPowerState(PS));
+
+      VM.SSS.unshift('http://' + host + ':54321/images/' + VM.K[i] + '-small.webp');
 
       c++;
     }

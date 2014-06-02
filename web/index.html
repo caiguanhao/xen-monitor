@@ -110,6 +110,9 @@
                   ng-class="{active:saved.show===2}">
                   <span class="glyphicon glyphicon-th-large"></span>
                   <span class="hidden-xs">Screens</span></button>
+                <button class="btn btn-default" ng-click="saved.show=3"
+                  ng-class="{active:saved.show===3}">
+                  <span class="glyphicon glyphicon-th"></span></button>
               </div>
               <div class="btn-group btn-group-sm toolbar">
                 <button class="btn btn-default" ng-click="saved.type='L'"
@@ -277,8 +280,7 @@
               <div progress-bar="allServers[host]" index="$index" ip="VM"></div>
             </a>
           </div>
-
-          <div class="screens">
+          <div class="screens monitor-screens" ng-if="saved.show===2">
             <div class="col-xs-12 col-sm-3 monitor-screen" ng-repeat="VM in allServers[host].K">
               <div class="screenshot loading">
                 <div class="status">
@@ -290,26 +292,55 @@
                     </div>
                   </div>
                 </div>
-                <div class="error"><span
-                  class="glyphicon glyphicon-exclamation-sign"></span>
+                <div class="error"><span class="glyphicon glyphicon-exclamation-sign"></span>
                   No screenshot available for
-                  <a href="/#/host/{{host}}/vm/{{VM}}" ng-bind="VM"></a>.</div>
+                  <a mlink check="mselect(host, VM)" rdp="xen-monitor-rdp://{{VM}}"
+                    ng-class="{checked:cached.checked.items[host].indexOf(VM)>-1}"
+                    default="/#/host/{{host}}/vm/{{VM}}" class="scrplink" ng-bind="VM"></a>.</div>
                 <div class="content">
-                  <a href="/#/host/{{host}}/vm/{{VM}}">
-                    <img screenshot="'http://' + host + ':54321/images/' + VM + '-small.' +
-                      saved.screenImageFormat" class="img-responsive">
+                  <a class="scrlink" mlink check="mselect(host, VM)"
+                    rdp="xen-monitor-rdp://{{VM}}" default="/#/host/{{host}}/vm/{{VM}}"
+                    ng-class="{checked:cached.checked.items[host].indexOf(VM)>-1}">
+                    <img screenshot="allServers[host].SSS[$index]" class="img-responsive">
                   </a>
                 </div>
                 <div class="info">
-                  <a href="/#/host/{{host}}/vm/{{VM}}" ng-bind="VM"></a>
+                  <span ng-bind="VM"></span>
                 </div>
               </div>
             </div>
           </div>
-
+          <div class="montage" ng-if="saved.show===3">
+            <div class="col-xs-12">
+              <div class="screenshot screenshot-montage loading">
+                <div class="status">
+                  <div class="col-sm-6 col-sm-offset-3">
+                    <div class="progress progress-striped active">
+                      <div class="progress-bar" style="width: 100%">
+                        <span>Loading screenshot...</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="error"><span class="glyphicon glyphicon-exclamation-sign"></span>
+                  No screenshot available for
+                  <a mlink rdp="xen-monitor-rdp://{{allServers[host].K+''}}"
+                    check="mselect(host, allServers[host].K)"
+                    ng-class="{checked:cached.checked.items[host]}"
+                    default="/#/host/{{host}}" ng-bind="host" class="scrplink"></a>.</div>
+                <div class="content">
+                  <a mlink rdp="xen-monitor-rdp://{{allServers[host].K+''}}"
+                    check="mselect(host, allServers[host].K)" class="scrlink"
+                    ng-class="{checked:cached.checked.items[host]}"
+                    default="/#/host/{{host}}">
+                    <img screenshot="allServers[host].MSS" class="img-montage img-responsive">
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-
     </div>
     <div class="row" ng-show="totalStats.HC">
       <div class="col-xs-6 col-sm-2 col-sm-offset-2 stat-text">

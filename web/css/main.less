@@ -176,11 +176,18 @@ a.progress-bar {
 }
 
 .mclick-check {
-  .vm-progress {
+  .vm-progress, .scrlink {
+    display: block;
     opacity: 0.3;
   }
-  .vm-progress.checked {
+  .vm-progress.checked, .scrlink.checked {
     opacity: 1.0;
+  }
+  .scrplink {
+    text-decoration: line-through;
+  }
+  .scrplink.checked {
+    text-decoration: none;
   }
 }
 
@@ -209,7 +216,7 @@ a.progress-bar {
 }
 
 .search-input {
-  width: 300px !important;
+  width: 250px !important;
   margin-bottom: 5px;
 }
 
@@ -369,13 +376,13 @@ a.progress-bar {
 }
 
 .show {
-  .progress, .screens {
+  .stat.progress, .screens, .montage {
     display: none;
   }
 }
 
 .show-0, .show-1 {
-  .progress {
+  .stat.progress {
     display: block;
   }
 }
@@ -383,5 +390,20 @@ a.progress-bar {
 .show-2 {
   .screens {
     display: block;
+  }
+  .stats {
+    padding: 0;
+  }
+}
+
+.show-3 {
+  .montage {
+    display: block;
+  }
+  .stats {
+    padding: 0;
+  }
+  .screenshot-montage {
+    padding-bottom: 0;
   }
 }
