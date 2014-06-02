@@ -531,6 +531,10 @@ service('Servers', ['$filter', function($filter) {
     }
   ];
   this.COMMANDGroups = [ 'Key', 'Mouse', 'Power', 'Combination' ];
+  this.findCommandByShortName = function(name) {
+    var ret = $filter('filter')(this.COMMANDS, { short: name }, true);
+    return ret ? ret[0] : null;
+  };
   this.colorBySpeed = function(speed) {
     if (speed > 2048000) return 'success';
     if (speed > 1024000) return 'warning';
@@ -1142,6 +1146,30 @@ controller('HostController', ['$scope', '$routeParams', 'Socket', 'Servers',
         Servers.freezeVMs[vm] = Servers.freezeVMs[vm] || {};
         Servers.freeze(Servers.freezeVMs[vm], command);
       });
+    }
+  };
+  $scope.Custom = function(action) {
+    $scope.checked = $scope.VMs.K.map(function(val, index) {
+      if (action === 1) {
+        return $scope.VMs.U[index] > 2.8 * 1024 * 1024;
+      } else if (action === 2) {
+        return $scope.VMs.U[index] < 3 * 1024 * 1024;
+      }
+      return false;
+    });
+    var command;
+    if (action === 1) {
+      command = Servers.findCommandByShortName('F2');
+    } else if (action === 2) {
+      command = Servers.findCommandByShortName('F3');
+    }
+    if (command) {
+      $scope.command = command;
+      setTimeout(function() {
+        if (!$scope.btnExecuteDisabled()) {
+          $scope.execute($scope.command);
+        }
+      }, 300);
     }
   };
 

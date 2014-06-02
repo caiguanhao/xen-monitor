@@ -364,7 +364,7 @@
       </div>
       <div ng-switch-when="simple">
         <table class="table table-striped table-host">
-          <thead>
+          <thead class="pointer" ng-click="$parent.checkedall=!$parent.checkedall">
             <tr>
               <th><input type="checkbox" ng-model="$parent.checkedall"
                 ng-hide="checkedVMs===null"></th>
@@ -378,7 +378,8 @@
             </tr>
           </thead>
           <tbody>
-            <tr ng-repeat="VM in VMs.K">
+            <tr ng-repeat="VM in VMs.K" class="pointer"
+              ng-click="checked[$index]=!checked[$index]">
               <td>
                 <input type="checkbox" ng-model="checked[$index]">
               </td>
@@ -439,6 +440,12 @@
         </div>
         <form class="form-inline" ng-submit="execute(command)"
           ng-show="checked&&!freeze.frozen">
+          <span class="btn-group btn-group-sm">
+            <button type="button" class="btn btn-sm btn-default"
+              ng-disabled="!VMs" ng-click="Custom(1)">&gt; 2.8M &amp; F2</button>
+            <button type="button" class="btn btn-sm btn-default"
+              ng-disabled="!VMs" ng-click="Custom(2)">&lt; 3M &amp; F3</button>
+          </span>
           <select class="form-control input-sm" ng-model="command"
             ng-change="cached.cmdindex=commands.indexOf(command)"
             ng-options="cmd.text group by cmd.group for cmd in commands | filter:{hideInSelect:'!true'}">
