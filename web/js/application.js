@@ -564,7 +564,6 @@ service('Servers', ['$filter', function($filter) {
   };
   this.rangeBySpeed = function(speed) {
     if (speed > 12582912) return 12;
-    if (speed > 11534336) return 11;
     if (speed > 10485760) return 10;
     if (speed > 7340032) return 7;
     if (speed > 4194304) return 4;
@@ -640,7 +639,7 @@ service('Servers', ['$filter', function($filter) {
     var rS = this.rangeStats;
     var tS = this.totalStats;
     cS.success = 0; cS.warning = 0; cS.danger = 0; cS.dead = 0;
-    rS['12']   = 0; rS['11']   = 0; rS['10']  = 0;
+    rS['12']   = 0; rS['10']  = 0;
     rS['7']    = 0; rS['4']    = 0; rS['0']   = 0;
     tS.HC      = 0; tS.VMC     = 0; tS.L      = 0; tS.U      = 0; tS.D    = 0;
     var now = +new Date;
@@ -829,9 +828,8 @@ service('MainControllerHotKeys', ['hotkeys', function(hotkeys) {
     [ '1',  0, '0-4M'   ],
     [ '2',  4, '4-7M'   ],
     [ '3',  7, '7-10M'  ],
-    [ '4', 10, '10-11M' ],
-    [ '5', 11, '11-12M' ],
-    [ '6', 12, '12M+'   ]
+    [ '4', 10, '10-12M' ],
+    [ '5', 12, '12M+'   ]
   ];
   this.unapply = function() {
     [ 'p', 'i', 'u', 'm', 'r', 's', '`' ].forEach(function(key) {
