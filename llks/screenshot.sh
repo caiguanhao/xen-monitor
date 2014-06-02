@@ -49,7 +49,7 @@ echo "$JSON" > ${IMAGES}/images.json
 cat <<PY | /usr/local/bin/python2.7 -
 import os, glob, time, math, Image, ImageFont, ImageDraw
 now = time.strftime("%H:%M:%S", time.gmtime(time.time() + 8 * 3600))
-files = glob.glob('$IMAGESTMP/*-full.png')
+files = glob.glob('$IMAGES/*-full.png')
 files.sort(key=lambda file: int(file.replace('-','.').split('.')[-3]))
 cols = 4
 rows = int(math.ceil(float(len(files)) / cols))

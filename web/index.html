@@ -106,6 +106,10 @@
                   ng-class="{active:saved.show===1}">
                   <span class="glyphicon glyphicon-signal"></span>
                   <span class="hidden-xs">Speed</span></button>
+                <button class="btn btn-default" ng-click="saved.show=2"
+                  ng-class="{active:saved.show===2}">
+                  <span class="glyphicon glyphicon-th-large"></span>
+                  <span class="hidden-xs">Screens</span></button>
               </div>
               <div class="btn-group btn-group-sm toolbar">
                 <button class="btn btn-default" ng-click="saved.type='L'"
@@ -261,7 +265,7 @@
         </div>
       </div>
 
-      <div stats-collection>
+      <div stats-collection class="show show-{{saved.show}}">
         <div class="col-sm-12 stats range-{{allServers[host].R}} mclick-{{saved.mclick}}"
           ng-repeat="host in allServerHosts" data-host="{{host}}"
           search="host+','+allServers[host].K+allServers[host].SC">
@@ -278,8 +282,39 @@
               <div progress-bar="allServers[host]" index="$index" ip="VM"></div>
             </a>
           </div>
+
+          <div class="screens">
+            <div class="col-xs-12 col-sm-3 monitor-screen" ng-repeat="VM in allServers[host].K">
+              <div class="screenshot loading">
+                <div class="status">
+                  <div class="col-sm-6 col-sm-offset-3">
+                    <div class="progress progress-striped active">
+                      <div class="progress-bar" style="width: 100%">
+                        <span>Loading screenshot...</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="error"><span
+                  class="glyphicon glyphicon-exclamation-sign"></span>
+                  No screenshot available for
+                  <a href="/#/host/{{host}}/vm/{{VM}}" ng-bind="VM"></a>.</div>
+                <div class="content">
+                  <a href="/#/host/{{host}}/vm/{{VM}}">
+                    <img screenshot="'http://' + host + ':54321/images/' + VM + '-small.' +
+                      saved.screenImageFormat" class="img-responsive">
+                  </a>
+                </div>
+                <div class="info">
+                  <a href="/#/host/{{host}}/vm/{{VM}}" ng-bind="VM"></a>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
+
     </div>
     <div class="row" ng-show="totalStats.HC">
       <div class="col-xs-6 col-sm-2 col-sm-offset-2 stat-text">
