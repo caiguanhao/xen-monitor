@@ -508,6 +508,18 @@ service('Servers', ['$filter', function($filter) {
       short:   'Reboot',
       hostOnly: true
     }, {
+      group:   'Disk',
+      command: 'detach',
+      text:    'Detach D: drive',
+      short:   'Detach D:',
+      glyphicon: 'minus'
+    }, {
+      group:   'Disk',
+      command: 'attach',
+      text:    'Attach D: drive',
+      short:   'Attach D:',
+      glyphicon: 'plus'
+    }, {
       group:   'Combination',
       command: 'login',
       text:    'Log into Windows',
@@ -522,7 +534,7 @@ service('Servers', ['$filter', function($filter) {
       glyphicon: 'edit'
     }
   ];
-  this.COMMANDGroups = [ 'Key', 'Mouse', 'Power', 'Combination' ];
+  this.COMMANDGroups = [ 'Key', 'Mouse', 'Power', 'Disk', 'Combination' ];
   this.findCommandByShortName = function(name) {
     var ret = $filter('filter')(this.COMMANDS, { short: name }, true);
     return ret ? ret[0] : null;
