@@ -2,13 +2,21 @@
 
 set -e
 
+VERBOSE=0
+HOSTIP="127.0.0.1"
+
+HOSTIPTEXT="$HOSTIP"
+O=$((15 - ${#HOSTIPTEXT}))
+[[ $O -gt 0 ]] && HOSTIPTEXT="$HOSTIPTEXT$(printf '.%.0s' $(seq 1 1 $O))"
+
 test_last_command() {
   CODE=$?
   if [[ $VERBOSE -ne 1 ]]; then
+    echo -ne "\033[36m[$HOSTIPTEXT] \033[0m"
     if [[ $CODE -eq 0 ]]; then
-      echo -e "\033[32mOK\033[0m"
+      echo -e "${CURRENTSTATUS}\033[32mOK\033[0m"
     else
-      echo -e "\033[31mFAIL\033[0m"
+      echo -e "${CURRENTSTATUS}\033[31mFAIL\033[0m"
       exit $CODE
     fi
   else
@@ -19,11 +27,15 @@ test_last_command() {
   fi
 }
 
+CURRENTSTATUS=
+
 status() {
+  CURRENTSTATUS="$@"
   if [[ $VERBOSE -ne 1 ]]; then
-    printf "$@"
+    echo -ne "\033[36m[$HOSTIPTEXT] \033[0m"
+    echo "$CURRENTSTATUS"
   else
-    echo -e "\033[36m$@\033[0m"
+    echo -e "\033[36m$CURRENTSTATUS\033[0m"
   fi
 }
 
@@ -34,7 +46,7 @@ if [[ $VERBOSE -eq 1 ]]; then
   STDOUT=/dev/stdout
   STDERR=/dev/stderr
 else
-  echo -e "\033[32mOK\033[0m"
+  # echo -e "\033[32mOK\033[0m"
   STDOUT=/dev/null
   STDERR=/dev/null
 fi
@@ -189,4 +201,5 @@ test -f /usr/local/nginx/sbin/nginx || {
   test_last_command
 }
 
+echo -ne "\033[36m[$HOSTIPTEXT] \033[0m"
 echo -e "\033[32mDone.\033[0m"

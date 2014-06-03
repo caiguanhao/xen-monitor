@@ -20,6 +20,10 @@ Usage() {
 "
 }
 
+UseParallels() {
+  source "${DIRNAME}/tasks/parallels.sh"
+}
+
 UseScreen() {
   source "${DIRNAME}/tasks/screen.sh"
 }
@@ -30,11 +34,15 @@ install)
 VERBOSE=0
 IFS=''
 CMD="
+cat <<'INSTALL' > /etc/xen-monitor/install.sh
 $(cat ${DIRNAME}/install.sh)
-echo \"Wait 10 seconds to exit.\"
-sleep 10
+INSTALL
+sed -i 's/^HOSTIP=.*$/HOSTIP=\"{{HOSTIP}}\"/' \
+       /etc/xen-monitor/install.sh
+chmod 700 /etc/xen-monitor/install.sh
+/etc/xen-monitor/install.sh
 "
-UseScreen
+UseParallels
 exit 0
 ;;
 
@@ -56,10 +64,8 @@ sed -i -e 's/^LISTENPASSWD=.*$/LISTENPASSWD=\"${LISTENPASSWD}\"/' \
        /etc/xen-monitor/deploy.sh
 chmod 700 /etc/xen-monitor/deploy.sh
 /etc/xen-monitor/deploy.sh $([[ $VERBOSE -eq 1 ]] && echo -v)
-echo \"Wait 10 seconds to exit.\"
-sleep 10
 "
-UseScreen
+UseParallels
 exit 0
 ;;
 
@@ -123,7 +129,7 @@ for VM in \`xl list\`; do
   fi;
 done
 "
-source "${DIRNAME}/tasks/parallels.sh"
+UseParallels
 exit 0
 ;;
 

@@ -14,7 +14,7 @@ else
 fi
 [[ $CONFIRMSTART == "" ]] && read
 
-[[ $PARALLEL == "" ]] && PARALLEL=10
+[[ $PARALLEL == "" ]] && PARALLEL=20
 COUNT=0
 
 rm -f done
@@ -25,11 +25,13 @@ for origline in $DIST; do
   IFS=$' \t'
   line=($origline)
   if [[ ${#line[@]} -eq 2 ]]; then
-    ((sshpass -p "${line[1]}" ssh -o StrictHostKeyChecking=no \
+    Host="${line[0]}"
+    Password="${line[1]}"
+    COMMAND="${CMD//\{\{HOSTIP\}\}/$Host}"
+    ((sshpass -p "${Password}" ssh -o StrictHostKeyChecking=no \
       -o UserKnownHostsFile=/dev/null \
       -o LogLevel=error -o PubkeyAuthentication=no \
-      -n -t -t root@${line[0]} $CMD && echo $origline >> done) ;\
-      echo ... ${line[0]} ; echo) &
+      -n -t -t root@${Host} "$COMMAND" 2>/dev/null) && echo $origline >> done) &
     if [[ $RUNONEANDEXIT -eq 1 ]]; then
       break
     fi
