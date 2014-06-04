@@ -70,7 +70,8 @@ leave() {
   exit 1
 }
 
-case $2 in
+TASK="$2"
+case $TASK in
 get)
   convert_to_vncdo_command KEYCMD "${*:3}"
   COMMAND="$VNC key super-r pause 1 type get key space $KEYCMD key enter"
@@ -84,7 +85,9 @@ login)
   COMMAND="$COMMAND type $WINDOWSUSERNAME key alt-p $PASSWD key enter"
   ;;
 
-detach)
+detach|force-detach)
+  FORCE=
+  [[ $TASK == "force-detach" ]] && FORCE="--force"
   [[ $VMNAME == "" ]] && exit 1
   DISKNAME="DTP_Windows_2003_c"
   IFS=$','
@@ -100,7 +103,7 @@ detach)
   [[ ${#VDI[@]} -ne 1 ]] && leave "Can't find VDI."
   VM=($(xe vbd-list vm-name-label="${VMNAME}" vdi-name-label="${DISKNAME}" userdevice="${MAXDEVICE}" params=vm-uuid --minimal))
   [[ ${#VM[@]} -ne 1 ]] && leave "Can't find VM."
-  xe vbd-unplug uuid="${VBD[0]}" && xe vbd-destroy uuid="${VBD[0]}" && \
+  xe vbd-unplug uuid="${VBD[0]}" $FORCE && xe vbd-destroy uuid="${VBD[0]}" && \
   xe vdi-param-set name-label="${DISKNAME}_Pending" uuid="${VDI[0]}"
   CODE=$?
   if [[ $CODE -eq 0 ]]; then

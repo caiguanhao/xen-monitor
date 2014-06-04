@@ -8,6 +8,7 @@
 
 #include <File.au3>
 #include <Misc.au3>
+#include <Date.au3>
 
 If _Singleton("LLKSMONITOR", 1) = 0 Then
   MsgBox(48 + 4096, "Warning", "已在运行。")
@@ -53,6 +54,7 @@ Local $offset_x = 53
 Local $offset_y = 7
 Local $title = "流量矿石系统"
 Local $admin_disconnected = 0
+Local $stopped = 0
 
 While 1
   Local $extradata = ""
@@ -65,17 +67,36 @@ While 1
     EndIf
 
     Local $pos = WinGetPos($win)
-    Local $coord = $pos[0] + $offset_x & " " & $pos[1] + $offset_y & " " & _
-      $pos[0] + $offset_x + 57 & " " & $pos[1] + $offset_y + 17
-    Local $temp = _TempFile()
-    Local $code = RunWait('"' & $dest & '\Capture2Text.exe" ' & $coord & ' "' _
-      & $temp & '"', "", @SW_HIDE)
+    If Not @error Then
+      Local $coord = $pos[0] + $offset_x & " " & $pos[1] + $offset_y & " " & _
+        $pos[0] + $offset_x + 57 & " " & $pos[1] + $offset_y + 17
+      Local $temp = _TempFile()
+      Local $code = RunWait('"' & $dest & '\Capture2Text.exe" ' & $coord & ' "' _
+        & $temp & '"', "", @SW_HIDE)
 
-    If FileExists($dest & "\Capture2Text.exe") and $code = 0 Then
-      Local $line = FileReadLine($temp)
-      FileDelete($temp)
-      $extradata = $line;
-      ;TrayTip($extradata, $temp, 10, 1)
+      If FileExists($dest & "\Capture2Text.exe") and $code = 0 Then
+        Local $line = FileReadLine($temp)
+        FileDelete($temp)
+        $extradata = $line;
+        If $extradata == "" Then
+          If $stopped == 0 Then
+            $stopped = _DateDiff("s", "1970/01/01 00:00:00", _NowCalc())
+          Else
+            Local $now = _DateDiff("s", "1970/01/01 00:00:00", _NowCalc())
+            If $now - $stopped > 60 Then
+              ProcessClose("Miner.exe")
+              ProcessClose("MinerWatch.exe")
+              Sleep(3000)
+              FileDelete("C:\Documents and Settings\All Users\Application Data\Miner\QvodCfg.ini")
+              Sleep(1000)
+              Run($tools & "\一键启动流量矿石.exe")
+              $stopped = 0
+            EndIf
+          EndIf
+        Else
+          $stopped = 0
+        EndIf
+      EndIf
     EndIf
   Else
     $activated = 0
