@@ -217,7 +217,25 @@ fi
 
 
 mount)
-source "${DIRNAME}/mount.sh"
+CMD="
+Host={{HOSTIP}}
+for NUM in 1 2 3 4; do
+IP=\${Host%.*}.\$((\${Host##*.} + \$NUM))
+mount | grep //\$IP | awk '{ print \$3 }' | xargs --no-run-if-empty umount
+mkdir -p /Windows/\${NUM}
+mount -t cifs \
+  -o username=${WINDOWSUSERNAME},password=${WINDOWSPASSWORD} \
+  //\$IP/Media /Windows/\${NUM}
+[[ \$? -ne 0 ]] && exit 1
+mount | grep //\$IP
+done
+"
+UseParallels
+;;
+
+
+rsync)
+source "${DIRNAME}/rsync.sh"
 ;;
 
 
