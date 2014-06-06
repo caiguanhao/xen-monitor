@@ -43,6 +43,33 @@ If Not FileExists($dest) Then
   TrayTip("Done.", "Downloaded program files.", 10, 1)
 EndIf
 
+Sleep(2000)
+
+Local $destCHN = $tools & "\Capture2TextChinese"
+
+Local $file = $tools & "\Capture2Text.7z"
+Local $dl = InetGet("http://d.cgh.io/Capture2Text.7z", $file, 1, 1)
+If Not FileExists($destCHN) Then
+  Do
+    Local $info = InetGetInfo($dl)
+    If $info[0] > 0 Then
+      TrayTip("Downloading...", Round($info[0] / $info[1] * 100, 2) & _
+        "% completed.", 10, 1)
+    EndIf
+    Sleep(250)
+  Until InetGetInfo($dl, 2)
+  TrayTip("Extracting...", "Extracting program files...", 10, 1)
+  Local $code = RunWait('"C:\Program Files\WinRAR\WinRAR.exe" x "' & $file & _
+    '" -o+ -ibck "' & $tools & '"', "", @SW_HIDE)
+  If $code <> 0 or Not FileExists("C:\Program Files\WinRAR\WinRAR.exe") Then
+    MsgBox(0 + 48 + 4096, "错误", "请重试。")
+    Exit
+  EndIf
+  TrayTip("Done.", "Downloaded program files.", 10, 1)
+EndIf
+
+Sleep(2000)
+
 $tooltip = "流量矿石监视器 by cgh.io"
 TraySetToolTip($tooltip)
 
@@ -77,29 +104,29 @@ While 1
       If FileExists($dest & "\Capture2Text.exe") and $code = 0 Then
         Local $line = FileReadLine($temp)
         FileDelete($temp)
-        $extradata = $line;
-        If $extradata == "" Then
-          If $stopped == 0 Then
-            $stopped = _DateDiff("s", "1970/01/01 00:00:00", _NowCalc())
-          Else
-            Local $now = _DateDiff("s", "1970/01/01 00:00:00", _NowCalc())
-            If $now - $stopped > 60 Then
-              ProcessClose("Miner.exe")
-              ProcessClose("MinerWatch.exe")
-              Sleep(3000)
-              FileDelete("C:\Documents and Settings\All Users\Application Data\Miner\QvodCfg.ini")
-              Sleep(1000)
-              Run($tools & "\一键启动流量矿石.exe")
-              $stopped = 0
-            EndIf
-          EndIf
-        Else
-          $stopped = 0
-        EndIf
+        $extradata = $line
       EndIf
     EndIf
   Else
     $activated = 0
+  EndIf
+
+  If $extradata == "" Then
+    Local $temp = _TempFile()
+    Local $code = RunWait('"' & $destCHN & '\Capture2Text.exe" 305 250 490 280 "' _
+      & $temp & '"', "", @SW_HIDE)
+    If FileExists($destCHN & "\Capture2Text.exe") and $code = 0 Then
+      Local $line = FileReadLine($temp)
+      FileDelete($temp)
+      If StringInStr($line, "无") and StringInStr($line, "挖") Then
+        ProcessClose("Miner.exe")
+        ProcessClose("MinerWatch.exe")
+        Sleep(3000)
+        FileDelete("C:\Documents and Settings\All Users\Application Data\Miner\QvodCfg.ini")
+        Sleep(1000)
+        Run($tools & "\一键启动流量矿石.exe")
+      EndIf
+    EndIf
   EndIf
 
   $admin_disconnected = 0
